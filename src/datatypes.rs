@@ -1,8 +1,19 @@
 use std::rc::Rc;
 
-type Coordinate = i16;
+pub struct Coordinate{
+    pub x: i16,
+    pub y: i16,
+}
 
-struct Item {
+impl Coordinate {
+    pub fn in_rect(&self, a: &Coordinate, b: &Coordinate) -> bool{
+        self.x > a.x && self.x < b.x-1 && self.y > a.y && self.x < b.y-1
+    }
+
+    pub fn zero() -> Coordinate{Coordinate {x:0,y:0}}
+}
+
+pub  struct Item {
     name: String,
     quantity: u16,
 
@@ -15,25 +26,25 @@ struct Item {
     recording: Rc<Recording>
 }
 
-struct Building {
+pub  struct Building {
     name: String,
     facing: AbsoluteDirection,
 }
 
-enum AbsoluteDirection {
+pub  enum AbsoluteDirection {
     N, S, E, W,
 }
 
-enum RelativeDirection {
+pub  enum RelativeDirection {
     F, B, L, R
 }
 
-enum Direction {
+pub  enum Direction {
     Absolute(AbsoluteDirection),
     Relative(RelativeDirection),
 }
 
-enum Action {
+pub  enum Action {
     Move,
     Rotate(Direction),
     Take,
@@ -45,16 +56,15 @@ enum Action {
 }
 
 
-struct Recording {
+pub  struct Recording {
     command_list: Vec<Action>,
     equipment: Vec<Item>,
 }
 
 
 // A recording will probably be a partially-defined actor.
-struct Actor {
-    x: Coordinate,
-    y: Coordinate,
+pub  struct Actor {
+    location: Coordinate,
     facing: AbsoluteDirection,
     isplayer: bool,
     command_list: Vec<Action>,
@@ -62,16 +72,13 @@ struct Actor {
     equipment: Vec<Item>,
 }
 
-struct WorldCell {
-    actor: Option<Actor>,
-    building: Option<Building>,
-    items: Vec<Item>,
-    ground: bool,
+pub struct WorldCell {
+    pub actor: Option<Actor>,
+    pub building: Option<Building>,
+    pub items: Vec<Item>,
 }
 
-
-struct World {
-    length: Coordinate,
-    width: Coordinate,
-    data: Vec<Vec<WorldCell>>
+pub struct World {
+    pub dimensions: Coordinate,
+    pub data: Vec<Vec<WorldCell>>
 }
