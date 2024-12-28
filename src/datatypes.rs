@@ -44,6 +44,10 @@ pub  enum Direction {
     Relative(RelativeDirection),
 }
 
+pub struct ActionQueue {
+    q: Rc<Vec<Action>>
+}
+
 pub  enum Action {
     Move,
     Rotate(Direction),
@@ -57,8 +61,8 @@ pub  enum Action {
 
 
 pub  struct Recording {
-    command_list: Vec<Action>,
-    equipment: Vec<Item>,
+    command_list: ActionQueue,
+    equipment: Rc<Vec<Item>>,
 }
 
 
@@ -67,18 +71,34 @@ pub  struct Actor {
     location: Coordinate,
     facing: AbsoluteDirection,
     isplayer: bool,
-    command_list: Vec<Action>,
-    inventory: Vec<Item>,
-    equipment: Vec<Item>,
+    command_list: ActionQueue,
+    command_idx: u8,
+    inventory: Rc<Vec<Item>>,
+    equipment: Rc<Vec<Item>>,
 }
 
 pub struct WorldCell {
     pub actor: Option<Actor>,
     pub building: Option<Building>,
-    pub items: Vec<Item>,
+    pub items: Rc<Vec<Item>>,
 }
 
 pub struct World {
     pub dimensions: Coordinate,
-    pub data: Vec<Vec<WorldCell>>
+    pub data: rpds::Vector<WorldCell>,
+}
+
+impl World {
+    fn coord_to_idx(&self, location: Coordinate) -> usize{
+         (location.x + location.y * self.dimensions.x) as usize
+    }
+
+    pub fn get(&self, location: Coordinate) -> Option<&WorldCell> {
+        let zero =Coordinate::zero();
+        if location.in_rect(&zero, &self.dimensions) {
+            return Some(&self.data[self.coord_to_idx(location)]);
+        } else {
+            return None
+        }
+    }
 }
