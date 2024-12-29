@@ -1,4 +1,5 @@
-use crate::datatypes::{Coordinate, World, WorldCell};
+use crate::datatypes::Coordinate;
+use crate::world::{World, WorldCell};
 use crossterm::{
     cursor, queue, execute,
     style::{self, StyledContent, Stylize},
