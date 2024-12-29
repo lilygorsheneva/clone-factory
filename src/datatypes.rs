@@ -1,17 +1,40 @@
 use std::rc::Rc;
 use std::vec;
 use crate::action::Action;
-use crate::direction::AbsoluteDirection;
+use crate::direction::{AbsoluteDirection, Direction};
+use std::ops;
 
+#[derive(Clone, Copy)]
 pub struct Coordinate{
     pub x: i16,
     pub y: i16,
 }
 
-impl Coordinate {
-    pub fn new(x:i16, y:i16) -> Coordinate {
-        Coordinate{x:x, y:y}
+impl ops::Add<Coordinate> for Coordinate {
+    type Output = Coordinate;
+
+    fn add(self, _rhs: Coordinate) -> Coordinate {
+        Coordinate {
+            x:self.x + _rhs.x,
+            y:self.y + _rhs.y
+        }
     }
+}
+
+impl ops::Mul<AbsoluteDirection> for Coordinate {
+    type Output = Coordinate;
+
+    fn mul(self, _rhs: AbsoluteDirection) -> Coordinate {
+        match _rhs {
+            AbsoluteDirection::N=> Coordinate{x:self.x, y:self.y},
+            AbsoluteDirection::E=> Coordinate{x:self.y, y:-self.x},
+            AbsoluteDirection::S=> Coordinate{x:-self.x, y:-self.y},
+            AbsoluteDirection::W=> Coordinate{x:-self.y, y:self.x},
+        }  
+    }
+}
+
+impl Coordinate {
 
     pub fn in_rect(&self, a: &Coordinate, b: &Coordinate) -> bool{
         (self.x >= a.x && self.x < b.x && self.y >= a.y && self.x < b.y)
@@ -20,6 +43,7 @@ impl Coordinate {
     pub fn zero() -> Coordinate{Coordinate {x:0,y:0}}
 }
 
+#[derive(Clone)]
 pub  struct Item {
     name: String,
     quantity: u16,
@@ -39,6 +63,7 @@ pub  struct Building {
     facing: AbsoluteDirection,
 }
 
+#[derive(Clone)]
 pub struct ActionQueue {
     q: Rc<Vec<Action>>
 }
@@ -50,6 +75,7 @@ pub  struct Recording {
 
 
 // A recording will probably be a partially-defined actor.
+#[derive(Clone)]
 pub  struct Actor {
     facing: AbsoluteDirection,
     isplayer: bool,

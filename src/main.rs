@@ -13,7 +13,7 @@ fn main() {
 
     let center = Coordinate { x: 5, y: 5 };
     let mut world = World::init(Coordinate { x: 10, y: 10 });
-    world.spawn(Coordinate::new(5,5), Actor::new());
+    world = world.spawn(&Coordinate{x:5,y:5}, Actor::new()).unwrap();
 
 
     render::render(&world, &center);
