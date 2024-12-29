@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, vec};
 
 pub struct Coordinate{
     pub x: i16,
@@ -80,8 +80,19 @@ pub  struct Actor {
 pub struct WorldCell {
     pub actor: Option<Actor>,
     pub building: Option<Building>,
-    pub items: Rc<Vec<Item>>,
+    pub items: Vec<Item>,
 }
+
+impl WorldCell {
+    pub fn new() -> WorldCell {
+        WorldCell {
+            actor: None,
+            building: None,
+            items: Vec::new(),
+        }
+    }
+}
+
 
 pub struct World {
     pub dimensions: Coordinate,
@@ -100,5 +111,16 @@ impl World {
         } else {
             return None
         }
+    }
+
+    pub fn init(dimensions: Coordinate) -> World {
+        let mut datavec =rpds::Vector::new();
+        for i in 0..dimensions.x * dimensions.y {
+            datavec = datavec.push_back(WorldCell::new());
+        }
+        let mut new_world = World{
+            dimensions: dimensions,
+            data: datavec};
+        new_world
     }
 }
