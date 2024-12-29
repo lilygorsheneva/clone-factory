@@ -44,7 +44,7 @@ pub fn render(world: &World, center: &Coordinate) {
             let x=  centerx - i;
             let y = centery - j;
         
-            if let Some(cell) = world.get(Coordinate{x:x, y:y}) {
+            if let Some(cell) = world.get(&Coordinate{x:x, y:y}) {
                 // Render that Cell
                 queue!(
                     stdout,

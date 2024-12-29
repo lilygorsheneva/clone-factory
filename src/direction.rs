@@ -1,3 +1,4 @@
+#[derive(Copy, Clone)]
 pub enum AbsoluteDirection {
     N,
     S,
@@ -5,6 +6,7 @@ pub enum AbsoluteDirection {
     W,
 }
 
+#[derive(Copy, Clone)]
 pub enum RelativeDirection {
     F,
     B,
@@ -12,6 +14,7 @@ pub enum RelativeDirection {
     R,
 }
 
+#[derive(Copy, Clone)]
 pub enum Direction {
     Absolute(AbsoluteDirection),
     Relative(RelativeDirection),

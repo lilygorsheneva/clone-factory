@@ -1,4 +1,4 @@
-use datatypes::Coordinate;
+use datatypes::{Actor, Coordinate};
 use world::World;
 
 mod action;
@@ -12,7 +12,9 @@ fn main() {
     render::init_render();
 
     let center = Coordinate { x: 5, y: 5 };
-    let world = World::init(Coordinate { x: 10, y: 10 });
+    let mut world = World::init(Coordinate { x: 10, y: 10 });
+    world.spawn(Coordinate::new(5,5), Actor::new());
+
 
     render::render(&world, &center);
 

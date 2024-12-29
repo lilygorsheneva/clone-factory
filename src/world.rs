@@ -1,9 +1,10 @@
 use crate::datatypes::{Actor, Building, Item, Coordinate};
+use std::rc::Rc;
 
 pub struct WorldCell {
     pub actor: Option<Actor>,
     pub building: Option<Building>,
-    pub items: Vec<Item>,
+    pub items: Rc<Vec<Item>>,
 }
 
 impl WorldCell {
@@ -11,10 +12,12 @@ impl WorldCell {
         WorldCell {
             actor: None,
             building: None,
-            items: Vec::new(),
+            items: Vec::new().into(),
         }
     }
 }
+
+
 
 
 pub struct World {
@@ -23,13 +26,17 @@ pub struct World {
 }
 
 impl World {
-    fn coord_to_idx(&self, location: Coordinate) -> usize{
+    fn in_bounds(&self, location: &Coordinate) -> bool{
+        location.x >= 0 && location.x < self.dimensions.x && location.y >= 0 && location.y < self.dimensions.y 
+    }
+
+    fn coord_to_idx(&self, location: &Coordinate) -> usize{
          (location.x + location.y * self.dimensions.x) as usize
     }
 
-    pub fn get(&self, location: Coordinate) -> Option<&WorldCell> {
+    pub fn get(&self, location: &Coordinate) -> Option<&WorldCell> {
         // In_rect misbehaves for some reason.
-        if location.x >= 0 && location.x < self.dimensions.x && location.y >= 0 && location.y < self.dimensions.y {
+        if self.in_bounds(&location){
             return Some(&self.data[self.coord_to_idx(location)]);
         } else {
             return None
@@ -46,4 +53,21 @@ impl World {
             data: datavec
         }
     }
+
+    pub fn spawn(&mut self, location: Coordinate, actor: Actor) -> bool {
+        if !self.in_bounds(&location){
+            return false
+        } 
+        let target = self.get(&location).unwrap();
+        if target.actor.is_some() {
+            return false
+        }
+        self.data = self.data.set(self.coord_to_idx(&location),WorldCell{
+            actor:Some(actor),
+            building: target.building.clone(),
+            items: target.items.clone(),
+        }).expect("Failed to update world");
+        true
+    }
+
 }
