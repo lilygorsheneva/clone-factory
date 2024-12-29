@@ -1,5 +1,6 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent};
-use crate::datatypes::{AbsoluteDirection::{self, E, N, S, W}, Direction::Absolute, Action, SubAction};
+use crate::action::{Action, SubAction};
+use crate::direction::{AbsoluteDirection::{self, E, N, S, W}, Direction::Absolute};
 
 pub enum InputResult {
     Act(Action),

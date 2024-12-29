@@ -1,4 +1,6 @@
 use std::{rc::Rc};
+use crate::action::{Action};
+use crate::direction::{Direction, AbsoluteDirection};
 
 pub struct Coordinate{
     pub x: i16,
@@ -31,38 +33,9 @@ pub  struct Building {
     facing: AbsoluteDirection,
 }
 
-pub  enum AbsoluteDirection {
-    N, S, E, W,
-}
-
-pub  enum RelativeDirection {
-    F, B, L, R
-}
-
-pub  enum Direction {
-    Absolute(AbsoluteDirection),
-    Relative(RelativeDirection),
-}
-
 pub struct ActionQueue {
     q: Rc<Vec<Action>>
 }
-
-pub struct Action {
-    pub direction: Direction,
-    pub action: SubAction
-}
-
-pub  enum SubAction {
-    Move,
-    Take,
-    Drop,
-    Use(u8),
-    Craft(String),
-    Record,
-    EndRecording,
-}
-
 
 pub  struct Recording {
     command_list: ActionQueue,
