@@ -23,26 +23,27 @@ impl WorldCell {
 fn render(world: World, center: Coordinate) -> io::Result<()> {
     let mut stdout = io::stdout();
 
-    let zero = Coordinate::zero();
-    let (rows, cols) = terminal::size()?;
-    let (centerx, centery) = (cols/2, rows/2);
+    let size= terminal::size()?;
+    let rows = size.1 as i16;
+    let cols  = size.0 as i16; 
+    let (centerx, centery) = (cols/2 + center.x, rows/2 +center.y);
 
-    for i in 0..cols {
-        for j in 0..rows {
+    for i in 1..cols {
+        for j in 1..rows {
             let x=  i - centerx;
             let y = j - centery;
         
-            if let Some(cell) = world.get(Coordinate{x:x.try_into().unwrap(), y:y.try_into().unwrap()}) {
+            if let Some(cell) = world.get(Coordinate{x:x, y:y}) {
                 // Render that Cell
                 queue!(
                     stdout,
-                    cursor::MoveTo(x, y),
+                    cursor::MoveTo(i as u16, j as u16),
                     style::PrintStyledContent(cell.get_drawable())
                 )?;
             } else {
                 queue!(
                     stdout,
-                    cursor::MoveTo(x, y),
+                    cursor::MoveTo(i as u16, j as u16),
                     style::PrintStyledContent(" ".on_grey())
                 )?;
             }
