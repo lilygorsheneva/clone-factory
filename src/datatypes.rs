@@ -1,4 +1,4 @@
-use std::{rc::Rc, vec};
+use std::{rc::Rc};
 
 pub struct Coordinate{
     pub x: i16,

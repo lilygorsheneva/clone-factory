@@ -1,10 +1,10 @@
 use crate::datatypes::{Coordinate, World, WorldCell};
 use crossterm::{
     cursor, queue, execute,
-    style::{self, Attribute, Color, StyledContent, Stylize},
+    style::{self, StyledContent, Stylize},
     terminal::{size, enable_raw_mode, disable_raw_mode,EnterAlternateScreen, LeaveAlternateScreen},
 };
-use std::io::{self, stdout, Write};
+use std::io::{self, Write};
 
 impl WorldCell {
     fn get_drawable(&self) -> StyledContent<char> {
