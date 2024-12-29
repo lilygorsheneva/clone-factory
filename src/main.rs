@@ -18,7 +18,7 @@ fn main() {
         match input::readinput() {
             Some(input::InputResult::Exit) => break,
             Some(input::InputResult::Redraw) => render::render(&world, &center),
-            _ => Ok({}),
+            _ => {},
         };
     }
 

@@ -20,20 +20,20 @@ impl WorldCell {
     }
 }
 
-pub fn init_render() -> io::Result<()> {
-    execute!(io::stdout(), EnterAlternateScreen)?;
-    enable_raw_mode()
+pub fn init_render() {
+    execute!(io::stdout(), EnterAlternateScreen).unwrap();
+    enable_raw_mode().unwrap();
 }
 
-pub fn deinit_render() -> io::Result<()> {
-    execute!(io::stdout(), LeaveAlternateScreen)?;
-    disable_raw_mode()
+pub fn deinit_render() {
+    execute!(io::stdout(), LeaveAlternateScreen).unwrap();
+    disable_raw_mode().unwrap();
 }
 
-pub fn render(world: &World, center: &Coordinate) -> io::Result<()> {
+pub fn render(world: &World, center: &Coordinate) {
     let mut stdout = io::stdout();
 
-    let size= size()?;
+    let size= size().unwrap();
     let rows = size.1 as i16;
     let cols  = size.0 as i16; 
     let (centerx, centery) = (cols/2 + center.x, rows/2 +center.y);
@@ -49,17 +49,16 @@ pub fn render(world: &World, center: &Coordinate) -> io::Result<()> {
                     stdout,
                     cursor::MoveTo(i as u16, j as u16),
                     style::PrintStyledContent(cell.get_drawable())
-                )?;
+                ).unwrap();
             } else {
                 queue!(
                     stdout,
                     cursor::MoveTo(i as u16, j as u16),
                     style::PrintStyledContent(" ".on_grey())
-                )?;
+                ).unwrap();
             }
         }
     }
 
-    stdout.flush()?;
-    Ok(())
+    stdout.flush().unwrap();
 }
