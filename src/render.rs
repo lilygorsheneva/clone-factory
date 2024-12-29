@@ -30,7 +30,7 @@ pub fn deinit_render() -> io::Result<()> {
     disable_raw_mode()
 }
 
-pub fn render(world: World, center: Coordinate) -> io::Result<()> {
+pub fn render(world: &World, center: &Coordinate) -> io::Result<()> {
     let mut stdout = io::stdout();
 
     let size= size()?;
