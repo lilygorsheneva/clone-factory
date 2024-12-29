@@ -15,8 +15,8 @@ render::render(&world, &center);
 
 loop {
     match input::readinput() {
-        Ok(input::InputResult::Exit) => break,
-        Ok(input::InputResult::Redraw) => render::render(&world, &center),
+        Some(input::InputResult::Exit) => break,
+        Some(input::InputResult::Redraw) => render::render(&world, &center),
         _ => Ok({}),
     };
 }

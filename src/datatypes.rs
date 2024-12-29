@@ -48,9 +48,13 @@ pub struct ActionQueue {
     q: Rc<Vec<Action>>
 }
 
-pub  enum Action {
+pub struct Action {
+    pub direction: Direction,
+    pub action: SubAction
+}
+
+pub  enum SubAction {
     Move,
-    Rotate(Direction),
     Take,
     Drop,
     Use(u8),
