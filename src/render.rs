@@ -1,8 +1,8 @@
 use crate::datatypes::{Coordinate, World, WorldCell};
 use crossterm::{
-    cursor, queue,
+    cursor, queue, execute,
     style::{self, Attribute, Color, StyledContent, Stylize},
-    terminal,
+    terminal::{size, enable_raw_mode, disable_raw_mode,EnterAlternateScreen, LeaveAlternateScreen},
 };
 use std::io::{self, stdout, Write};
 
@@ -20,18 +20,28 @@ impl WorldCell {
     }
 }
 
-fn render(world: World, center: Coordinate) -> io::Result<()> {
+pub fn init_render() -> io::Result<()> {
+    execute!(io::stdout(), EnterAlternateScreen)?;
+    enable_raw_mode()
+}
+
+pub fn deinit_render() -> io::Result<()> {
+    execute!(io::stdout(), LeaveAlternateScreen)?;
+    disable_raw_mode()
+}
+
+pub fn render(world: World, center: Coordinate) -> io::Result<()> {
     let mut stdout = io::stdout();
 
-    let size= terminal::size()?;
+    let size= size()?;
     let rows = size.1 as i16;
     let cols  = size.0 as i16; 
     let (centerx, centery) = (cols/2 + center.x, rows/2 +center.y);
 
     for i in 1..cols {
         for j in 1..rows {
-            let x=  i - centerx;
-            let y = j - centery;
+            let x=  centerx - i;
+            let y = centery - j;
         
             if let Some(cell) = world.get(Coordinate{x:x, y:y}) {
                 // Render that Cell

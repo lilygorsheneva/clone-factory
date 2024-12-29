@@ -7,7 +7,7 @@ pub struct Coordinate{
 
 impl Coordinate {
     pub fn in_rect(&self, a: &Coordinate, b: &Coordinate) -> bool{
-        self.x > a.x && self.x < b.x-1 && self.y > a.y && self.x < b.y-1
+        (self.x >= a.x && self.x < b.x && self.y >= a.y && self.x < b.y)
     }
 
     pub fn zero() -> Coordinate{Coordinate {x:0,y:0}}
@@ -105,8 +105,8 @@ impl World {
     }
 
     pub fn get(&self, location: Coordinate) -> Option<&WorldCell> {
-        let zero =Coordinate::zero();
-        if location.in_rect(&zero, &self.dimensions) {
+        // In_rect misbehaves for some reason.
+        if location.x >= 0 && location.x < self.dimensions.x && location.y >= 0 && location.y < self.dimensions.y {
             return Some(&self.data[self.coord_to_idx(location)]);
         } else {
             return None
@@ -115,12 +115,12 @@ impl World {
 
     pub fn init(dimensions: Coordinate) -> World {
         let mut datavec =rpds::Vector::new();
-        for i in 0..dimensions.x * dimensions.y {
+        for i in 0..(dimensions.x * dimensions.y) {
             datavec = datavec.push_back(WorldCell::new());
         }
-        let mut new_world = World{
+        World{
             dimensions: dimensions,
-            data: datavec};
-        new_world
+            data: datavec
+        }
     }
 }
