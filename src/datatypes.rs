@@ -50,9 +50,8 @@ impl Coordinate {
         (self.x >= a.x && self.x < b.x && self.y >= a.y && self.x < b.y)
     }
 
-    pub fn zero() -> Coordinate {
-        Coordinate { x: 0, y: 0 }
-    }
+    pub const ZERO: Coordinate = Coordinate { x: 0, y: 0 };
+    
 }
 
 #[derive(Clone)]
@@ -90,12 +89,11 @@ pub struct Building {
     facing: AbsoluteDirection,
 }
 
-#[derive(Clone)]
 pub struct ActionQueue {
-    pub q: Rc<Vec<Action>>,
+    pub q: Vec<Action>,
 }
 
 pub struct Recording {
     command_list: ActionQueue,
-    equipment: Rc<Vec<Item>>,
+    equipment: Vec<Item>,
 }

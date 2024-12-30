@@ -1,12 +1,15 @@
 use crate::actor::{Actor,ActorRef};
+use crate::datatypes::Recording;
 use crate::{world::{World, WorldCell}, datatypes::Coordinate};
 use crate::actor::PlayerRef;
 use std::collections::VecDeque;
+use crate::db::{ActorDb, RecordingDb};
 
 pub struct WorldActors {
     pub player: Option<PlayerRef>,
     turnqueue: VecDeque<ActorRef>,
     nextturn: VecDeque<ActorRef>,
+    db: ActorDb,
 }
 
 impl WorldActors {
@@ -15,6 +18,7 @@ impl WorldActors {
             player: None,
             turnqueue: VecDeque::new(),
             nextturn: VecDeque::new(),
+            db: ActorDb::new(),
         }
     }
 }
@@ -22,13 +26,15 @@ impl WorldActors {
 pub struct Game {
     pub world: World,
     pub actors: WorldActors,
+    pub recordings: RecordingDb
 }
 
 impl Game {
     pub fn new(dimensions: Coordinate) -> Game{
         Game {
             world: World::new(dimensions),
-            actors: WorldActors::new()
+            actors: WorldActors::new(),
+            recordings: RecordingDb::new()
         }
     }
 
@@ -46,7 +52,7 @@ impl Game {
         }
         self.actors.player = Some(PlayerRef
             {
-                actor_ref: ActorRef{location:*location},
+                actor_ref: ActorRef::new(*location),
                 current_recording: Vec::new()
             });
         self.world.set(
@@ -58,5 +64,9 @@ impl Game {
             }),
         );
         true
+    }
+
+    pub fn get_player(&mut self) -> &mut ActorRef{
+        &mut self.actors.player.as_mut().unwrap().actor_ref
     }
 }

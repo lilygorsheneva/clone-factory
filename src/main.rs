@@ -10,6 +10,7 @@ mod input;
 mod render;
 mod world;
 mod game;
+mod db;
 
 fn main() {
     render::init_render();
