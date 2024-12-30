@@ -1,6 +1,6 @@
 use actor::{Actor, ActorRef};
 use datatypes::Coordinate;
-use world::World;
+use world::Game;
 
 mod action;
 mod datatypes;
@@ -13,20 +13,19 @@ mod actor;
 fn main() {
     render::init_render();
 
-    let mut world = World::init(Coordinate { x: 20, y: 10 });
+    let mut game = Game::new(Coordinate { x: 20, y: 10 });
 
-    let mut player_ref = ActorRef{location: Coordinate{x: 1, y:1}};
-    world = world.spawn(&player_ref.location, Actor::new()).unwrap();
+    game.spawn( &Coordinate{x:1, y:1});
 
-    render::render(&world, &player_ref.location);
+    render::render(&game.world, &game.get_player_coords());
 
     loop {
         match input::readinput() {
             Some(input::InputResult::Exit) => break,
-            Some(input::InputResult::Redraw) => render::render(&world, &player_ref.location),
+            Some(input::InputResult::Redraw) => render::render(&game.world, &game.get_player_coords()),
             Some(input::InputResult::Act(act)) => {
-                world = action::execute_action(&mut player_ref, act, world);
-                render::render(&world, &player_ref.location);
+                action::execute_action(&mut game.actors.player.as_mut().unwrap().actor_ref, act, &mut game.world);
+                render::render(&game.world, &game.get_player_coords());
             },
             _ => {}
         };

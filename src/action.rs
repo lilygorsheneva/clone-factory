@@ -20,7 +20,7 @@ pub enum SubAction {
     // EndRecording,
 }
 
-pub fn execute_action(actor_ref: &mut ActorRef, action: Action, world: World) -> World{
+pub fn execute_action(actor_ref: &mut ActorRef, action: Action, world: &mut World) {
     let cell = world.get(&actor_ref.location).unwrap();
     let actor = cell.actor.as_ref().unwrap();
     let orientation = actor.facing.rotate(&action.direction);
@@ -35,8 +35,8 @@ fn execute_move(
     actor_ref: &mut ActorRef,
     location: Coordinate,
     orientation: AbsoluteDirection,
-    world: World,
-) -> World {
+    world: &mut World,
+) {
     let offsets = vec![Coordinate { x: 0, y: 0 },Coordinate { x: 0, y: 1 }];
     let cells = world.getslice(location, orientation, &offsets);
 
@@ -45,7 +45,7 @@ fn execute_move(
 
     if dest.is_none() || dest.unwrap().actor.is_some() {
         // fail
-        world
+        return
     } else {
         let mut new_actor = src.actor.clone().unwrap();
         new_actor.facing = orientation;
@@ -64,7 +64,7 @@ fn execute_move(
 
         actor_ref.location = actor_ref.location + offsets[1] * orientation;
 
-        return world.setslice(
+        world.setslice(
             location,
             orientation,
             &offsets,

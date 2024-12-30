@@ -41,4 +41,15 @@ impl Actor {
             equipment: Vec::new().into()            
         }
     }
+
+    pub fn new_player() -> Actor{
+        Actor {
+            facing: AbsoluteDirection::N,
+            isplayer: true,
+            command_list: ActionQueue{q: Vec::new().into()},
+            command_idx: 0,
+            inventory: Vec::new().into(),
+            equipment: Vec::new().into()            
+        }
+    }
 }
