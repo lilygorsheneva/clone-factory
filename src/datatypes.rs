@@ -26,9 +26,9 @@ impl ops::Mul<AbsoluteDirection> for Coordinate {
     fn mul(self, _rhs: AbsoluteDirection) -> Coordinate {
         match _rhs {
             AbsoluteDirection::N=> Coordinate{x:self.x, y:self.y},
-            AbsoluteDirection::E=> Coordinate{x:self.y, y:-self.x},
+            AbsoluteDirection::E=> Coordinate{x:-self.y, y:self.x},
             AbsoluteDirection::S=> Coordinate{x:-self.x, y:-self.y},
-            AbsoluteDirection::W=> Coordinate{x:-self.y, y:self.x},
+            AbsoluteDirection::W=> Coordinate{x:self.y, y:-self.x},
         }  
     }
 }

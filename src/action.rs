@@ -37,7 +37,7 @@ fn execute_move(
     orientation: AbsoluteDirection,
     world: World,
 ) -> World {
-    let offsets = vec![Coordinate { x: 0, y: 0 },Coordinate { x: 1, y: 0 }];
+    let offsets = vec![Coordinate { x: 0, y: 0 },Coordinate { x: 0, y: 1 }];
     let cells = world.getslice(location, orientation, &offsets);
 
     let src = cells[0].unwrap();
