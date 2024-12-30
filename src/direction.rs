@@ -60,9 +60,9 @@ impl AbsoluteDirection {
         }
     }
 
-    pub fn rotate(&self, update: Direction) -> AbsoluteDirection {
+    pub fn rotate(&self, update: &Direction) -> AbsoluteDirection {
         match update {
-            Direction::Absolute(abs) => abs,
+            Direction::Absolute(abs) => *abs,
             Direction::Relative(rel) => AbsoluteDirection::from_int(rel.to_int() + self.to_int()),
         }
     }

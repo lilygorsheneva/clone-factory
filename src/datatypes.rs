@@ -1,7 +1,6 @@
 use std::rc::Rc;
-use std::vec;
 use crate::action::Action;
-use crate::direction::{AbsoluteDirection, Direction};
+use crate::direction::AbsoluteDirection;
 use std::ops;
 
 #[derive(Clone, Copy)]
@@ -77,12 +76,25 @@ pub  struct Recording {
 // A recording will probably be a partially-defined actor.
 #[derive(Clone)]
 pub  struct Actor {
-    facing: AbsoluteDirection,
+    pub facing: AbsoluteDirection,
     isplayer: bool,
     command_list: ActionQueue,
-    command_idx: u8,
+    command_idx: usize,
     inventory: Rc<Vec<Item>>,
     equipment: Rc<Vec<Item>>,
+}
+
+impl Actor {
+    pub fn get_action(&self) -> &Action{
+    match self.isplayer{
+        false => &self.command_list.q[self.command_idx],
+        true =>  panic!("Called get_action on player entity.")
+        }
+    }
+}
+
+pub struct ActorRef {
+    pub location: Coordinate
 }
 
 impl Actor {

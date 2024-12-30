@@ -3,8 +3,8 @@ use crate::{
     direction::AbsoluteDirection,
 };
 use core::panic;
-use std::{cmp::Ordering, rc::Rc, thread::panicking, vec};
 use itertools::Itertools;
+use std::{cmp::Ordering, rc::Rc, thread::panicking, vec};
 
 #[derive(Clone)]
 pub struct WorldCell {
@@ -70,7 +70,7 @@ impl World {
                 } else {
                     return World {
                         dimensions: self.dimensions,
-                        data: self.data.clone()
+                        data: self.data.clone(),
                     };
                 }
             }
@@ -93,32 +93,41 @@ impl World {
         if target.is_none_or(|t| t.actor.is_some()) {
             return None;
         }
-        Some(self.set(location,    Some(WorldCell {
-            actor: Some(actor),
-            building: target.unwrap().building.clone(),
-            items: target.unwrap().items.clone(),
-        })))
+        Some(self.set(
+            location,
+            Some(WorldCell {
+                actor: Some(actor),
+                building: target.unwrap().building.clone(),
+                items: target.unwrap().items.clone(),
+            }),
+        ))
     }
 
     pub fn getslice(
         &self,
         location: Coordinate,
         orientation: AbsoluteDirection,
-        offsets: Vec<Coordinate>,
+        offsets: &Vec<Coordinate>,
     ) -> Vec<Option<&WorldCell>> {
         let mut temp_vec = Vec::new();
-        for offset in offsets {
-            temp_vec.push(self.get(&(location + offset * orientation)));
+        for i in 0..offsets.len() {
+            temp_vec.push(self.get(&(location + offsets[i] * orientation)));
         }
         temp_vec
     }
 
     // Try to do this without clone() calls. Cannot move an object out of vec.
-    pub fn setslice(self, location: Coordinate, orientation: AbsoluteDirection, offsets: Vec<Coordinate>, data: Vec<Option<WorldCell>>) -> World {
+    pub fn setslice(
+        self,
+        location: Coordinate,
+        orientation: AbsoluteDirection,
+        offsets: &Vec<Coordinate>,
+        data: Vec<Option<WorldCell>>,
+    ) -> World {
         let mut res = self;
-        for i in 0..offsets.len(){
+        for i in 0..offsets.len() {
             res = (&res).set(&(location + offsets[i] * orientation), data[i].clone())
+        }
+        res
     }
-    res
-}
 }
