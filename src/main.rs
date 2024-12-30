@@ -1,6 +1,6 @@
-use actor::{Actor, ActorRef};
 use datatypes::{Coordinate, Item};
-use world::{Game, WorldCell};
+use world::{WorldCell};
+use game::Game;
 
 mod action;
 mod actor;
@@ -9,6 +9,7 @@ mod direction;
 mod input;
 mod render;
 mod world;
+mod game;
 
 fn main() {
     render::init_render();
