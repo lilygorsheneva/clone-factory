@@ -31,7 +31,7 @@ impl WorldCell {
 }
 
 pub fn init_render() {
-    execute!(io::stdout(), cursor::Hide, EnterAlternateScreen).unwrap();
+    execute!(io::stdout(),  cursor::SetCursorStyle::SteadyUnderScore, cursor::Hide, EnterAlternateScreen).unwrap();
     enable_raw_mode().unwrap();
 }
 
