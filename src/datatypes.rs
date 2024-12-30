@@ -64,48 +64,10 @@ pub  struct Building {
 
 #[derive(Clone)]
 pub struct ActionQueue {
-    q: Rc<Vec<Action>>
+    pub q: Rc<Vec<Action>>
 }
 
 pub  struct Recording {
     command_list: ActionQueue,
     equipment: Rc<Vec<Item>>,
-}
-
-
-// A recording will probably be a partially-defined actor.
-#[derive(Clone)]
-pub  struct Actor {
-    pub facing: AbsoluteDirection,
-    isplayer: bool,
-    command_list: ActionQueue,
-    command_idx: usize,
-    inventory: Rc<Vec<Item>>,
-    equipment: Rc<Vec<Item>>,
-}
-
-impl Actor {
-    pub fn get_action(&self) -> &Action{
-    match self.isplayer{
-        false => &self.command_list.q[self.command_idx],
-        true =>  panic!("Called get_action on player entity.")
-        }
-    }
-}
-
-pub struct ActorRef {
-    pub location: Coordinate
-}
-
-impl Actor {
-    pub fn new() -> Actor{
-        Actor {
-            facing: AbsoluteDirection::N,
-            isplayer: false,
-            command_list: ActionQueue{q: Vec::new().into()},
-            command_idx: 0,
-            inventory: Vec::new().into(),
-            equipment: Vec::new().into()            
-        }
-    }
 }

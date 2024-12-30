@@ -1,4 +1,4 @@
-use crate::datatypes::ActorRef;
+use crate::actor::ActorRef;
 use crate::datatypes::Coordinate;
 use crate::direction::AbsoluteDirection;
 use crate::direction::Direction;

@@ -1,5 +1,5 @@
-use action::Action;
-use datatypes::{Actor, ActorRef, Coordinate};
+use actor::{Actor, ActorRef};
+use datatypes::Coordinate;
 use world::World;
 
 mod action;
@@ -8,6 +8,7 @@ mod direction;
 mod input;
 mod render;
 mod world;
+mod actor;
 
 fn main() {
     render::init_render();

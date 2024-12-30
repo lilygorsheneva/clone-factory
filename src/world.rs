@@ -1,10 +1,10 @@
 use crate::{
-    datatypes::{Actor, Building, Coordinate, Item},
+    actor::Actor,
+    datatypes::{Building, Coordinate, Item},
     direction::AbsoluteDirection,
 };
 use core::panic;
-use itertools::Itertools;
-use std::{cmp::Ordering, rc::Rc, thread::panicking, vec};
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct WorldCell {
