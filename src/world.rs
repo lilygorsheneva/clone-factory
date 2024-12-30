@@ -1,10 +1,9 @@
 use crate::{
-    actor::{Actor, ActorRef},
+    actor::Actor,
     datatypes::{Building, Coordinate, Item},
     direction::AbsoluteDirection,
 };
 use core::panic;
-use std::{collections::VecDeque, rc::Rc};
 
 #[derive(Clone)]
 pub struct WorldCell {
@@ -73,7 +72,7 @@ impl World {
 
     pub fn new(dimensions: Coordinate) -> World {
         let mut datavec = rpds::Vector::new();
-        for i in 0..(dimensions.x * dimensions.y) {
+        for _ in 0..(dimensions.x * dimensions.y) {
             datavec = datavec.push_back(WorldCell::new());
         }
         World {

@@ -1,7 +1,6 @@
 use crate::action::Action;
 use crate::direction::AbsoluteDirection;
 use std::ops;
-use std::rc::Rc;
 
 #[derive(Clone, Copy)]
 pub struct Coordinate {

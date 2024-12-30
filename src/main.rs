@@ -1,5 +1,5 @@
 use datatypes::{Coordinate, Item};
-use world::{WorldCell};
+use world::WorldCell;
 use game::Game;
 
 mod action;

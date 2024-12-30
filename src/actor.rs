@@ -1,8 +1,6 @@
-use crate::action::Action;
-use crate::datatypes::{ActionQueue, Coordinate, Item};
+use crate::datatypes::{ Coordinate, Item};
 use crate::db::{ActorId, RecordingId};
 use crate::direction::AbsoluteDirection;
-use std::rc::Rc;
 
 // A recording will probably be a partially-defined actor.
 #[derive(Clone)]
