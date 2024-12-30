@@ -31,12 +31,12 @@ impl WorldCell {
 }
 
 pub fn init_render() {
-    execute!(io::stdout(), EnterAlternateScreen).unwrap();
+    execute!(io::stdout(), cursor::Hide, EnterAlternateScreen).unwrap();
     enable_raw_mode().unwrap();
 }
 
 pub fn deinit_render() {
-    execute!(io::stdout(), LeaveAlternateScreen).unwrap();
+    execute!(io::stdout(), cursor::Show, LeaveAlternateScreen).unwrap();
     disable_raw_mode().unwrap();
 }
 
@@ -46,7 +46,7 @@ pub fn render(world: &World, center: &Coordinate) {
     let size = size().unwrap();
     let (cols, rows) = (size.0 as i16, size.1 as i16);
     let (centerx, centery) = (cols / 2 + center.x, rows / 2 + center.y);
-
+execute!(stdout, BeginSynchronizedUpdate);
     for i in 0..cols {
         for j in 0..rows {
             let x = centerx - i;
@@ -72,4 +72,5 @@ pub fn render(world: &World, center: &Coordinate) {
     }
 
     stdout.flush().unwrap();
+    execute!(stdout, EndSynchronizedUpdate);
 }
