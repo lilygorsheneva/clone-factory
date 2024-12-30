@@ -1,4 +1,4 @@
-use crossterm::event::{self, Event, KeyCode, KeyEvent};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use crate::action::{Action, SubAction};
 use crate::direction::{AbsoluteDirection::{E, N, S, W}, RelativeDirection::F, Direction::{Absolute,Relative}};
 
@@ -21,6 +21,7 @@ match event.code {
 
 pub fn readinput() -> Option<InputResult> {
     match event::read() {
+        Ok(Event::Key(event)) if event.kind == KeyEventKind::Release => None,
         Ok(Event::Key(event)) if event.code == KeyCode::Esc => Some(InputResult::Exit),
         Ok(Event::Key(event)) => event_to_act(event),
         Ok(Event::Resize(_, _)) => Some(InputResult::Redraw),
