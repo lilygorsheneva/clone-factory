@@ -10,7 +10,7 @@ use std::{collections::VecDeque, rc::Rc};
 pub struct WorldCell {
     pub actor: Option<Actor>,
     pub building: Option<Building>,
-    pub items: Rc<Vec<Item>>,
+    pub items: [Option<Item>; 1],
 }
 
 impl WorldCell {
@@ -18,7 +18,7 @@ impl WorldCell {
         WorldCell {
             actor: None,
             building: None,
-            items: Vec::new().into(),
+            items: Default::default(),
         }
     }
 }

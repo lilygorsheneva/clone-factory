@@ -1,6 +1,6 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent};
 use crate::action::{Action, SubAction};
-use crate::direction::{AbsoluteDirection::{E, N, S, W}, Direction::Absolute};
+use crate::direction::{AbsoluteDirection::{E, N, S, W}, RelativeDirection::F, Direction::{Absolute,Relative}};
 
 pub enum InputResult {
     Act(Action),
@@ -14,6 +14,7 @@ match event.code {
     KeyCode::Right => Some(InputResult::Act(Action {direction: Absolute(E), action: SubAction::Move})),
     KeyCode::Up => Some(InputResult::Act(Action {direction: Absolute(N), action: SubAction::Move})),
     KeyCode::Down => Some(InputResult::Act(Action {direction: Absolute(S), action: SubAction::Move})),
+    KeyCode::Char('t') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Take})),
     _ => None,
 }
 }

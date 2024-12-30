@@ -10,8 +10,8 @@ pub  struct Actor {
     isplayer: bool,
     command_list: ActionQueue,
     command_idx: usize,
-    inventory: Rc<Vec<Item>>,
-    equipment: Rc<Vec<Item>>,
+    pub inventory: Vec<Item>,
+    equipment: Vec<Item>,
 }
 
 

@@ -5,7 +5,8 @@ use crossterm::{
     cursor, execute, queue,
     style::{self, StyledContent, Stylize},
     terminal::{
-        disable_raw_mode, enable_raw_mode, size, EnterAlternateScreen, LeaveAlternateScreen, BeginSynchronizedUpdate, EndSynchronizedUpdate
+        disable_raw_mode, enable_raw_mode, size, BeginSynchronizedUpdate, EndSynchronizedUpdate,
+        EnterAlternateScreen, LeaveAlternateScreen,
     },
 };
 use std::io::{self, Write};
@@ -13,16 +14,15 @@ use std::io::{self, Write};
 impl WorldCell {
     fn get_drawable(&self) -> StyledContent<char> {
         if self.actor.is_some() {
-            match self.actor.as_ref().unwrap().facing{
+            match self.actor.as_ref().unwrap().facing {
                 AbsoluteDirection::N => 'A'.white().on_black(),
                 AbsoluteDirection::S => 'V'.white().on_black(),
                 AbsoluteDirection::E => '>'.white().on_black(),
                 AbsoluteDirection::W => '<'.white().on_black(),
             }
-            
         } else if self.building.is_some() {
             'B'.white().on_black()
-        } else if !self.items.is_empty() {
+        } else if !self.items[0].is_none() {
             'i'.white().on_black()
         } else {
             ' '.on_black()
@@ -46,7 +46,7 @@ pub fn render(world: &World, center: &Coordinate) {
     let size = size().unwrap();
     let (cols, rows) = (size.0 as i16, size.1 as i16);
     let (centerx, centery) = (cols / 2 + center.x, rows / 2 + center.y);
-execute!(stdout, BeginSynchronizedUpdate);
+    execute!(stdout, BeginSynchronizedUpdate).unwrap();
     for i in 0..cols {
         for j in 0..rows {
             let x = centerx - i;
@@ -72,5 +72,5 @@ execute!(stdout, BeginSynchronizedUpdate);
     }
 
     stdout.flush().unwrap();
-    execute!(stdout, EndSynchronizedUpdate);
+    execute!(stdout, EndSynchronizedUpdate).unwrap();
 }
