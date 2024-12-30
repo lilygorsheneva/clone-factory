@@ -40,7 +40,7 @@ fn main() {
             }
             Some(input::InputResult::Act(act)) => {
                 action::execute_action(
-                    &mut game.actors.player.as_mut().unwrap().actor_ref,
+                    game.actors.get_mut_player(),
                     act,
                     &mut game.world,
                 );

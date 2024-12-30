@@ -9,7 +9,7 @@ use std::rc::Rc;
 pub struct Actor {
     pub facing: AbsoluteDirection,
     isplayer: bool,
-    actor_id: ActorId,
+    pub actor_id: ActorId,
     pub inventory: Vec<Item>,
     equipment: Vec<Item>,
 }
@@ -30,11 +30,6 @@ impl ActorRef {
             command_idx: 0,
         }
     }
-}
-
-pub struct PlayerRef {
-    pub actor_ref: ActorRef,
-    pub current_recording: Vec<Action>,
 }
 
 impl Actor {

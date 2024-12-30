@@ -1,5 +1,5 @@
 use crate::{
-    actor::{Actor, ActorRef, PlayerRef},
+    actor::{Actor, ActorRef},
     datatypes::{Building, Coordinate, Item},
     direction::AbsoluteDirection,
 };
