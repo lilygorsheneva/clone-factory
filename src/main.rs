@@ -39,10 +39,11 @@ fn main() {
                 render::render(&game.world, &game.get_player_coords())
             }
             Some(input::InputResult::Act(act)) => {
+                let actor_ref = *game.actors.get_player();
                 action::execute_action(
-                    game.actors.get_mut_player(),
+                    actor_ref,
                     act,
-                    &mut game.world,
+                    &mut game,
                 );
                 render::render(&game.world, &game.get_player_coords());
             }

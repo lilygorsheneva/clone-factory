@@ -6,6 +6,7 @@ pub struct RecordingDb {
     recordings: Vec<Recording> 
 }
 
+#[derive(Copy,Clone)]
 pub struct RecordingId {
     idx: usize,
 }

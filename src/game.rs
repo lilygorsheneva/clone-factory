@@ -27,14 +27,20 @@ impl WorldActors {
     }
     
     pub fn get_player(&self) -> &ActorRef{
-        let id = self.player.as_ref().unwrap().actor_id;
-        self.db.get_actor(id)
+        self.get_actor(self.player.as_ref().unwrap().actor_id)
     }
 
     pub fn get_mut_player(&mut self) -> &mut ActorRef{
-        let id = self.player.as_ref().unwrap().actor_id;
+        self.get_mut_actor(self.player.as_ref().unwrap().actor_id)
+    }
+
+    pub fn get_actor(&self, id:ActorId) -> &ActorRef{
+        self.db.get_actor(id)
+    }
+    pub fn get_mut_actor(&mut self, id:ActorId) -> &mut ActorRef{
         self.db.get_mut_actor(id)
     }
+    
 }
 
 pub struct Game {
@@ -66,7 +72,7 @@ impl Game {
             return false;
         }
         let mut new_actor = Actor::new_player();
-        let new_actor_ref = ActorRef::new(*location);
+        let new_actor_ref = ActorRef::new(*location, crate::direction::AbsoluteDirection::N);
         let player_id = self.actors.db.register_actor(new_actor_ref);
         new_actor.actor_id = player_id;
 

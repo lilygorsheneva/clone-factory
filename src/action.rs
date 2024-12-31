@@ -2,7 +2,7 @@ use crate::actor::ActorRef;
 use crate::datatypes::Coordinate;
 use crate::direction::AbsoluteDirection;
 use crate::direction::Direction;
-use crate::world::World;
+use crate::game::Game;
 use crate::world::WorldCell;
 
 pub struct Action {
@@ -20,26 +20,23 @@ pub enum SubAction {
     // EndRecording,
 }
 
-pub fn execute_action(actor_ref: &mut ActorRef, action: Action, world: &mut World) {
-    let cell = world.get(&actor_ref.location).unwrap();
-    let actor = cell.actor.as_ref().unwrap();
-    let orientation = actor.facing.rotate(&action.direction);
+pub fn execute_action(actor_ref: ActorRef, action: Action, game: &mut Game) {
+    let orientation = actor_ref.orientation.rotate(&action.direction);
 
     match action.action {
-        SubAction::Move => execute_move(actor_ref, actor_ref.location, orientation, world),
-        SubAction::Take => execute_take(actor_ref, actor_ref.location, orientation, world),
+        SubAction::Move => execute_move(actor_ref.location, orientation, game),
+        SubAction::Take => execute_take(actor_ref.location, orientation, game),
         // _ => world,
     }
 }
 
 fn execute_move(
-    actor_ref: &mut ActorRef,
     location: Coordinate,
     orientation: AbsoluteDirection,
-    world: &mut World,
+    game: &mut Game,
 ) {
     let offsets = vec![Coordinate { x: 0, y: 0 }, Coordinate { x: 0, y: 1 }];
-    let cells = world.getslice(location, orientation, &offsets);
+    let cells = game.world.getslice(location, orientation, &offsets);
 
     let src = cells[0].unwrap();
     let dest = cells[1];
@@ -49,6 +46,8 @@ fn execute_move(
         return;
     } else {
         let mut new_actor = src.actor.clone().unwrap();
+        let actor_ref: &mut ActorRef = game.actors.get_mut_actor(new_actor.actor_id);
+
         new_actor.facing = orientation;
         let new_dest = WorldCell {
             actor: Some(new_actor),
@@ -63,8 +62,10 @@ fn execute_move(
         };
 
         actor_ref.location = actor_ref.location + offsets[1] * orientation;
+        actor_ref.orientation = orientation;
 
-        world.setslice(
+
+        game.world.setslice(
             location,
             orientation,
             &offsets,
@@ -74,13 +75,12 @@ fn execute_move(
 }
 
 fn execute_take(
-    actor_ref: &mut ActorRef,
     location: Coordinate,
     orientation: AbsoluteDirection,
-    world: &mut World,
+    game: &mut Game,
 ) {
     let offsets = vec![Coordinate { x: 0, y: 0 }];
-    let cells = world.getslice(location, orientation, &offsets);
+    let cells = game.world.getslice(location, orientation, &offsets);
 
     let src = cells[0].unwrap();
     if src.items[0].is_none() {
@@ -99,5 +99,5 @@ fn execute_take(
         items: Default::default(),
     };
 
-    world.setslice(location, orientation, &offsets, vec![Some(new_cell)]);
+    game.world.setslice(location, orientation, &offsets, vec![Some(new_cell)]);
 }

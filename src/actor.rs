@@ -12,17 +12,20 @@ pub struct Actor {
     equipment: Vec<Item>,
 }
 
+#[derive(Copy, Clone)]
 pub struct ActorRef {
     pub location: Coordinate,
+    pub orientation: AbsoluteDirection,
     pub liveness: bool,
     recording: RecordingId,
     command_idx: usize,
 }
 
 impl ActorRef {
-    pub fn new(coordinate: Coordinate) -> ActorRef {
+    pub fn new(coordinate: Coordinate, orientation: AbsoluteDirection) -> ActorRef {
         ActorRef {
             location: coordinate,
+            orientation: orientation,
             liveness: true,
             recording: RecordingId::DEFAULT,
             command_idx: 0,
