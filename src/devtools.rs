@@ -26,7 +26,6 @@ pub fn make_sample_recording() -> Recording {
                 action: SubAction::Move,
             },
         ],
-
-        equipment: Vec::new(),
+        inventory: Default::default()
     }
 }

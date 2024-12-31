@@ -89,6 +89,12 @@ impl Game {
         }
     }
 
+    pub fn get_player_actor(&self) -> &Actor {
+        let location = self.get_player_coords();
+        let cell = self.world.get(&location);
+        cell.unwrap().actor.as_ref().unwrap()
+    }
+
     pub fn get_player_coords(&self) -> Coordinate {
         let actor = self.actors.get_player();
         return actor.location;
@@ -142,7 +148,7 @@ impl Game {
     pub fn init_record(&mut self) {
         match self.current_recording {
             Some(_) => panic!("Attempted to initialize recording twice"),
-            None => self.current_recording = Some(Recording::blank()),
+            None => self.current_recording = Some(Recording::from_creator(self.get_player_actor())),
         }
     }
 

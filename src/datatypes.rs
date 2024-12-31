@@ -1,7 +1,7 @@
 use crate::action::Action;
 use crate::direction::AbsoluteDirection;
+use crate::actor::Actor;
 use std::ops;
-use std::process::Command;
 use crate::db::RecordingId;
 
 #[derive(Clone, Copy)]
@@ -90,14 +90,21 @@ pub struct Building {
 #[derive(Clone)]
 pub struct Recording {
     pub command_list: Vec<Action>,
-    pub equipment: Vec<Item>,
+    pub inventory: [Option<Item>; 5],
 }
 
 impl Recording {
     pub fn blank() -> Recording{
         Recording {
             command_list: Vec::new(),
-            equipment: Vec::new()
+            inventory: Default::default(),
+        }
+    }
+
+    pub fn from_creator(actor: &Actor) -> Recording{
+        Recording {
+            command_list: Vec::new(),
+            inventory: actor.inventory,
         }
     }
 

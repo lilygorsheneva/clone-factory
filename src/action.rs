@@ -137,7 +137,7 @@ fn execute_use_cloner(
         command_idx: 0,
     };
     let actor_id = game.actors.register_actor(new_actor_ref);
-    let mut new_actor = Actor::new();
+    let mut new_actor = Actor::from_recording(game.recordings.get(recording));
     new_actor.facing = orientation;
     new_actor.actor_id = actor_id;
 

@@ -1,4 +1,4 @@
-use crate::datatypes::{Coordinate, Item};
+use crate::datatypes::{Recording, Coordinate, Item};
 use crate::db::{ActorId, RecordingId};
 use crate::direction::AbsoluteDirection;
 
@@ -55,7 +55,15 @@ impl Actor {
             isplayer: false,
             actor_id: ActorId::DEFAULT,
             inventory: Default::default(),
-            //equipment: Default::default(),
+        }
+    }
+
+    pub fn from_recording(recording: &Recording) -> Actor {
+        Actor {
+            facing: AbsoluteDirection::N,
+            isplayer: false,
+            actor_id: ActorId::DEFAULT,
+            inventory:recording.inventory,
         }
     }
 
