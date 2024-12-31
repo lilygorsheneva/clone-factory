@@ -14,12 +14,18 @@ use std::io::{self, Write};
 impl WorldCell {
     fn get_drawable(&self) -> StyledContent<char> {
         if self.actor.is_some() {
-            match self.actor.as_ref().unwrap().facing {
-                AbsoluteDirection::N => 'A'.white().on_black(),
-                AbsoluteDirection::S => 'V'.white().on_black(),
-                AbsoluteDirection::E => '>'.white().on_black(),
-                AbsoluteDirection::W => '<'.white().on_black(),
-            }
+            let actor = self.actor.as_ref().unwrap();
+            let glyph =  match actor.facing {
+                AbsoluteDirection::N => 'A',
+                AbsoluteDirection::S => 'V',
+                AbsoluteDirection::E => '>',
+                AbsoluteDirection::W => '<',
+            };
+            let styled = match actor.isplayer {
+                true => glyph.red().on_black(),
+                false => glyph.white().on_black(),
+            };
+            return styled
         } else if self.building.is_some() {
             'B'.white().on_black()
         } else if !self.items[0].is_none() {
