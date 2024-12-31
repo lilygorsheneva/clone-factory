@@ -1,6 +1,14 @@
+use crate::action;
+use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
 use crate::datatypes::Item;
+use crate::datatypes::Recording;
 use crate::db::{ActorDb, ActorId, RecordingDb};
+use crate::direction::{
+    AbsoluteDirection::{E, N, S, W},
+    Direction::{Absolute, Relative},
+    RelativeDirection::F,
+};
 use crate::{
     datatypes::Coordinate,
     world::{World, WorldCell},
@@ -68,6 +76,7 @@ pub struct Game {
     pub world: World,
     pub actors: WorldActors,
     pub recordings: RecordingDb,
+    pub current_recording: Option<Recording>,
 }
 
 impl Game {
@@ -76,6 +85,7 @@ impl Game {
             world: World::new(dimensions),
             actors: WorldActors::new(),
             recordings: RecordingDb::new(),
+            current_recording: None,
         }
     }
 
@@ -127,5 +137,41 @@ impl Game {
             actor.command_idx += 1;
             crate::action::execute_action(*actor, action, self)
         }
+    }
+
+    pub fn init_record(&mut self) {
+        match self.current_recording {
+            Some(_) => panic!("Attempted to initialize recording twice"),
+            None => self.current_recording = Some(Recording::blank()),
+        }
+    }
+
+    pub fn end_record(&mut self) {
+        match &self.current_recording {
+            None => panic!("Attempted to end uninitialized recording"),
+            Some(rec) => {
+                let id = self.recordings.register_recording(rec.clone());
+                let new_cloner = Item::new_cloner(id);
+                self.current_recording = None;
+                action::execute_action(
+                    *self.actors.get_player(),
+                    Action {
+                        direction: Relative(F),
+                        action: SubAction::GrantItem(new_cloner),
+                    },
+                    self,
+                );
+            }
+        }
+    }
+
+    pub fn player_action(&mut self, action: action::Action) {
+        let actor_ref = *self.actors.get_player();
+
+        if let Some(rec) = self.current_recording.as_mut() {
+            rec.append(action);
+        }
+
+        action::execute_action(actor_ref, action, self);
     }
 }

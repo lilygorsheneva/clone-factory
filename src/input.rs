@@ -6,6 +6,7 @@ pub enum InputResult {
     Act(Action),
     Redraw,
     Exit,
+    Record,
 }
 
 fn event_to_act(event: KeyEvent) -> Option<InputResult> {
@@ -16,6 +17,7 @@ match event.code {
     KeyCode::Down => Some(InputResult::Act(Action {direction: Absolute(S), action: SubAction::Move})),
     KeyCode::Char('t') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Take})),
     KeyCode::Char('u') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Use(1)})),
+    KeyCode::Char('r') => Some(InputResult::Record),
     _ => None,
 }
 }

@@ -59,13 +59,6 @@ impl Coordinate {
 pub struct Item {
     id: usize,
     quantity: u16,
-
-    // Tags
-    ephemeral: bool,
-    cloneable: bool,
-    physical: bool,
-    bound: bool,
-    // End tags
     pub recording: Option<RecordingId>
 }
 
@@ -74,13 +67,16 @@ impl Item {
         Item {
             id: id,
             quantity: quantity,
-            // Tags
-            ephemeral: false,
-            cloneable: false,
-            physical: false,
-            bound: false,
-            // End tags
+
             recording: None,
+        }
+    }
+
+    pub fn new_cloner(recordingid: RecordingId) -> Item {
+        Item {
+            id: 0,
+            quantity: 1,
+            recording: Some(recordingid),
         }
     }
 }
@@ -91,24 +87,25 @@ pub struct Building {
     facing: AbsoluteDirection,
 }
 
-pub struct ActionQueue {
-    pub q: Vec<Action>,
-}
-
+#[derive(Clone)]
 pub struct Recording {
-    pub command_list: ActionQueue,
+    pub command_list: Vec<Action>,
     pub equipment: Vec<Item>,
 }
 
 impl Recording {
     pub fn blank() -> Recording{
         Recording {
-            command_list: ActionQueue {q: Vec::new()},
+            command_list: Vec::new(),
             equipment: Vec::new()
         }
     }
 
     pub fn at(&self, idx: usize) -> Action{
-        self.command_list.q[idx % self.command_list.q.len()]
+        self.command_list[idx % self.command_list.len()]
+    }
+
+    pub fn append(&mut self, action: Action) {
+        self.command_list.push(action);
     }
 }

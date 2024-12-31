@@ -1,17 +1,18 @@
+use action::Action;
 use datatypes::{Coordinate, Item};
-use world::WorldCell;
 use game::Game;
+use world::WorldCell;
 
 mod action;
 mod actor;
 mod datatypes;
+mod db;
+mod devtools;
 mod direction;
+mod game;
 mod input;
 mod render;
 mod world;
-mod game;
-mod db;
-mod devtools;
 
 fn main() {
     render::init_render();
@@ -40,15 +41,14 @@ fn main() {
                 render::render(&game.world, &game.get_player_coords())
             }
             Some(input::InputResult::Act(act)) => {
-                let actor_ref = *game.actors.get_player();
-                action::execute_action(
-                    actor_ref,
-                    act,
-                    &mut game,
-                );
+                game.player_action(act);
                 game.do_npc_turns();
                 render::render(&game.world, &game.get_player_coords());
             }
+            Some(input::InputResult::Record) => match game.current_recording {
+                Some(_) => game.end_record(),
+                None => game.init_record(),
+            },
             _ => {}
         };
     }

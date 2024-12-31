@@ -18,7 +18,7 @@ pub enum SubAction {
     Use(usize),
     // Craft(String),
     // Record,
-    // EndRecording,
+    GrantItem(Item),
 }
 
 pub fn execute_action(actor_ref: ActorRef, action: Action, game: &mut Game) {
@@ -28,6 +28,8 @@ pub fn execute_action(actor_ref: ActorRef, action: Action, game: &mut Game) {
         SubAction::Move => execute_move(actor_ref.location, orientation, game),
         SubAction::Take => execute_take(actor_ref.location, orientation, game),
         SubAction::Use(i) => execute_use_cloner(i, actor_ref.location, orientation, game),
+        // SubAction::Record => execute_recording(actor_ref.location, orientation, game),
+        SubAction::GrantItem(i) =>  execute_grant_item(i, actor_ref.location, orientation, game),
         // _ => world,
     }
 }
@@ -149,4 +151,31 @@ fn execute_use_cloner(
         vec![src.cloned(), Some(new_dest)],
     );
 
+}
+
+
+fn execute_grant_item(
+    item: Item,
+    location: Coordinate,
+    orientation: AbsoluteDirection,
+    game: &mut Game,
+) {
+    let offsets = vec![Coordinate { x: 0, y: 0 }];
+    let cells = game.world.getslice(location, orientation, &offsets);
+
+    let src = cells[0].unwrap();
+
+
+    let mut new_actor = src.actor.clone().unwrap();
+    new_actor.facing = orientation;
+    new_actor
+        .inventory[1]  = Some(item);
+
+    let new_cell = WorldCell {
+        actor: Some(new_actor),
+        building: src.building.clone(),
+        items: Default::default(),
+    };
+
+    game.world.setslice(location, orientation, &offsets, vec![Some(new_cell)]);
 }

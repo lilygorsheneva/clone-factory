@@ -5,7 +5,7 @@ use crate::datatypes::Recording;
 use crate::actor::ActorRef;
 
 pub struct RecordingDb {
-    recordings: Vec<Recording> 
+    recordings: Vec<Recording>,
 }
 
 #[derive(Copy,Clone)]
