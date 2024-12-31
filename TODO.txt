@@ -1,0 +1,8 @@
+Todos roughly in priority order (most urgent to least).
+
+Implement action Result types as described in design doc.
+Atomic Update model as described in design doc.
+Clean up all the unwrap() calls.
+Inventory Display.
+Inventory managment with non-hardcoded indices.
+Crafting.
