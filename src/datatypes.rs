@@ -1,6 +1,8 @@
 use crate::action::Action;
 use crate::direction::AbsoluteDirection;
 use std::ops;
+use std::process::Command;
+use crate::db::RecordingId;
 
 #[derive(Clone, Copy)]
 pub struct Coordinate {
@@ -53,9 +55,9 @@ impl Coordinate {
     
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Item {
-    name: String,
+    id: usize,
     quantity: u16,
 
     // Tags
@@ -64,13 +66,13 @@ pub struct Item {
     physical: bool,
     bound: bool,
     // End tags
-    // recording: Rc<Recording>
+    pub recording: Option<RecordingId>
 }
 
 impl Item {
-    pub fn new(name: String, quantity: u16) -> Item {
+    pub fn new(id: usize, quantity: u16) -> Item {
         Item {
-            name: name,
+            id: id,
             quantity: quantity,
             // Tags
             ephemeral: false,
@@ -78,6 +80,7 @@ impl Item {
             physical: false,
             bound: false,
             // End tags
+            recording: None,
         }
     }
 }
@@ -93,6 +96,15 @@ pub struct ActionQueue {
 }
 
 pub struct Recording {
-    command_list: ActionQueue,
-    equipment: Vec<Item>,
+    pub command_list: ActionQueue,
+    pub equipment: Vec<Item>,
+}
+
+impl Recording {
+    pub fn blank() -> Recording{
+        Recording {
+            command_list: ActionQueue {q: Vec::new()},
+            equipment: Vec::new()
+        }
+    }
 }

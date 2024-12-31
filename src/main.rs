@@ -11,6 +11,7 @@ mod render;
 mod world;
 mod game;
 mod db;
+mod devtools;
 
 fn main() {
     render::init_render();
@@ -19,7 +20,7 @@ fn main() {
 
     game.spawn(&Coordinate { x: 1, y: 1 });
 
-    let foo = Item::new("Foo".to_string(), 1);
+    let foo = Item::new(0, 1);
 
     game.world.set(
         &Coordinate { x: 10, y: 5 },

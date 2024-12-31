@@ -34,8 +34,8 @@ impl RelativeDirection {
         match self {
             RelativeDirection::F => 0,
             RelativeDirection::R => 1,
-            RelativeDirection::B => 3,
-            RelativeDirection::L => 4,
+            RelativeDirection::B => 2,
+            RelativeDirection::L => 3,
         }
     }
 }
@@ -45,8 +45,8 @@ impl AbsoluteDirection {
         match self {
             AbsoluteDirection::N => 0,
             AbsoluteDirection::E => 1,
-            AbsoluteDirection::S => 3,
-            AbsoluteDirection::W => 4,
+            AbsoluteDirection::S => 2,
+            AbsoluteDirection::W => 3,
         }
     }
 

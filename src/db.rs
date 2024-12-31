@@ -1,4 +1,6 @@
 
+use std::vec;
+
 use crate::datatypes::Recording;
 use crate::actor::ActorRef;
 
@@ -23,7 +25,9 @@ impl RecordingDb {
     }
 
     pub fn new() -> RecordingDb {
-        RecordingDb{recordings: Vec::new()}
+        let mut db = RecordingDb{recordings: Vec::new()};
+        db.recordings.push(Recording::blank());
+        db
     }
 }
 
@@ -56,7 +60,9 @@ impl ActorDb {
     }
 
     pub fn new() -> ActorDb {
-        ActorDb{actors: Vec::new()}
+        let mut db = ActorDb{actors: Vec::new()};
+        db.register_actor(ActorRef::blank());
+        db
     }
 
 }

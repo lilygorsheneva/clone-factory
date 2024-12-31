@@ -1,4 +1,5 @@
 use crate::actor::{Actor,ActorRef};
+use crate::datatypes::Item;
 use crate::{world::{World, WorldCell}, datatypes::Coordinate};
 use std::collections::VecDeque;
 use crate::db::{ActorDb, ActorId, RecordingDb};
@@ -40,6 +41,10 @@ impl WorldActors {
     pub fn get_mut_actor(&mut self, id:ActorId) -> &mut ActorRef{
         self.db.get_mut_actor(id)
     }
+
+    pub fn register_actor(&mut self, new_actor_ref: ActorRef) -> ActorId{
+        self.db.register_actor(new_actor_ref)
+    }
     
 }
 
@@ -73,9 +78,16 @@ impl Game {
         }
         let mut new_actor = Actor::new_player();
         let new_actor_ref = ActorRef::new(*location, crate::direction::AbsoluteDirection::N);
-        let player_id = self.actors.db.register_actor(new_actor_ref);
+        let player_id = self.actors.register_actor(new_actor_ref);
         new_actor.actor_id = player_id;
 
+
+        let sample_recording_id = self.recordings.register_recording(crate::devtools::make_sample_recording());
+        let mut sample_recorder_item = Item::new(1,1);
+        sample_recorder_item.recording = Some(sample_recording_id);
+
+        new_actor.inventory[1] = Some(sample_recorder_item);
+        
         self.actors.player = Some(PlayerRef
             {
                 actor_id: player_id,

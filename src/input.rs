@@ -15,6 +15,7 @@ match event.code {
     KeyCode::Up => Some(InputResult::Act(Action {direction: Absolute(N), action: SubAction::Move})),
     KeyCode::Down => Some(InputResult::Act(Action {direction: Absolute(S), action: SubAction::Move})),
     KeyCode::Char('t') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Take})),
+    KeyCode::Char('u') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Use(1)})),
     _ => None,
 }
 }

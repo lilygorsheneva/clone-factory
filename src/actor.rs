@@ -1,4 +1,4 @@
-use crate::datatypes::{ Coordinate, Item};
+use crate::datatypes::{Coordinate, Item};
 use crate::db::{ActorId, RecordingId};
 use crate::direction::AbsoluteDirection;
 
@@ -6,10 +6,10 @@ use crate::direction::AbsoluteDirection;
 #[derive(Clone)]
 pub struct Actor {
     pub facing: AbsoluteDirection,
-    isplayer: bool,
+    pub isplayer: bool,
     pub actor_id: ActorId,
-    pub inventory: Vec<Item>,
-    equipment: Vec<Item>,
+    pub inventory: [Option<Item>; 5],
+    //equipment:[Option<Item>; 1],
 }
 
 #[derive(Copy, Clone)]
@@ -17,8 +17,20 @@ pub struct ActorRef {
     pub location: Coordinate,
     pub orientation: AbsoluteDirection,
     pub liveness: bool,
-    recording: RecordingId,
-    command_idx: usize,
+    pub recording: RecordingId,
+    pub command_idx: usize,
+}
+
+impl ActorRef {
+    pub fn blank() -> ActorRef {
+        ActorRef {
+            location: Coordinate { x: 0, y: 0 },
+            orientation: AbsoluteDirection::N,
+            liveness: false,
+            recording: RecordingId::DEFAULT,
+            command_idx: 0,
+        }
+    }
 }
 
 impl ActorRef {
@@ -39,8 +51,8 @@ impl Actor {
             facing: AbsoluteDirection::N,
             isplayer: false,
             actor_id: ActorId::DEFAULT,
-            inventory: Vec::new().into(),
-            equipment: Vec::new().into(),
+            inventory: Default::default(),
+            //equipment: Default::default(),
         }
     }
 
@@ -49,8 +61,8 @@ impl Actor {
             facing: AbsoluteDirection::N,
             isplayer: true,
             actor_id: ActorId::DEFAULT,
-            inventory: Vec::new().into(),
-            equipment: Vec::new().into(),
+            inventory: Default::default(),
+            //equipment: Default::default(),
         }
     }
 }
