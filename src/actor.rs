@@ -16,7 +16,8 @@ pub struct Actor {
 pub struct ActorRef {
     pub location: Coordinate,
     pub orientation: AbsoluteDirection,
-    pub liveness: bool,
+    pub isplayer: bool,
+    pub live: bool,
     pub recording: RecordingId,
     pub command_idx: usize,
 }
@@ -26,7 +27,8 @@ impl ActorRef {
         ActorRef {
             location: Coordinate { x: 0, y: 0 },
             orientation: AbsoluteDirection::N,
-            liveness: false,
+            live: false,
+            isplayer: false,
             recording: RecordingId::DEFAULT,
             command_idx: 0,
         }
@@ -38,7 +40,8 @@ impl ActorRef {
         ActorRef {
             location: coordinate,
             orientation: orientation,
-            liveness: true,
+            live: true,
+            isplayer: false,
             recording: RecordingId::DEFAULT,
             command_idx: 0,
         }
@@ -57,12 +60,8 @@ impl Actor {
     }
 
     pub fn new_player() -> Actor {
-        Actor {
-            facing: AbsoluteDirection::N,
-            isplayer: true,
-            actor_id: ActorId::DEFAULT,
-            inventory: Default::default(),
-            //equipment: Default::default(),
-        }
+        let mut actor = Actor::new();
+        actor.isplayer = true;
+        actor
     }
 }

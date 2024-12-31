@@ -4,11 +4,13 @@ use crate::direction::{AbsoluteDirection, Direction};
 use crate::game::Game;
 use crate::world::WorldCell;
 
+#[derive(Clone, Copy)]
 pub struct Action {
     pub direction: Direction,
     pub action: SubAction,
 }
 
+#[derive(Clone, Copy)]
 pub enum SubAction {
     Move,
     Take,
@@ -127,17 +129,15 @@ fn execute_use_cloner(
     let  new_actor_ref = ActorRef{
         location: location + offsets[1] * orientation,
         orientation: orientation,
-        liveness: true,
+        live: true,
+        isplayer: false,
         recording: recording,
         command_idx: 0,
     };
     let actor_id = game.actors.register_actor(new_actor_ref);
-    let new_actor = Actor{
-        facing: orientation,
-        isplayer: false,
-        actor_id: actor_id,
-        inventory: Default::default()
-    };
+    let mut new_actor = Actor::new();
+    new_actor.facing = orientation;
+    new_actor.actor_id = actor_id;
 
     let mut new_dest = dst.unwrap().clone();
     new_dest.actor = Some(new_actor);

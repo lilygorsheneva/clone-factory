@@ -107,4 +107,8 @@ impl Recording {
             equipment: Vec::new()
         }
     }
+
+    pub fn at(&self, idx: usize) -> Action{
+        self.command_list.q[idx % self.command_list.q.len()]
+    }
 }

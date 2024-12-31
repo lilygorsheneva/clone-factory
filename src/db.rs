@@ -29,6 +29,10 @@ impl RecordingDb {
         db.recordings.push(Recording::blank());
         db
     }
+
+    pub fn get(&self, id: RecordingId) -> &Recording {
+        &self.recordings[id.idx]
+    }
 }
 
 pub struct ActorDb {

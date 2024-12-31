@@ -46,6 +46,7 @@ fn main() {
                     act,
                     &mut game,
                 );
+                game.do_npc_turns();
                 render::render(&game.world, &game.get_player_coords());
             }
             _ => {}
