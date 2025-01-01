@@ -48,9 +48,22 @@ fn execute_move(
 
     match (cells[0], cells[1]) {
         (None, _) => Err(Error("action performed on empty space")),
-        (Some(WorldCell {actor:None, ..}), _) =>   Err(Error("actor Missing")),
-        (Some(_), None) | (Some(_),  Some(WorldCell {actor: Some(..), ..})) => Err(ActionFail),
-        (Some(src @ WorldCell {actor: Some(actor), ..}), Some(dest @ WorldCell {actor: None, ..}))=> {
+        (Some(WorldCell { actor: None, .. }), _) => Err(Error("actor Missing")),
+        (Some(_), None)
+        | (
+            Some(_),
+            Some(WorldCell {
+                actor: Some(..), ..
+            }),
+        ) => Err(ActionFail),
+        (
+            Some(
+                src @ WorldCell {
+                    actor: Some(actor), ..
+                },
+            ),
+            Some(dest @ WorldCell { actor: None, .. }),
+        ) => {
             let mut new_actor = actor.clone();
             let actor_ref: &mut ActorRef = game.actors.get_mut_actor(new_actor.actor_id);
 
@@ -74,8 +87,7 @@ fn execute_move(
                 orientation,
                 &offsets,
                 vec![Some(new_src), Some(new_dest)],
-            );
-            Ok(())
+            )
         }
     }
 }
@@ -90,8 +102,12 @@ fn execute_take(
 
     match cells[0] {
         None => Err(Error("action performed on empty space")),
-        Some(WorldCell {actor:None, ..}) =>   Err(Error("actor Missing")),
-        Some(src @ WorldCell {actor: Some(actor), ..}) => {
+        Some(WorldCell { actor: None, .. }) => Err(Error("actor Missing")),
+        Some(
+            src @ WorldCell {
+                actor: Some(actor), ..
+            },
+        ) => {
             if src.items[0].is_none() {
                 return Err(ActionFail);
             }
@@ -107,8 +123,7 @@ fn execute_take(
             };
 
             game.world
-                .setslice(location, orientation, &offsets, vec![Some(new_cell)]);
-            Ok(())
+                .setslice(location, orientation, &offsets, vec![Some(new_cell)])
         }
     }
 }
@@ -124,9 +139,22 @@ fn execute_use_cloner(
 
     match (cells[0], cells[1]) {
         (None, _) => Err(Error("action performed on empty space")),
-        (Some(WorldCell {actor:None, ..}), _) =>   Err(Error("actor Missing")),
-        (Some(_), None) | (Some(_),  Some(WorldCell {actor: Some(..), ..})) => Err(ActionFail),
-        (Some(src @ WorldCell {actor: Some(actor), ..}), Some(dest @ WorldCell {actor: None, ..}))=> {
+        (Some(WorldCell { actor: None, .. }), _) => Err(Error("actor Missing")),
+        (Some(_), None)
+        | (
+            Some(_),
+            Some(WorldCell {
+                actor: Some(..), ..
+            }),
+        ) => Err(ActionFail),
+        (
+            Some(
+                src @ WorldCell {
+                    actor: Some(actor), ..
+                },
+            ),
+            Some(dest @ WorldCell { actor: None, .. }),
+        ) => {
             if actor.inventory[idx].is_none() {
                 return Err(ActionFail);
             }
@@ -164,8 +192,7 @@ fn execute_use_cloner(
                 orientation,
                 &offsets,
                 vec![Some(src.clone()), Some(new_dest)],
-            );
-            Ok(())
+            )
         }
     }
 }
@@ -181,8 +208,12 @@ fn execute_grant_item(
 
     match cells[0] {
         None => Err(Error("action performed on empty space")),
-        Some(WorldCell {actor:None, ..}) =>   Err(Error("actor Missing")),
-        Some(src @ WorldCell {actor: Some(actor), ..}) => {
+        Some(WorldCell { actor: None, .. }) => Err(Error("actor Missing")),
+        Some(
+            src @ WorldCell {
+                actor: Some(actor), ..
+            },
+        ) => {
             let mut new_actor = actor.clone();
             new_actor.facing = orientation;
             new_actor.inventory[1] = Some(item);
@@ -194,8 +225,7 @@ fn execute_grant_item(
             };
 
             game.world
-                .setslice(location, orientation, &offsets, vec![Some(new_cell)]);
-            Ok(())
+                .setslice(location, orientation, &offsets, vec![Some(new_cell)])
         }
     }
 }

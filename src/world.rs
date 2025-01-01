@@ -1,9 +1,9 @@
+use crate::error::{Result, Status::StateUpdateError};
 use crate::{
     actor::Actor,
     datatypes::{Building, Coordinate, Item},
     direction::AbsoluteDirection,
 };
-use core::panic;
 
 #[derive(Clone)]
 pub struct WorldCell {
@@ -48,23 +48,17 @@ impl World {
         }
     }
 
-    pub fn set(&mut self, location: &Coordinate, data: Option<WorldCell>) {
-        match data {
-            Some(cell) => {
-                if self.in_bounds(&location) {
-                    self.data = self
-                        .data
-                        .set((&self).coord_to_idx(&location), cell)
-                        .unwrap();
+    pub fn set(&mut self, location: &Coordinate, data: Option<WorldCell>) -> Result<()> {
+        match (data, self.in_bounds(&location)) {
+            (None, false) => Ok(()),
+            (None, true) => Err(StateUpdateError),
+            (Some(_), false) => Err(StateUpdateError),
+            (Some(cell), true) => {
+                if let Some(new_state) = self.data.set((&self).coord_to_idx(&location), cell) {
+                    self.data = new_state;
+                    Ok(())
                 } else {
-                    panic!("Attempting to set out of bounds cell")
-                }
-            }
-            None => {
-                if self.in_bounds(&location) {
-                    panic!("Setting in-bounds cell to None")
-                } else {
-                    return ();
+                    Err(StateUpdateError)
                 }
             }
         }
@@ -101,10 +95,10 @@ impl World {
         orientation: AbsoluteDirection,
         offsets: &Vec<Coordinate>,
         data: Vec<Option<WorldCell>>,
-    ) -> bool {
+    ) ->  Result<()>  {
         for i in 0..offsets.len() {
-            self.set(&(location + offsets[i] * orientation), data[i].clone());
+            self.set(&(location + offsets[i] * orientation), data[i].clone())?;
         }
-        true
+        Ok(())
     }
 }
