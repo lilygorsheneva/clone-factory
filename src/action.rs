@@ -154,46 +154,36 @@ fn execute_use_cloner(
                 },
             ),
             Some(dest @ WorldCell { actor: None, .. }),
-        ) => {
-            if actor.inventory[idx].is_none() {
-                return Err(ActionFail);
+        ) => match actor.inventory[idx] {
+            Some(Item {
+                recording: Some(recordingid),
+                ..
+            }) => {
+                let new_actor_ref = ActorRef {
+                    location: location + offsets[1] * orientation,
+                    orientation: orientation,
+                    live: true,
+                    isplayer: false,
+                    recording: recordingid,
+                    command_idx: 0,
+                };
+                let actor_id = game.actors.register_actor(new_actor_ref);
+                let mut new_actor = Actor::from_recording(game.recordings.get(recordingid));
+                new_actor.facing = orientation;
+                new_actor.actor_id = actor_id;
+
+                let mut new_dest = dest.clone();
+                new_dest.actor = Some(new_actor);
+
+                game.world.setslice(
+                    location,
+                    orientation,
+                    &offsets,
+                    vec![Some(src.clone()), Some(new_dest)],
+                )
             }
-
-            // A parent Use function should make sure this never happens.
-            let recorder = actor.inventory[idx].unwrap();
-            if recorder.recording.is_none() {
-                return Err(ActionFail);
-            }
-            // Wrap this in a result and use "?"
-            let recording = recorder.recording.unwrap();
-
-            if dest.actor.is_some() {
-                return Err(ActionFail);
-            }
-
-            let new_actor_ref = ActorRef {
-                location: location + offsets[1] * orientation,
-                orientation: orientation,
-                live: true,
-                isplayer: false,
-                recording: recording,
-                command_idx: 0,
-            };
-            let actor_id = game.actors.register_actor(new_actor_ref);
-            let mut new_actor = Actor::from_recording(game.recordings.get(recording));
-            new_actor.facing = orientation;
-            new_actor.actor_id = actor_id;
-
-            let mut new_dest = dest.clone();
-            new_dest.actor = Some(new_actor);
-
-            game.world.setslice(
-                location,
-                orientation,
-                &offsets,
-                vec![Some(src.clone()), Some(new_dest)],
-            )
-        }
+            _ => Err(ActionFail),
+        },
     }
 }
 
