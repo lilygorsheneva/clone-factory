@@ -56,7 +56,7 @@ impl AbsoluteDirection {
             1 => AbsoluteDirection::E,
             2 => AbsoluteDirection::S,
             3 => AbsoluteDirection::W,
-            _ => panic!(),
+            _ => unreachable!(),
         }
     }
 
@@ -67,4 +67,3 @@ impl AbsoluteDirection {
         }
     }
 }
-
