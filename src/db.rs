@@ -19,8 +19,8 @@ impl RecordingId {
 
 
 impl RecordingDb {
-    pub fn register_recording(&mut self, recording: Recording) -> RecordingId{
-        self.recordings.push(recording);
+    pub fn register_recording(&mut self, recording: &Recording) -> RecordingId{
+        self.recordings.push(recording.clone());
         RecordingId{idx: self.recordings.len()-1}
     }
 
@@ -54,8 +54,8 @@ impl ActorDb {
         ActorId{idx: self.actors.len()-1}
     }
 
-    pub fn get_actor(&self, id: ActorId) -> &ActorRef {
-       &self.actors[id.idx]
+    pub fn get_actor(&self, id: ActorId) -> ActorRef {
+       self.actors[id.idx]
     }
 
 

@@ -15,7 +15,7 @@ mod world;
 mod error;
 
 fn main() {
-    render::init_render();
+    render::init_render().unwrap();
 
     let mut game = Game::new(Coordinate { x: 20, y: 10 });
 
@@ -32,26 +32,26 @@ fn main() {
         }),
     );
 
-    render::renderworld(&game.world, &game.get_player_coords()).unwrap();
+    render::renderworld(&game.world, &game.get_player_coords().unwrap()).unwrap();
 
     loop {
         match input::readinput() {
             Some(input::InputResult::Exit) => break,
             Some(input::InputResult::Redraw) => {
-                render::renderworld(&game.world, &game.get_player_coords()).unwrap();
+                render::renderworld(&game.world, &game.get_player_coords().unwrap()).unwrap();
             }
             Some(input::InputResult::Act(act)) => {
-                game.player_action(act);
-                game.do_npc_turns();
-                render::renderworld(&game.world, &game.get_player_coords()).unwrap();
+                game.player_action(act).unwrap();
+                game.do_npc_turns().unwrap();
+                render::renderworld(&game.world, &game.get_player_coords().unwrap()).unwrap();
             }
             Some(input::InputResult::Record) => match game.current_recording {
-                Some(_) => game.end_record(),
-                None => game.init_record(),
+                Some(_) => game.end_record().unwrap(),
+                None => game.init_record().unwrap(),
             },
             _ => {}
         };
     }
 
-    render::deinit_render();
+    render::deinit_render().unwrap();
 }

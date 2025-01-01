@@ -7,6 +7,3 @@ pub enum Status {
 }
 
 pub type Result<T> = std::result::Result<T, Status>;
-pub fn fail<T>() -> Result<T> { Err(Status::ActionFail)}
-
-

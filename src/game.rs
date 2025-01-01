@@ -9,12 +9,15 @@ use crate::direction::{
     Direction::{Absolute, Relative},
     RelativeDirection::F,
 };
+use crate::error::{
+    Result,
+    Status::{ActionFail, Error},
+};
 use crate::{
     datatypes::Coordinate,
     world::{World, WorldCell},
 };
 use std::collections::VecDeque;
-use crate::error::{Result, Status::{ActionFail, Error}};
 
 pub struct WorldActors {
     pub player: Option<PlayerRef>,
@@ -37,15 +40,21 @@ impl WorldActors {
         }
     }
 
-    pub fn get_player(&self) -> &ActorRef {
-        self.get_actor(self.player.as_ref().unwrap().actor_id)
+    pub fn get_player(&self) -> Result<ActorRef> {
+        match &self.player {
+            None => Err(Error("Player uninitialized")),
+            Some(r) => Ok(self.get_actor(r.actor_id)),
+        }
     }
 
-    pub fn get_mut_player(&mut self) -> &mut ActorRef {
-        self.get_mut_actor(self.player.as_ref().unwrap().actor_id)
+    pub fn get_mut_player(&mut self) -> Result<&mut ActorRef> {
+        match &self.player {
+            None => Err(Error("Player uninitialized")),
+            Some(r) => Ok(self.get_mut_actor(r.actor_id)),
+        }
     }
 
-    pub fn get_actor(&self, id: ActorId) -> &ActorRef {
+    pub fn get_actor(&self, id: ActorId) -> ActorRef {
         self.db.get_actor(id)
     }
     pub fn get_mut_actor(&mut self, id: ActorId) -> &mut ActorRef {
@@ -90,15 +99,20 @@ impl Game {
         }
     }
 
-    pub fn get_player_actor(&self) -> &Actor {
-        let location = self.get_player_coords();
-        let cell = self.world.get(&location);
-        cell.unwrap().actor.as_ref().unwrap()
+    pub fn get_player_actor(&self) -> Result<&Actor> {
+        let location = self.get_player_coords()?;
+        match self.world.get(&location) {
+            None => Err(Error("Player coordinates out of bounds")),
+            Some(WorldCell { actor: None, .. }) => Err(Error("No actor at player coordinates")),
+            Some(WorldCell {
+                actor: Some(actor), ..
+            }) => Ok(actor),
+        }
     }
 
-    pub fn get_player_coords(&self) -> Coordinate {
-        let actor = self.actors.get_player();
-        return actor.location;
+    pub fn get_player_coords(&self) -> Result<Coordinate> {
+        let actor = self.actors.get_player()?;
+        Ok(actor.location)
     }
 
     pub fn spawn(&mut self, location: &Coordinate) -> bool {
@@ -117,7 +131,7 @@ impl Game {
 
         let sample_recording_id = self
             .recordings
-            .register_recording(crate::devtools::make_sample_recording());
+            .register_recording(&crate::devtools::make_sample_recording());
         let mut sample_recorder_item = Item::new(1, 1);
         sample_recorder_item.recording = Some(sample_recording_id);
 
@@ -126,14 +140,9 @@ impl Game {
         self.actors.player = Some(PlayerRef {
             actor_id: player_id,
         });
-        self.world.set(
-            location,
-            Some(WorldCell {
-                actor: Some(new_actor),
-                building: target.unwrap().building.clone(),
-                items: target.unwrap().items.clone(),
-            }),
-        );
+        let mut newcell = target.unwrap().clone();
+        newcell.actor = Some(new_actor);
+        self.world.set(location, Some(newcell));
         true
     }
 
@@ -146,50 +155,53 @@ impl Game {
             match res {
                 Ok(()) => (),
                 Err(ActionFail) => (), // call fallback action
-                Err(foo) => return Err(foo),
+                res @ _ => return res,
             }
         }
         Ok(())
     }
 
-    pub fn init_record(&mut self) {
+    pub fn init_record(&mut self) -> Result<()> {
         match self.current_recording {
-            Some(_) => panic!("Attempted to initialize recording twice"),
-            None => self.current_recording = Some(Recording::from_creator(self.get_player_actor())),
+            Some(_) => Err(Error("Attempted to initialize recording twice")),
+            None => {
+                let actor = self.get_player_actor()?;
+                self.current_recording = Some(Recording::from_creator(actor));
+                Ok(())
+            }
         }
     }
 
-    pub fn end_record(&mut self){
+    pub fn end_record(&mut self) -> Result<()> {
         match &self.current_recording {
-            None => panic!("Attempted to end uninitialized recording"),
+            None => Err(Error("Attempted to initialize recording twice")),
             Some(rec) => {
-                let id = self.recordings.register_recording(rec.clone());
+                let id = self.recordings.register_recording(rec);
                 let new_cloner = Item::new_cloner(id);
                 self.current_recording = None;
-
+                let actor_ref = self.actors.get_player()?;
                 action::execute_action(
-                    *self.actors.get_player(),
+                    actor_ref,
                     Action {
                         direction: Relative(F),
                         action: SubAction::GrantItem(new_cloner),
                     },
                     self,
-                ).unwrap();
+                )
             }
         }
     }
 
-    pub fn player_action(&mut self, action: action::Action) {
-        let actor_ref = *self.actors.get_player();
+    pub fn player_action(&mut self, action: action::Action) -> Result<()> {
+        let actor_ref = self.actors.get_player()?;
 
         if let Some(rec) = self.current_recording.as_mut() {
             rec.append(action);
         }
 
-        match action::execute_action(actor_ref, action, self){
-            Ok(()) => (),
-            Err(ActionFail) => (),
-            _ => panic!("player action failed in an unexpected way")
+        match action::execute_action(actor_ref, action, self) {
+            Err(ActionFail) => Ok(()), // Call fallback action.
+            res @ _ => res,
         }
     }
 }
