@@ -48,13 +48,10 @@ fn execute_move(
 
     match (cells[0], cells[1]) {
         (None, _) => Err(Error("action performed on empty space")),
-        (Some(_), None) => Err(ActionFail),
-        (Some(src), Some(dest)) => {
-            if dest.actor.is_some() {
-                return Err(ActionFail);
-            }
-
-            let mut new_actor = src.actor.clone().unwrap();
+        (Some(WorldCell {actor:None, ..}), _) =>   Err(Error("actor Missing")),
+        (Some(_), None) | (Some(_),  Some(WorldCell {actor: Some(..), ..})) => Err(ActionFail),
+        (Some(src @ WorldCell {actor: Some(actor), ..}), Some(dest @ WorldCell {actor: None, ..}))=> {
+            let mut new_actor = actor.clone();
             let actor_ref: &mut ActorRef = game.actors.get_mut_actor(new_actor.actor_id);
 
             new_actor.facing = orientation;
@@ -93,14 +90,15 @@ fn execute_take(
 
     match cells[0] {
         None => Err(Error("action performed on empty space")),
-        Some(src) => {
+        Some(WorldCell {actor:None, ..}) =>   Err(Error("actor Missing")),
+        Some(src @ WorldCell {actor: Some(actor), ..}) => {
             if src.items[0].is_none() {
                 return Err(ActionFail);
             }
 
-            let mut new_actor = src.actor.clone().unwrap();
+            let mut new_actor = actor.clone();
             new_actor.facing = orientation;
-            new_actor.inventory[0] = Some(src.items[0].as_ref().unwrap().clone());
+            new_actor.inventory[0] = src.items[0].clone();
 
             let new_cell = WorldCell {
                 actor: Some(new_actor),
@@ -126,16 +124,19 @@ fn execute_use_cloner(
 
     match (cells[0], cells[1]) {
         (None, _) => Err(Error("action performed on empty space")),
-        (Some(_), None) => Err(ActionFail),
-        (Some(src), Some(dest)) => {
-            let actor = src.actor.as_ref().unwrap().clone();
+        (Some(WorldCell {actor:None, ..}), _) =>   Err(Error("actor Missing")),
+        (Some(_), None) | (Some(_),  Some(WorldCell {actor: Some(..), ..})) => Err(ActionFail),
+        (Some(src @ WorldCell {actor: Some(actor), ..}), Some(dest @ WorldCell {actor: None, ..}))=> {
             if actor.inventory[idx].is_none() {
                 return Err(ActionFail);
             }
+
+            // A parent Use function should make sure this never happens.
             let recorder = actor.inventory[idx].unwrap();
             if recorder.recording.is_none() {
                 return Err(ActionFail);
             }
+            // Wrap this in a result and use "?"
             let recording = recorder.recording.unwrap();
 
             if dest.actor.is_some() {
@@ -180,8 +181,9 @@ fn execute_grant_item(
 
     match cells[0] {
         None => Err(Error("action performed on empty space")),
-        Some(src) => {
-            let mut new_actor = src.actor.clone().unwrap();
+        Some(WorldCell {actor:None, ..}) =>   Err(Error("actor Missing")),
+        Some(src @ WorldCell {actor: Some(actor), ..}) => {
+            let mut new_actor = actor.clone();
             new_actor.facing = orientation;
             new_actor.inventory[1] = Some(item);
 
