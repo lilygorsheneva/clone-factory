@@ -32,18 +32,18 @@ fn main() {
         }),
     );
 
-    render::render(&game.world, &game.get_player_coords());
+    render::renderworld(&game.world, &game.get_player_coords()).unwrap();
 
     loop {
         match input::readinput() {
             Some(input::InputResult::Exit) => break,
             Some(input::InputResult::Redraw) => {
-                render::render(&game.world, &game.get_player_coords())
+                render::renderworld(&game.world, &game.get_player_coords()).unwrap();
             }
             Some(input::InputResult::Act(act)) => {
                 game.player_action(act);
                 game.do_npc_turns();
-                render::render(&game.world, &game.get_player_coords());
+                render::renderworld(&game.world, &game.get_player_coords()).unwrap();
             }
             Some(input::InputResult::Record) => match game.current_recording {
                 Some(_) => game.end_record(),
