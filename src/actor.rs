@@ -2,7 +2,7 @@ use crate::datatypes::{Recording, Coordinate, Item};
 use crate::db::{ActorId, RecordingId};
 use crate::direction::AbsoluteDirection;
 
-// A recording will probably be a partially-defined actor.
+#[derive(PartialEq, Debug)]
 #[derive(Clone)]
 pub struct Actor {
     pub facing: AbsoluteDirection,

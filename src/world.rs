@@ -5,6 +5,7 @@ use crate::{
     direction::AbsoluteDirection,
 };
 
+#[derive(PartialEq, Debug)]
 #[derive(Clone)]
 pub struct WorldCell {
     pub actor: Option<Actor>,
@@ -101,4 +102,35 @@ impl World {
         }
         Ok(())
     }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn create() {
+        let w = World::new(Coordinate{x:1, y:1});
+        assert!(w.in_bounds(&Coordinate{x:0, y:0}));
+        assert!(w.get(&Coordinate{x:0, y:0}).is_some());
+    }
+    
+    #[test]
+    fn mutate() {
+        let mut w = World::new(Coordinate{x:1, y:1});
+        let location = Coordinate{x:0, y:0};
+        let oldcell = w.get(&location).unwrap();
+        let newcell = WorldCell {
+            actor: Some(Actor::new()),
+            ..oldcell.clone()
+        };
+        assert_ne!(*oldcell, newcell); // Sanity check to ensure we actually mutate.
+        w.set(&location, Some(newcell.clone())).unwrap();
+        assert_eq!(*w.get(&Coordinate{x:0, y:0}).unwrap(), newcell);
+    }
+
+    // Get/set slice tests not implemented yet; their API will change soon.
+
 }

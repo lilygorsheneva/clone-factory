@@ -55,6 +55,7 @@ impl Coordinate {
     
 }
 
+#[derive(PartialEq, Debug)]
 #[derive(Clone, Copy)]
 pub struct Item {
     id: usize,
@@ -81,6 +82,7 @@ impl Item {
     }
 }
 
+#[derive(PartialEq, Debug)]
 #[derive(Clone)]
 pub struct Building {
     name: String,

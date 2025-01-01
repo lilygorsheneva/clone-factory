@@ -8,6 +8,7 @@ pub struct RecordingDb {
     recordings: Vec<Recording>,
 }
 
+#[derive(PartialEq, Debug)]
 #[derive(Copy,Clone)]
 pub struct RecordingId {
     idx: usize,
@@ -39,6 +40,7 @@ pub struct ActorDb {
     actors: Vec<ActorRef>
 }
 
+#[derive(PartialEq, Debug)]
 #[derive(Clone, Copy)]
 pub struct ActorId{
     idx: usize,
