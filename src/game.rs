@@ -14,6 +14,7 @@ use crate::{
     world::{World, WorldCell},
 };
 use std::collections::VecDeque;
+use crate::error::{Result, Status::{ActionFail, Error}};
 
 pub struct WorldActors {
     pub player: Option<PlayerRef>,
@@ -136,13 +137,19 @@ impl Game {
         true
     }
 
-    pub fn do_npc_turns(&mut self) {
+    pub fn do_npc_turns(&mut self) -> Result<()> {
         while let Some(actor) = self.actors.get_next_actor() {
             let recording: &crate::datatypes::Recording = self.recordings.get(actor.recording);
             let action = recording.at(actor.command_idx);
             actor.command_idx += 1;
-            crate::action::execute_action(*actor, action, self)
+            let res = action::execute_action(*actor, action, self);
+            match res {
+                Ok(()) => (),
+                Err(ActionFail) => (), // call fallback action
+                Err(foo) => return Err(foo),
+            }
         }
+        Ok(())
     }
 
     pub fn init_record(&mut self) {
@@ -152,13 +159,14 @@ impl Game {
         }
     }
 
-    pub fn end_record(&mut self) {
+    pub fn end_record(&mut self){
         match &self.current_recording {
             None => panic!("Attempted to end uninitialized recording"),
             Some(rec) => {
                 let id = self.recordings.register_recording(rec.clone());
                 let new_cloner = Item::new_cloner(id);
                 self.current_recording = None;
+
                 action::execute_action(
                     *self.actors.get_player(),
                     Action {
@@ -166,7 +174,7 @@ impl Game {
                         action: SubAction::GrantItem(new_cloner),
                     },
                     self,
-                );
+                ).unwrap();
             }
         }
     }
@@ -178,6 +186,10 @@ impl Game {
             rec.append(action);
         }
 
-        action::execute_action(actor_ref, action, self);
+        match action::execute_action(actor_ref, action, self){
+            Ok(()) => (),
+            Err(ActionFail) => (),
+            _ => panic!("player action failed in an unexpected way")
+        }
     }
 }

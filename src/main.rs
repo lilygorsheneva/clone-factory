@@ -1,4 +1,3 @@
-use action::Action;
 use datatypes::{Coordinate, Item};
 use game::Game;
 use world::WorldCell;
@@ -13,6 +12,7 @@ mod game;
 mod input;
 mod render;
 mod world;
+mod error;
 
 fn main() {
     render::init_render();
