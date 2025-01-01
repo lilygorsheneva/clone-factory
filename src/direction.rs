@@ -1,3 +1,4 @@
+#[derive(Debug,PartialEq)]
 #[derive(Copy, Clone)]
 pub enum AbsoluteDirection {
     N,
@@ -5,7 +6,7 @@ pub enum AbsoluteDirection {
     E,
     W,
 }
-
+#[derive(Debug,PartialEq)]
 #[derive(Copy, Clone)]
 pub enum RelativeDirection {
     F,
@@ -14,6 +15,7 @@ pub enum RelativeDirection {
     R,
 }
 
+#[derive(Debug,PartialEq)]
 #[derive(Copy, Clone)]
 pub enum Direction {
     Absolute(AbsoluteDirection),
@@ -65,5 +67,28 @@ impl AbsoluteDirection {
             Direction::Absolute(abs) => *abs,
             Direction::Relative(rel) => AbsoluteDirection::from_int(rel.to_int() + self.to_int()),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rotate_relative() {
+        let facing = AbsoluteDirection::N;
+        assert_eq!(
+            AbsoluteDirection::E,
+            facing.rotate(&Direction::Relative(RelativeDirection::R))
+        )
+    }
+
+    #[test]
+    fn rotate_absolute() {
+        let facing = AbsoluteDirection::N;
+        assert_eq!(
+            AbsoluteDirection::E,
+            facing.rotate(&Direction::Absolute(AbsoluteDirection::E))
+        )
     }
 }
