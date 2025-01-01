@@ -115,35 +115,37 @@ impl Game {
         Ok(actor.location)
     }
 
-    pub fn spawn(&mut self, location: &Coordinate) -> bool {
+    pub fn spawn(&mut self, location: &Coordinate) -> Result<()> {
         if self.actors.player.is_some() {
-            return false;
+            return Err(Error("Player exists"));
         }
-        let target = self.world.get(&location);
-        if target.is_none_or(|t| t.actor.is_some()) {
-            return false;
+
+        match self.world.get(&location) {
+            Some(target @ WorldCell { actor: None, .. }) => {
+                let mut new_actor = Actor::new_player();
+                let mut new_actor_ref =
+                    ActorRef::new(*location, crate::direction::AbsoluteDirection::N);
+                new_actor_ref.isplayer = true;
+                let player_id = self.actors.register_actor(new_actor_ref);
+                new_actor.actor_id = player_id;
+
+                let sample_recording_id = self
+                    .recordings
+                    .register_recording(&crate::devtools::make_sample_recording());
+                let mut sample_recorder_item = Item::new(1, 1);
+                sample_recorder_item.recording = Some(sample_recording_id);
+
+                new_actor.inventory[1] = Some(sample_recorder_item);
+
+                self.actors.player = Some(PlayerRef {
+                    actor_id: player_id,
+                });
+                let mut newcell = target.clone();
+                newcell.actor = Some(new_actor);
+                self.world.set(location, Some(newcell))
+            },
+            _ => Err(Error("Invalid player spawn"))
         }
-        let mut new_actor = Actor::new_player();
-        let mut new_actor_ref = ActorRef::new(*location, crate::direction::AbsoluteDirection::N);
-        new_actor_ref.isplayer = true;
-        let player_id = self.actors.register_actor(new_actor_ref);
-        new_actor.actor_id = player_id;
-
-        let sample_recording_id = self
-            .recordings
-            .register_recording(&crate::devtools::make_sample_recording());
-        let mut sample_recorder_item = Item::new(1, 1);
-        sample_recorder_item.recording = Some(sample_recording_id);
-
-        new_actor.inventory[1] = Some(sample_recorder_item);
-
-        self.actors.player = Some(PlayerRef {
-            actor_id: player_id,
-        });
-        let mut newcell = target.unwrap().clone();
-        newcell.actor = Some(new_actor);
-        self.world.set(location, Some(newcell));
-        true
     }
 
     pub fn do_npc_turns(&mut self) -> Result<()> {

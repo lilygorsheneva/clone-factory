@@ -2,7 +2,7 @@ Todos roughly in priority order (most urgent to least).
 
 UNIT TESTS
 Implement action Result types as described in design doc. DONE
-Clean up all the unwrap calls.
+Clean up all the unwrap calls. DONE outside of main.
 Atomic Update model as described in design doc.
 Inventory Display.
 Inventory managment with non-hardcoded indices.
