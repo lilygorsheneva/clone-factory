@@ -1,7 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub enum Status {
     // An Actor failed to perform an action. Triggers a fallback.
-    ActionFail, 
+    ActionFail(&'static str), 
     // A world state update failed to apply. This breaks any semblance of atomicity.
     StateUpdateError,
     // An unexpected error. Panic.

@@ -55,7 +55,7 @@ fn execute_move(
             Some(WorldCell {
                 actor: Some(..), ..
             }),
-        ) => Err(ActionFail),
+        ) => Err(ActionFail("move into nonexistent cell")),
         (
             Some(
                 src @ WorldCell {
@@ -109,7 +109,7 @@ fn execute_take(
             },
         ) => {
             if src.items[0].is_none() {
-                return Err(ActionFail);
+                return Err(ActionFail("no item to take"));
             }
 
             let mut new_actor = actor.clone();
@@ -146,7 +146,7 @@ fn execute_use_cloner(
             Some(WorldCell {
                 actor: Some(..), ..
             }),
-        ) => Err(ActionFail),
+        ) => Err(ActionFail("cloning into nonexistent cell")),
         (
             Some(
                 src @ WorldCell {
@@ -182,7 +182,7 @@ fn execute_use_cloner(
                     vec![Some(src.clone()), Some(new_dest)],
                 )
             }
-            _ => Err(ActionFail),
+            _ => Err(ActionFail("no item to use")),
         },
     }
 }
@@ -232,7 +232,7 @@ mod tests {
         assert!(game.spawn(&location).is_ok());
         let update = execute_move(location, AbsoluteDirection::S, &mut game);
         assert_eq!(update, Ok(()));
-        
+
         let start = game.world.get(&location);
         let end = game.world.get(&Coordinate { x: 0, y: 0 });
         assert!(start.is_some());
@@ -269,4 +269,25 @@ mod tests {
         assert_eq!(cell.actor.as_ref().unwrap().inventory[0].unwrap(), foo);
         assert!(cell.items[0].is_none());
     }
+
+
+    #[test]
+    fn use_cloner() {
+        let mut game = Game::new(Coordinate { x: 1, y: 2 });
+
+        let location = Coordinate { x: 0, y: 0 };
+        assert!(game.spawn(&location).is_ok());
+
+        let update = execute_use_cloner(1, location, AbsoluteDirection::N, &mut game);
+        assert_eq!(update, Ok(()));
+
+        let start = game.world.get(&location);
+        let end = game.world.get(&Coordinate { x: 0, y: 1 });
+        assert!(start.is_some());
+        assert!(start.unwrap().actor.is_some());
+
+        assert!(end.is_some());
+        assert!(end.unwrap().actor.is_some());
+    }
+
 }

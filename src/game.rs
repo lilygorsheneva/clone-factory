@@ -156,7 +156,7 @@ impl Game {
             let res = action::execute_action(*actor, action, self);
             match res {
                 Ok(()) => (),
-                Err(ActionFail) => (), // call fallback action
+                Err(ActionFail(_)) => (), // call fallback action
                 res @ _ => return res,
             }
         }
@@ -202,7 +202,7 @@ impl Game {
         }
 
         match action::execute_action(actor_ref, action, self) {
-            Err(ActionFail) => Ok(()), // Call fallback action.
+            Err(ActionFail(_)) => Ok(()), // Call fallback action.
             res @ _ => res,
         }
     }
