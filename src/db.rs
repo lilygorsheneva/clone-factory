@@ -1,32 +1,33 @@
-
-use std::vec;
-
-use crate::datatypes::Recording;
 use crate::actor::ActorRef;
+use crate::datatypes::Recording;
+use crate::error::{Result, Status::StateUpdateError};
+use std::collections::HashSet;
 
 pub struct RecordingDb {
     recordings: Vec<Recording>,
 }
 
-#[derive(PartialEq, Debug)]
-#[derive(Copy,Clone)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub struct RecordingId {
     idx: usize,
 }
 
 impl RecordingId {
-    pub const DEFAULT: RecordingId = RecordingId{idx: 0};
+    pub const DEFAULT: RecordingId = RecordingId { idx: 0 };
 }
 
-
 impl RecordingDb {
-    pub fn register_recording(&mut self, recording: &Recording) -> RecordingId{
+    pub fn register_recording(&mut self, recording: &Recording) -> RecordingId {
         self.recordings.push(recording.clone());
-        RecordingId{idx: self.recordings.len()-1}
+        RecordingId {
+            idx: self.recordings.len() - 1,
+        }
     }
 
     pub fn new() -> RecordingDb {
-        let mut db = RecordingDb{recordings: Vec::new()};
+        let mut db = RecordingDb {
+            recordings: Vec::new(),
+        };
         db.recordings.push(Recording::blank());
         db
     }
@@ -37,38 +38,81 @@ impl RecordingDb {
 }
 
 pub struct ActorDb {
-    actors: Vec<ActorRef>
+    actors: Vec<ActorRef>,
 }
 
-#[derive(PartialEq, Debug)]
-#[derive(Clone, Copy)]
-pub struct ActorId{
+pub struct ActorDbUpdate {
+    changes: Vec<(ActorId, ActorRef)>,
+    new_actors: Vec<(ActorId, ActorRef)>,
+}
+
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
+pub struct ActorId {
     idx: usize,
 }
 
 impl ActorId {
-    pub const DEFAULT: ActorId = ActorId{idx: 0};
+    pub const DEFAULT: ActorId = ActorId { idx: 0 };
 }
 
 impl ActorDb {
-    pub fn register_actor(&mut self, actor: ActorRef) -> ActorId{
+    pub fn mut_register_actor(&mut self, actor: ActorRef) -> ActorId {
+        let idx = self.actors.len();
         self.actors.push(actor);
-        ActorId{idx: self.actors.len()-1}
+        ActorId { idx: idx }
     }
 
     pub fn get_actor(&self, id: ActorId) -> ActorRef {
-       self.actors[id.idx]
+        self.actors[id.idx]
     }
-
 
     pub fn get_mut_actor(&mut self, id: ActorId) -> &mut ActorRef {
         &mut self.actors[id.idx]
     }
 
     pub fn new() -> ActorDb {
-        let mut db = ActorDb{actors: Vec::new()};
-        db.register_actor(ActorRef::blank());
+        let mut db = ActorDb { actors: Vec::new() };
+        db.mut_register_actor(ActorRef::blank());
         db
     }
 
+    pub fn register_actor(&self, update: &mut ActorDbUpdate, actor: ActorRef) -> ActorId {
+        let idx = self.actors.len() + update.new_actors.len();
+        let new_id = ActorId { idx: idx };
+        update.new_actors.push((new_id, actor));
+        new_id
+    }
+
+    pub fn new_update(&self) -> ActorDbUpdate {
+        ActorDbUpdate {
+            changes: Vec::new(),
+            new_actors: Vec::new(),
+        }
+    }
+
+    pub fn apply_update(&mut self, update: &ActorDbUpdate) -> Result<()> {
+        let mut ids_set: HashSet<ActorId> = HashSet::new();
+
+        for (id, actor_ref) in &update.changes {
+            if id.idx >= self.actors.len() {
+                return Err(StateUpdateError);
+            }
+            if !ids_set.insert(*id) {
+                return Err(StateUpdateError);
+            }
+            self.actors[id.idx] = *actor_ref;
+        }
+
+        for (id, actor_ref) in &update.new_actors {
+            if id.idx < self.actors.len() {
+                return Err(StateUpdateError);
+            }
+            if !ids_set.insert(*id) {
+                return Err(StateUpdateError);
+            }
+            self.actors[id.idx] = *actor_ref;
+        }
+
+        Ok(())
+    }
 }

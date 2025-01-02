@@ -23,7 +23,7 @@ fn main() {
 
     let foo = Item::new(0, 1);
 
-    game.world.set(
+    game.world.mut_set(
         &Coordinate { x: 10, y: 5 },
         Some(WorldCell {
             actor: None,

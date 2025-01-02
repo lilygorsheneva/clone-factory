@@ -4,6 +4,7 @@ use crate::{
     datatypes::{Building, Coordinate, Item},
     direction::AbsoluteDirection,
 };
+use std::collections::HashSet;
 
 #[derive(PartialEq, Debug)]
 #[derive(Clone)]
@@ -28,6 +29,10 @@ pub struct World {
     data: rpds::Vector<WorldCell>,
 }
 
+pub struct WorldUpdate {
+cells: Vec<(Coordinate, Option<WorldCell>)>
+}
+
 impl World {
     fn in_bounds(&self, location: &Coordinate) -> bool {
         location.x >= 0
@@ -49,7 +54,7 @@ impl World {
         }
     }
 
-    pub fn set(&mut self, location: &Coordinate, data: Option<WorldCell>) -> Result<()> {
+    pub fn mut_set(&mut self, location: &Coordinate, data: Option<WorldCell>) -> Result<()> {
         match (data, self.in_bounds(&location)) {
             (None, false) => Ok(()),
             (None, true) => Err(StateUpdateError),
@@ -90,7 +95,7 @@ impl World {
     }
 
     // Try to do this without clone() calls. Cannot move an object out of vec.
-    pub fn setslice(
+    pub fn mut_setslice(
         &mut self,
         location: Coordinate,
         orientation: AbsoluteDirection,
@@ -98,10 +103,40 @@ impl World {
         data: Vec<Option<WorldCell>>,
     ) ->  Result<()>  {
         for i in 0..offsets.len() {
-            self.set(&(location + offsets[i] * orientation), data[i].clone())?;
+            self.mut_set(&(location + offsets[i] * orientation), data[i].clone())?;
         }
         Ok(())
     }
+
+    pub fn new_update(&self) -> WorldUpdate {
+        WorldUpdate {cells:Vec::new()}
+    }
+
+    // Try to do this without clone() calls. Cannot move an object out of vec.
+    pub fn setslice(self,
+        update: &mut WorldUpdate,
+        location: Coordinate,
+        orientation: AbsoluteDirection,
+        offsets: &Vec<Coordinate>,
+        data: Vec<Option<WorldCell>>) ->Result<()> {
+            for i in 0..offsets.len() {
+                update.cells.push((location + offsets[i] * orientation, data[i].clone()));
+            }
+            Ok(())
+        }
+
+    pub fn apply_update(&mut self, update: &WorldUpdate) -> Result<()> {
+        let mut coord_set: HashSet<Coordinate> = HashSet::new();
+
+        for (coordinate, cell) in &update.cells {
+            match coord_set.insert(*coordinate) {
+                false => return Err(StateUpdateError),
+                true => self.mut_set(&coordinate, cell.clone())?
+            }
+        }
+
+        Ok(())
+}
 }
 
 
@@ -127,7 +162,7 @@ mod tests {
             ..oldcell.clone()
         };
         assert_ne!(*oldcell, newcell); // Sanity check to ensure we actually mutate.
-        w.set(&location, Some(newcell.clone())).unwrap();
+        w.mut_set(&location, Some(newcell.clone())).unwrap();
         assert_eq!(*w.get(&Coordinate{x:0, y:0}).unwrap(), newcell);
     }
 

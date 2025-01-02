@@ -1,4 +1,4 @@
-use crate::actor::{self, Actor, ActorRef};
+use crate::actor::{Actor, ActorRef};
 use crate::datatypes::{Coordinate, Item};
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::error::{
@@ -82,7 +82,7 @@ fn execute_move(
 
             actor_ref.location = location + offsets[1] * orientation;
             actor_ref.orientation = orientation;
-            game.world.setslice(
+            game.world.mut_setslice(
                 location,
                 orientation,
                 &offsets,
@@ -123,7 +123,7 @@ fn execute_take(
             };
 
             game.world
-                .setslice(location, orientation, &offsets, vec![Some(new_cell)])
+                .mut_setslice(location, orientation, &offsets, vec![Some(new_cell)])
         }
     }
 }
@@ -167,7 +167,7 @@ fn execute_use_cloner(
                     recording: recordingid,
                     command_idx: 0,
                 };
-                let actor_id = game.actors.register_actor(new_actor_ref);
+                let actor_id = game.actors.mut_register_actor(new_actor_ref);
                 let mut new_actor = Actor::from_recording(game.recordings.get(recordingid));
                 new_actor.facing = orientation;
                 new_actor.actor_id = actor_id;
@@ -175,7 +175,7 @@ fn execute_use_cloner(
                 let mut new_dest = dest.clone();
                 new_dest.actor = Some(new_actor);
 
-                game.world.setslice(
+                game.world.mut_setslice(
                     location,
                     orientation,
                     &offsets,
@@ -215,7 +215,7 @@ fn execute_grant_item(
             };
 
             game.world
-                .setslice(location, orientation, &offsets, vec![Some(new_cell)])
+                .mut_setslice(location, orientation, &offsets, vec![Some(new_cell)])
         }
     }
 }
@@ -249,7 +249,7 @@ mod tests {
         let location = Coordinate { x: 0, y: 0 };
         let foo =  Item::new(0, 1);
         game.world
-            .set(
+            .mut_set(
                 &location,
                 Some(WorldCell {
                     actor: None,

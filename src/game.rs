@@ -3,10 +3,9 @@ use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
 use crate::datatypes::Item;
 use crate::datatypes::Recording;
-use crate::db::{ActorDb, ActorId, RecordingDb};
+use crate::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
 use crate::direction::{
-    AbsoluteDirection::{E, N, S, W},
-    Direction::{Absolute, Relative},
+    Direction::{Relative},
     RelativeDirection::F,
 };
 use crate::error::{
@@ -15,7 +14,7 @@ use crate::error::{
 };
 use crate::{
     datatypes::Coordinate,
-    world::{World, WorldCell},
+    world::{World, WorldCell, WorldUpdate},
 };
 use std::collections::VecDeque;
 
@@ -61,8 +60,8 @@ impl WorldActors {
         self.db.get_mut_actor(id)
     }
 
-    pub fn register_actor(&mut self, new_actor_ref: ActorRef) -> ActorId {
-        let id = self.db.register_actor(new_actor_ref);
+    pub fn mut_register_actor(&mut self, new_actor_ref: ActorRef) -> ActorId {
+        let id = self.db.mut_register_actor(new_actor_ref);
         if !new_actor_ref.isplayer {
             self.turnqueue.push_front(id);
         }
@@ -87,6 +86,12 @@ pub struct Game {
     pub actors: WorldActors,
     pub recordings: RecordingDb,
     pub current_recording: Option<Recording>,
+}
+
+
+pub struct GameUpdate {
+    pub world: WorldUpdate,
+    pub actors: ActorDbUpdate,
 }
 
 impl Game {
@@ -126,7 +131,7 @@ impl Game {
                 let mut new_actor_ref =
                     ActorRef::new(*location, crate::direction::AbsoluteDirection::N);
                 new_actor_ref.isplayer = true;
-                let player_id = self.actors.register_actor(new_actor_ref);
+                let player_id = self.actors.mut_register_actor(new_actor_ref);
                 new_actor.actor_id = player_id;
 
                 let sample_recording_id = self
@@ -142,7 +147,7 @@ impl Game {
                 });
                 let mut newcell = target.clone();
                 newcell.actor = Some(new_actor);
-                self.world.set(location, Some(newcell))
+                self.world.mut_set(location, Some(newcell))
             }
             _ => Err(Error("Invalid player spawn")),
         }
@@ -206,11 +211,25 @@ impl Game {
             res @ _ => res,
         }
     }
+
+    pub fn new_update(&self) -> GameUpdate {
+        GameUpdate {
+            world: self.world.new_update(),
+            actors: self.actors.db.new_update()
+        }
+    }
+
+    pub fn apply_update(&mut self, update: GameUpdate) -> Result<()> {
+        self.world.apply_update(&update.world)?;
+        self.actors.db.apply_update(&update.actors)?;
+        Ok(())
+    }
+
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::direction::AbsoluteDirection;
+    use crate::direction::{Direction::Absolute, AbsoluteDirection};
 
     use super::*;
     

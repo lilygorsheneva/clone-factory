@@ -4,7 +4,7 @@ use crate::actor::Actor;
 use std::ops;
 use crate::db::RecordingId;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Hash, Eq, PartialEq)]
 pub struct Coordinate {
     pub x: i16,
     pub y: i16,
