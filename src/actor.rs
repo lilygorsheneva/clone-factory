@@ -12,7 +12,7 @@ pub struct Actor {
     //equipment:[Option<Item>; 1],
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct ActorRef {
     pub location: Coordinate,
     pub orientation: AbsoluteDirection,

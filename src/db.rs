@@ -40,7 +40,7 @@ impl RecordingDb {
 pub struct ActorDb {
     actors: Vec<ActorRef>,
 }
-
+#[derive(Debug)]
 pub struct ActorDbUpdate {
     changes: Vec<(ActorId, ActorRef)>,
     new_actors: Vec<(ActorId, ActorRef)>,
@@ -81,6 +81,10 @@ impl ActorDb {
         let new_id = ActorId { idx: idx };
         update.new_actors.push((new_id, actor));
         new_id
+    }
+
+    pub fn update_actor(&self, update: &mut ActorDbUpdate, id: ActorId, actor: ActorRef) {
+        update.changes.push((id, actor));
     }
 
     pub fn new_update(&self) -> ActorDbUpdate {

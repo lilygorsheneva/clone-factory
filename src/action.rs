@@ -5,7 +5,7 @@ use crate::error::{
     Result,
     Status::{ActionFail, Error},
 };
-use crate::game::Game;
+use crate::game::{Game, GameUpdate};
 use crate::world::WorldCell;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -29,7 +29,10 @@ pub fn execute_action(actor_ref: ActorRef, action: Action, game: &mut Game) -> R
     let orientation = actor_ref.orientation.rotate(&action.direction);
 
     match action.action {
-        SubAction::Move => execute_move(actor_ref.location, orientation, game),
+        SubAction::Move => {
+         let update =   execute_move(actor_ref.location, orientation, game)?;
+         game.apply_update(update)
+        },
         SubAction::Take => execute_take(actor_ref.location, orientation, game),
         SubAction::Use(i) => execute_use_cloner(i, actor_ref.location, orientation, game),
         // SubAction::Record => execute_recording(actor_ref.location, orientation, game),
@@ -41,10 +44,12 @@ pub fn execute_action(actor_ref: ActorRef, action: Action, game: &mut Game) -> R
 fn execute_move(
     location: Coordinate,
     orientation: AbsoluteDirection,
-    game: &mut Game,
-) -> Result<()> {
+    game: &Game,
+) -> Result<(GameUpdate)> {
     let offsets = vec![Coordinate { x: 0, y: 0 }, Coordinate { x: 0, y: 1 }];
     let cells = game.world.getslice(location, orientation, &offsets);
+
+    let mut update = game.new_update();
 
     match (cells[0], cells[1]) {
         (None, _) => Err(Error("action performed on empty space")),
@@ -65,7 +70,11 @@ fn execute_move(
             Some(dest @ WorldCell { actor: None, .. }),
         ) => {
             let mut new_actor = actor.clone();
-            let actor_ref: &mut ActorRef = game.actors.get_mut_actor(new_actor.actor_id);
+            let mut actor_ref: ActorRef = game.actors.get_actor(new_actor.actor_id);
+            actor_ref.location = location + offsets[1] * orientation;
+            actor_ref.orientation = orientation;
+            
+            game.actors.db.update_actor(&mut update.actors, new_actor.actor_id, actor_ref);
 
             new_actor.facing = orientation;
             let new_dest = WorldCell {
@@ -80,14 +89,14 @@ fn execute_move(
                 items: src.items.clone(),
             };
 
-            actor_ref.location = location + offsets[1] * orientation;
-            actor_ref.orientation = orientation;
-            game.world.mut_setslice(
+            game.world.update_slice(
+                &mut update.world,
                 location,
                 orientation,
                 &offsets,
                 vec![Some(new_src), Some(new_dest)],
-            )
+            )?;
+            Ok(update)
         }
     }
 }
@@ -231,7 +240,8 @@ mod tests {
         let location = Coordinate { x: 0, y: 1 };
         assert!(game.spawn(&location).is_ok());
         let update = execute_move(location, AbsoluteDirection::S, &mut game);
-        assert_eq!(update, Ok(()));
+        assert!(update.is_ok());
+        assert!(game.apply_update(update.unwrap()).is_ok());
 
         let start = game.world.get(&location);
         let end = game.world.get(&Coordinate { x: 0, y: 0 });

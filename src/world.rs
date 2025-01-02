@@ -29,6 +29,7 @@ pub struct World {
     data: rpds::Vector<WorldCell>,
 }
 
+#[derive(Debug)]
 pub struct WorldUpdate {
 cells: Vec<(Coordinate, Option<WorldCell>)>
 }
@@ -113,7 +114,7 @@ impl World {
     }
 
     // Try to do this without clone() calls. Cannot move an object out of vec.
-    pub fn setslice(self,
+    pub fn update_slice(&self,
         update: &mut WorldUpdate,
         location: Coordinate,
         orientation: AbsoluteDirection,

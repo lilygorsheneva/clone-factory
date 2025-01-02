@@ -22,7 +22,7 @@ pub struct WorldActors {
     pub player: Option<PlayerRef>,
     turnqueue: VecDeque<ActorId>,
     nextturn: VecDeque<ActorId>,
-    db: ActorDb,
+    pub db: ActorDb,
 }
 
 pub struct PlayerRef {
@@ -88,7 +88,7 @@ pub struct Game {
     pub current_recording: Option<Recording>,
 }
 
-
+#[derive(Debug)]
 pub struct GameUpdate {
     pub world: WorldUpdate,
     pub actors: ActorDbUpdate,
