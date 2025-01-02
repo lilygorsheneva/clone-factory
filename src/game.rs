@@ -143,8 +143,8 @@ impl Game {
                 let mut newcell = target.clone();
                 newcell.actor = Some(new_actor);
                 self.world.set(location, Some(newcell))
-            },
-            _ => Err(Error("Invalid player spawn"))
+            }
+            _ => Err(Error("Invalid player spawn")),
         }
     }
 
@@ -205,5 +205,43 @@ impl Game {
             Err(ActionFail(_)) => Ok(()), // Call fallback action.
             res @ _ => res,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::direction::AbsoluteDirection;
+
+    use super::*;
+    
+    #[test]
+    fn record() {
+        let mut game = Game::new(Coordinate { x: 1, y: 2 });
+
+        assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
+
+        game.init_record().unwrap();
+
+        let actions = [
+            Action {
+                direction: Absolute(AbsoluteDirection::N),
+                action: SubAction::Move,
+            },
+            Action {
+                direction: Absolute(AbsoluteDirection::S),
+                action: SubAction::Move,
+            },
+        ];
+
+        game.player_action(actions[0]).unwrap();
+        game.player_action(actions[1]).unwrap();
+
+        game.end_record().unwrap();
+
+        // This is really ugly. Perhaps recording needs a nicer API.
+        let actor = game.world.get(&game.get_player_coords().unwrap()).unwrap().actor.as_ref();
+        let recorder = actor.unwrap().inventory[1].unwrap();
+        let recoding = game.recordings.get(recorder.recording.unwrap());
+        assert_eq!(recoding.command_list, actions);
     }
 }

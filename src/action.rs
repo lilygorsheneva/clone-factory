@@ -8,13 +8,13 @@ use crate::error::{
 use crate::game::Game;
 use crate::world::WorldCell;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Action {
     pub direction: Direction,
     pub action: SubAction,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SubAction {
     Move,
     Take,
