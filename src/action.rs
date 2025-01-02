@@ -219,3 +219,26 @@ fn execute_grant_item(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn move_action() {
+        let mut game = Game::new(Coordinate{x:1,y:2});
+
+        let location  = Coordinate{x:0, y:1};
+        assert!(game.spawn(&location).is_ok());
+        let update = execute_move(location, AbsoluteDirection::S, &mut game);
+        assert!(update.is_ok());
+        let start = game.world.get(&location);
+        let end= game.world.get(&Coordinate{x:0, y:0});
+        assert!(start.is_some());
+        assert!(start.unwrap().actor.is_none());
+
+        assert!(end.is_some());
+        assert!(end.unwrap().actor.is_some());
+    }
+
+}
