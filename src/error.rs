@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Status {
     // An Actor failed to perform an action. Triggers a fallback.
     ActionFail, 

@@ -226,14 +226,15 @@ mod tests {
 
     #[test]
     fn move_action() {
-        let mut game = Game::new(Coordinate{x:1,y:2});
+        let mut game = Game::new(Coordinate { x: 1, y: 2 });
 
-        let location  = Coordinate{x:0, y:1};
+        let location = Coordinate { x: 0, y: 1 };
         assert!(game.spawn(&location).is_ok());
         let update = execute_move(location, AbsoluteDirection::S, &mut game);
-        assert!(update.is_ok());
+        assert_eq!(update, Ok(()));
+        
         let start = game.world.get(&location);
-        let end= game.world.get(&Coordinate{x:0, y:0});
+        let end = game.world.get(&Coordinate { x: 0, y: 0 });
         assert!(start.is_some());
         assert!(start.unwrap().actor.is_none());
 
@@ -241,4 +242,31 @@ mod tests {
         assert!(end.unwrap().actor.is_some());
     }
 
+    #[test]
+    fn take_action() {
+        let mut game = Game::new(Coordinate { x: 1, y: 1 });
+
+        let location = Coordinate { x: 0, y: 0 };
+        let foo =  Item::new(0, 1);
+        game.world
+            .set(
+                &location,
+                Some(WorldCell {
+                    actor: None,
+                    building: None,
+                    items: [Some(foo)],
+                }),
+            )
+            .unwrap();
+
+        assert!(game.spawn(&location).is_ok());
+
+
+        let update = execute_take(location, AbsoluteDirection::S, &mut game);
+        assert_eq!(update, Ok(()));
+
+        let cell =  game.world.get(&location).unwrap();
+        assert_eq!(cell.actor.as_ref().unwrap().inventory[0].unwrap(), foo);
+        assert!(cell.items[0].is_none());
+    }
 }
