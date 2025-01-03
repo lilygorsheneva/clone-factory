@@ -31,3 +31,6 @@ pub fn readinput() -> Option<InputResult> {
         _ => None,
     }
 }
+
+// pub fn select_inventory_slot
+// pub fn select_recipe

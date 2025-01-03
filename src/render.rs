@@ -89,3 +89,8 @@ pub fn renderworld(world: &World, center: &Coordinate)-> io::Result<()>  {
     stdout.flush()?;
     execute!(stdout, EndSynchronizedUpdate)
 }
+
+// pub fn actionprompt
+// pub fn show_inventory
+// pub fn crafting_menu
+// pub fn exit_prompt
