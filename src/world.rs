@@ -4,10 +4,10 @@ use crate::{
     datatypes::{Building, Coordinate, Item},
     direction::AbsoluteDirection,
 };
-use std::collections::HashSet;
+// Upstream HashMap with get_mut feature
+use hashbrown::HashMap;
 
-#[derive(PartialEq, Debug)]
-#[derive(Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct WorldCell {
     pub actor: Option<Actor>,
     pub building: Option<Building>,
@@ -31,7 +31,8 @@ pub struct World {
 
 #[derive(Debug)]
 pub struct WorldUpdate {
-cells: Vec<(Coordinate, Option<WorldCell>)>
+    cells: Vec<(Coordinate, Option<WorldCell>)>,
+    map: HashMap<Coordinate, WorldCell>,
 }
 
 impl World {
@@ -52,6 +53,23 @@ impl World {
             return Some(&self.data[self.coord_to_idx(location)]);
         } else {
             return None;
+        }
+    }
+
+    fn read<'a>(
+        &self,
+        update: &'a mut WorldUpdate,
+        location: &Coordinate,
+    ) -> Option<&'a mut WorldCell> {
+        match (self.in_bounds(location), update.map.contains_key(location)) {
+            (true, false) => {
+                update
+                    .map
+                    .insert(*location, self.data[self.coord_to_idx(location)].clone());
+                update.map.get_mut(location)
+            }
+            (true, true) => update.map.get_mut(location),
+            (false, _) => None,
         }
     }
 
@@ -95,6 +113,21 @@ impl World {
         temp_vec
     }
 
+    pub fn readslice<'a, const N: usize>(
+        &self,
+        update: &'a mut WorldUpdate,
+        location: Coordinate,
+        orientation: AbsoluteDirection,
+        offsets: &[Coordinate; N],
+    ) -> [Option<&'a mut WorldCell>; N] {
+        let translated_offsets = offsets.map(|offset| location +  offset * orientation);
+
+        for offset in translated_offsets {
+            self.read(update, &offset);
+        }
+        update.map.get_many_mut(translated_offsets.each_ref())
+    }
+
     // Try to do this without clone() calls. Cannot move an object out of vec.
     pub fn mut_setslice(
         &mut self,
@@ -102,7 +135,7 @@ impl World {
         orientation: AbsoluteDirection,
         offsets: &Vec<Coordinate>,
         data: Vec<Option<WorldCell>>,
-    ) ->  Result<()>  {
+    ) -> Result<()> {
         for i in 0..offsets.len() {
             self.mut_set(&(location + offsets[i] * orientation), data[i].clone())?;
         }
@@ -110,37 +143,37 @@ impl World {
     }
 
     pub fn new_update(&self) -> WorldUpdate {
-        WorldUpdate {cells:Vec::new()}
+        WorldUpdate {
+            cells: Vec::new(),
+            map: HashMap::new(),
+        }
     }
 
     // Try to do this without clone() calls. Cannot move an object out of vec.
-    pub fn update_slice(&self,
+    pub fn update_slice(
+        &self,
         update: &mut WorldUpdate,
         location: Coordinate,
         orientation: AbsoluteDirection,
         offsets: &Vec<Coordinate>,
-        data: Vec<Option<WorldCell>>) ->Result<()> {
-            for i in 0..offsets.len() {
-                update.cells.push((location + offsets[i] * orientation, data[i].clone()));
-            }
-            Ok(())
+        data: Vec<Option<WorldCell>>,
+    ) -> Result<()> {
+        for i in 0..offsets.len() {
+            update
+                .cells
+                .push((location + offsets[i] * orientation, data[i].clone()));
         }
+        Ok(())
+    }
 
     pub fn apply_update(&mut self, update: &WorldUpdate) -> Result<()> {
-        let mut coord_set: HashSet<Coordinate> = HashSet::new();
-
-        for (coordinate, cell) in &update.cells {
-            match coord_set.insert(*coordinate) {
-                false => return Err(StateUpdateError),
-                true => self.mut_set(&coordinate, cell.clone())?
-            }
+        for (coordinate, cell) in &update.map {
+            self.mut_set(&coordinate, Some(cell.clone()))?;
         }
 
         Ok(())
+    }
 }
-}
-
-
 
 #[cfg(test)]
 mod tests {
@@ -148,15 +181,15 @@ mod tests {
 
     #[test]
     fn create() {
-        let w = World::new(Coordinate{x:1, y:1});
-        assert!(w.in_bounds(&Coordinate{x:0, y:0}));
-        assert!(w.get(&Coordinate{x:0, y:0}).is_some());
+        let w = World::new(Coordinate { x: 1, y: 1 });
+        assert!(w.in_bounds(&Coordinate { x: 0, y: 0 }));
+        assert!(w.get(&Coordinate { x: 0, y: 0 }).is_some());
     }
-    
+
     #[test]
     fn mutate() {
-        let mut w = World::new(Coordinate{x:1, y:1});
-        let location = Coordinate{x:0, y:0};
+        let mut w = World::new(Coordinate { x: 1, y: 1 });
+        let location = Coordinate { x: 0, y: 0 };
         let oldcell = w.get(&location).unwrap();
         let newcell = WorldCell {
             actor: Some(Actor::new()),
@@ -164,44 +197,25 @@ mod tests {
         };
         assert_ne!(*oldcell, newcell); // Sanity check to ensure we actually mutate.
         w.mut_set(&location, Some(newcell.clone())).unwrap();
-        assert_eq!(*w.get(&Coordinate{x:0, y:0}).unwrap(), newcell);
+        assert_eq!(*w.get(&Coordinate { x: 0, y: 0 }).unwrap(), newcell);
     }
 
     #[test]
     fn update() {
-        let mut w = World::new(Coordinate{x:1, y:1});
-        let location = Coordinate{x:0, y:0};
+        let mut w = World::new(Coordinate { x: 1, y: 1 });
+        let location = Coordinate { x: 0, y: 0 };
         let orientation = AbsoluteDirection::N;
-        let offsets = vec![Coordinate{x:0, y:0}];
-
-        let oldcell = w.getslice(location, AbsoluteDirection::N, &offsets)[0].unwrap();
-        let newcell = WorldCell {
-            actor: Some(Actor::new()),
-            ..oldcell.clone()
-        };
-        assert_ne!(*oldcell, newcell); // Sanity check to ensure we actually mutate.
-
+        let offsets = [Coordinate { x: 0, y: 0 }];
         let mut update = w.new_update();
-        let res = w.update_slice(&mut update, location, orientation, &offsets, vec![Some(newcell.clone())]);
-        assert!(w.apply_update(&update).is_ok());
-        assert!(res.is_ok());
-        assert_eq!(*w.get(&Coordinate{x:0, y:0}).unwrap(), newcell);
+
+        let mut reads = w.readslice(&mut update, location, orientation, &offsets);
+
+        if let Some(cell) = &mut reads[0] {
+            assert!(cell.actor.is_none());
+            cell.actor = Some(Actor::new());
+
+            assert!(w.apply_update(&update).is_ok());
+            assert!(w.get(&Coordinate { x: 0, y: 0 }).unwrap().actor.is_some());
+        }
     }
-
-    #[test]
-    fn update_reject_overlap() {
-        let mut w = World::new(Coordinate{x:1, y:1});
-        let location = Coordinate{x:0, y:0};
-        let orientation = AbsoluteDirection::N;
-        let offsets = vec![Coordinate{x:0, y:0}];
-
-        let newcell = WorldCell::new();
-
-        let mut update = w.new_update();
-        let _ = w.update_slice(&mut update, location, orientation, &offsets, vec![Some(newcell.clone())]);
-        let _ = w.update_slice(&mut update, location, orientation, &offsets, vec![Some(newcell.clone())]);
-
-        assert!(w.apply_update(&update).is_err());
-    }
-
 }

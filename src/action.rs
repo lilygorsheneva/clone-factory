@@ -43,12 +43,14 @@ fn execute_move(
     orientation: AbsoluteDirection,
     game: &Game,
 ) -> Result<GameUpdate> {
-    let offsets = vec![Coordinate { x: 0, y: 0 }, Coordinate { x: 0, y: 1 }];
-    let cells = game.world.getslice(location, orientation, &offsets);
-
     let mut update: GameUpdate = game.new_update();
 
-    match (cells[0], cells[1]) {
+
+    let offsets = [Coordinate { x: 0, y: 0 }, Coordinate { x: 0, y: 1 }];
+    let mut binding  = game.world.readslice(&mut update.world, location, orientation, &offsets);
+    let cells = binding.split_at_mut(1);
+
+    match (&mut cells.0[0], &mut cells.1[0]) {
         (None, _) => Err(Error("action performed on empty space")),
         (Some(WorldCell { actor: None, .. }), _) => Err(Error("actor Missing")),
         (Some(_), None)
@@ -60,41 +62,25 @@ fn execute_move(
         ) => Err(ActionFail("move into nonexistent cell")),
         (
             Some(
-                src @ WorldCell {
-                    actor: Some(actor), ..
+                 src @ &mut WorldCell {
+                    actor: Some(..), ..
                 },
             ),
             Some(dest @ WorldCell { actor: None, .. }),
         ) => {
-            let mut new_actor = actor.clone();
-            let mut actor_ref: ActorRef = game.actors.get_actor(new_actor.actor_id);
+            let actor = src.actor.as_mut().unwrap();
+            let mut actor_ref: ActorRef = game.actors.get_actor(actor.actor_id);
             actor_ref.location = location + offsets[1] * orientation;
             actor_ref.orientation = orientation;
+            actor.facing = orientation;
 
             game.actors
                 .db
-                .update_actor(&mut update.actors, new_actor.actor_id, actor_ref);
+                .update_actor(&mut update.actors, actor.actor_id, actor_ref);
 
-            new_actor.facing = orientation;
-            let new_dest = WorldCell {
-                actor: Some(new_actor),
-                building: dest.building.clone(),
-                items: dest.items.clone(),
-            };
-
-            let new_src = WorldCell {
-                actor: None,
-                building: src.building.clone(),
-                items: src.items.clone(),
-            };
-
-            game.world.update_slice(
-                &mut update.world,
-                location,
-                orientation,
-                &offsets,
-                vec![Some(new_src), Some(new_dest)],
-            )?;
+            dest.actor = Some(actor.clone());
+            src.actor = None;
+            
             Ok(update)
         }
     }
@@ -104,41 +90,29 @@ fn execute_take(
     location: Coordinate,
     orientation: AbsoluteDirection,
     game: &mut Game,
-) -> Result<GameUpdate> {
-    let offsets = vec![Coordinate { x: 0, y: 0 }];
-    let cells = game.world.getslice(location, orientation, &offsets);
+) -> Result<GameUpdate> {   
+     let mut update: GameUpdate = game.new_update();
 
-    let mut update: GameUpdate = game.new_update();
+    let offsets = [Coordinate { x: 0, y: 0 }];
+    let mut cells  = game.world.readslice(&mut update.world, location, orientation, &offsets);
 
-    match cells[0] {
+    match &mut cells[0] {
         None => Err(Error("action performed on empty space")),
         Some(WorldCell { actor: None, .. }) => Err(Error("actor Missing")),
         Some(
-            src @ WorldCell {
-                actor: Some(actor), ..
+            src @ &mut WorldCell {
+                actor: Some(..), ..
             },
         ) => {
             if src.items[0].is_none() {
                 return Err(ActionFail("no item to take"));
             }
 
-            let mut new_actor = actor.clone();
-            new_actor.facing = orientation;
-            new_actor.inventory[0] = src.items[0].clone();
+            let actor = src.actor.as_mut().unwrap();
+            actor.facing = orientation;
+            actor.inventory[0] = src.items[0].clone();
+            src.items[0] = None;
 
-            let new_cell = WorldCell {
-                actor: Some(new_actor),
-                building: src.building.clone(),
-                items: Default::default(),
-            };
-
-            game.world.update_slice(
-                &mut update.world,
-                location,
-                orientation,
-                &offsets,
-                vec![Some(new_cell)],
-            )?;
             Ok(update)
         }
     }
@@ -150,12 +124,13 @@ fn execute_use_cloner(
     orientation: AbsoluteDirection,
     game: &mut Game,
 ) -> Result<GameUpdate> {
-    let offsets = vec![Coordinate { x: 0, y: 0 }, Coordinate { x: 0, y: 1 }];
-    let cells = game.world.getslice(location, orientation, &offsets);
-
     let mut update: GameUpdate = game.new_update();
 
-    match (cells[0], cells[1]) {
+    let offsets = [Coordinate { x: 0, y: 0 }, Coordinate { x: 0, y: 1 }];
+    let mut binding  = game.world.readslice(&mut update.world, location, orientation, &offsets);
+    let cells = binding.split_at_mut(1);
+
+    match (&mut cells.0[0], &mut cells.1[0]) {
         (None, _) => Err(Error("action performed on empty space")),
         (Some(WorldCell { actor: None, .. }), _) => Err(Error("actor Missing")),
         (Some(_), None)
@@ -167,7 +142,7 @@ fn execute_use_cloner(
         ) => Err(ActionFail("cloning into nonexistent cell")),
         (
             Some(
-                src @ WorldCell {
+                src @ &mut WorldCell {
                     actor: Some(actor), ..
                 },
             ),
@@ -190,16 +165,7 @@ fn execute_use_cloner(
                 new_actor.facing = orientation;
                 new_actor.actor_id = actor_id;
 
-                let mut new_dest = dest.clone();
-                new_dest.actor = Some(new_actor);
-
-                game.world.update_slice(
-                    &mut update.world,
-                    location,
-                    orientation,
-                    &offsets,
-                    vec![Some(src.clone()), Some(new_dest)],
-                )?;
+                dest.actor = Some(new_actor);
                 Ok(update)
             }
             _ => Err(ActionFail("no item to use")),
@@ -213,36 +179,23 @@ fn execute_grant_item(
     orientation: AbsoluteDirection,
     game: &mut Game,
 ) -> Result<GameUpdate> {
-    let offsets = vec![Coordinate { x: 0, y: 0 }];
-    let cells = game.world.getslice(location, orientation, &offsets);
-
     let mut update: GameUpdate = game.new_update();
+    let offsets = [Coordinate { x: 0, y: 0 }];
+    let mut cells  = game.world.readslice(&mut update.world, location, orientation, &offsets);
 
-    match cells[0] {
+    match &mut cells[0] {
         None => Err(Error("action performed on empty space")),
         Some(WorldCell { actor: None, .. }) => Err(Error("actor Missing")),
         Some(
             src @ WorldCell {
-                actor: Some(actor), ..
+                actor: Some(..), ..
             },
         ) => {
-            let mut new_actor = actor.clone();
-            new_actor.facing = orientation;
-            new_actor.inventory[1] = Some(item);
+            let actor = src.actor.as_mut().unwrap(); 
+            
+            actor.facing = orientation;
+            actor.inventory[1] = Some(item);
 
-            let new_cell = WorldCell {
-                actor: Some(new_actor),
-                building: src.building.clone(),
-                items: Default::default(),
-            };
-
-            game.world.update_slice(
-                &mut update.world,
-                location,
-                orientation,
-                &offsets,
-                vec![Some(new_cell)],
-            )?;
             Ok(update)
         }
     }

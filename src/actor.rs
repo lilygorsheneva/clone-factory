@@ -3,7 +3,7 @@ use crate::db::{ActorId, RecordingId};
 use crate::direction::AbsoluteDirection;
 
 #[derive(PartialEq, Debug)]
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct Actor {
     pub facing: AbsoluteDirection,
     pub isplayer: bool,
