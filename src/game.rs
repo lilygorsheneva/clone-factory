@@ -68,6 +68,14 @@ impl WorldActors {
         id
     }
 
+    pub fn queue_new_actors(&mut self, update: &ActorDbUpdate) {
+        for (id, new_actor_ref) in update.peek_new_actors() {
+            if !new_actor_ref.isplayer {
+                self.turnqueue.push_front(*id);
+            }
+        }
+    }
+
     pub fn get_next_actor(&mut self) -> Option<&mut ActorRef> {
         while let Some(id) = self.turnqueue.pop_front() {
             let actor = self.db.get_actor(id);
@@ -225,6 +233,7 @@ impl Game {
     pub fn apply_update(&mut self, update: GameUpdate) -> Result<()> {
         self.world.apply_update(&update.world)?;
         self.actors.db.apply_update(&update.actors)?;
+        self.actors.queue_new_actors(&update.actors);
         Ok(())
     }
 

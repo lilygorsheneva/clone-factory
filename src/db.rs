@@ -46,6 +46,12 @@ pub struct ActorDbUpdate {
     new_actors: Vec<(ActorId, ActorRef)>,
 }
 
+impl ActorDbUpdate {
+    pub fn peek_new_actors(&self) -> &Vec<(ActorId, ActorRef)> {
+        &self.new_actors
+    }
+}
+
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub struct ActorId {
     idx: usize,
@@ -114,7 +120,7 @@ impl ActorDb {
             if !ids_set.insert(*id) {
                 return Err(StateUpdateError);
             }
-            self.actors[id.idx] = *actor_ref;
+            self.actors.push(*actor_ref);
         }
 
         Ok(())
