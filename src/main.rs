@@ -15,7 +15,7 @@ mod world;
 mod error;
 
 fn main() {
-    render::init_render().unwrap();
+    let mut terminal =render::init_render();
 
     let mut game = Game::new(Coordinate { x: 20, y: 10 });
 
@@ -32,18 +32,18 @@ fn main() {
         }),
     ).unwrap();
 
-    render::renderworld(&game.world, &game.get_player_coords().unwrap()).unwrap();
+    terminal.draw(|frame| render::draw(&game, frame)).unwrap();
 
     loop {
         match input::readinput() {
             Some(input::InputResult::Exit) => break,
             Some(input::InputResult::Redraw) => {
-                render::renderworld(&game.world, &game.get_player_coords().unwrap()).unwrap();
+                terminal.draw(|frame| render::draw(&game, frame)).unwrap();
             }
             Some(input::InputResult::Act(act)) => {
                 game.player_action(act).unwrap();
                 game.do_npc_turns().unwrap();
-                render::renderworld(&game.world, &game.get_player_coords().unwrap()).unwrap();
+                terminal.draw(|frame| render::draw(&game, frame)).unwrap();
             }
             Some(input::InputResult::Record) => match game.current_recording {
                 Some(_) => game.end_record().unwrap(),
@@ -53,5 +53,5 @@ fn main() {
         };
     }
 
-    render::deinit_render().unwrap();
+    render::deinit_render();
 }

@@ -1,95 +1,92 @@
 use crate::datatypes::Coordinate;
 use crate::direction::AbsoluteDirection;
+use crate::game::{self, Game};
 use crate::world::{World, WorldCell};
-use crossterm::{
-    cursor, execute, queue,
-    style::{self, StyledContent, Stylize},
-    terminal::{self,
-        disable_raw_mode, enable_raw_mode, BeginSynchronizedUpdate, EndSynchronizedUpdate,
-        EnterAlternateScreen, LeaveAlternateScreen,
-    },
-};
+use ratatui::buffer::Cell;
+use ratatui::layout::Rect;
+use ratatui::prelude::Buffer;
+use ratatui::style::{Color, Style};
+use ratatui::widgets::Widget;
+use ratatui::{self, DefaultTerminal, Frame};
 use std::io::{self, Write};
 
 impl WorldCell {
-    fn get_drawable(&self) -> StyledContent<char> {
+    fn draw(&self, cell: &mut Cell) {
+        let generic_style = Style::default().fg(Color::White).bg(Color::DarkGray);
+
         match self {
             WorldCell {
                 actor: Some(actor), ..
             } => {
                 let glyph = match actor.facing {
-                    AbsoluteDirection::N => 'A',
-                    AbsoluteDirection::S => 'V',
-                    AbsoluteDirection::E => '>',
-                    AbsoluteDirection::W => '<',
+                    AbsoluteDirection::N => "A",
+                    AbsoluteDirection::S => "V",
+                    AbsoluteDirection::E => ">",
+                    AbsoluteDirection::W => "<",
                 };
-                let styled = match actor.isplayer {
-                    true => glyph.red().on_black(),
-                    false => glyph.white().on_black(),
+                let style = match actor.isplayer {
+                    true => Style::default().fg(Color::Red).bg(Color::Black),
+                    false => generic_style,
                 };
-                styled
-            },
+                cell.set_symbol(glyph).set_style(style);
+            }
             WorldCell {
                 building: Some(_), ..
-            } => 'B'.white().on_black(),
-            WorldCell {items, .. } if items[0].is_some()=> {
-                'i'.white().on_black()
-            },
-            _ => ' '.on_black()
-        }
-    }
-}
-
-pub fn init_render() -> io::Result<()>{
-    execute!(
-        io::stdout(),
-        cursor::SetCursorStyle::SteadyUnderScore,
-        cursor::Hide,
-        EnterAlternateScreen
-    )?;
-    enable_raw_mode()?;
-    Ok(())
-}
-
-pub fn deinit_render()-> io::Result<()> {
-    execute!(io::stdout(), cursor::Show, LeaveAlternateScreen)?;
-    disable_raw_mode()?;
-    Ok(())
-}
-
-pub fn renderworld(world: &World, center: &Coordinate)-> io::Result<()>  {
-    let mut stdout = io::stdout();
-
-    let size = terminal::size()?;
-    let (cols, rows) = (size.0 as i16, size.1 as i16);
-    let (centerx, centery) = (cols / 2 + center.x, rows / 2 + center.y);
-    execute!(stdout, BeginSynchronizedUpdate)?;
-    for i in 0..cols {
-        for j in 0..rows {
-            let x = centerx - i;
-            let y = centery - j;
-
-            if let Some(cell) = world.get(&Coordinate { x: x, y: y }) {
-                // Render that Cell
-                queue!(
-                    stdout,
-                    cursor::MoveTo(i as u16, j as u16),
-                    style::PrintStyledContent(cell.get_drawable())
-                )?;
-            } else {
-                queue!(
-                    stdout,
-                    cursor::MoveTo(i as u16, j as u16),
-                    style::PrintStyledContent(" ".on_dark_cyan())
-                )?;
+            } => {
+                cell.set_symbol("B").set_style(generic_style);
+            }
+            WorldCell { items, .. } if items[0].is_some() => {
+                cell.set_symbol("i").set_style(generic_style);
+            }
+            _ => {
+                cell.set_symbol(" ").set_style(generic_style);
             }
         }
     }
-
-    stdout.flush()?;
-    execute!(stdout, EndSynchronizedUpdate)
 }
 
+pub fn init_render() -> DefaultTerminal {
+    ratatui::init()
+}
+
+pub fn deinit_render() {
+    ratatui::restore();
+}
+
+pub struct WorldWindow<'a> {
+    pub world: &'a World,
+    pub center: Coordinate,
+}
+
+impl<'a> Widget for WorldWindow<'a> {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let (cols, rows) = (area.width, area.height);
+        let (centerx, centery) = (
+            cols as i16 / 2 + self.center.x,
+            rows as i16 / 2 + self.center.y,
+        );
+
+        for i in 0..cols {
+            for j in 0..rows {
+                let x = centerx - i as i16;
+                let y = centery - j as i16;
+                if let Some(worldcell) = self.world.get(&Coordinate { x: x, y: y }) {
+                    worldcell.draw(&mut buf[(i, j)]);
+                } else {
+                    buf[(i, j)].set_symbol(" ");
+                }
+            }
+        }
+    }
+}
+
+pub fn draw(game: &Game, frame: &mut Frame) {
+    let window = WorldWindow {
+        world: &game.world,
+        center: game.get_player_coords().unwrap(),
+    };
+    frame.render_widget(window, frame.area());
+}
 // pub fn actionprompt
 // pub fn show_inventory
 // pub fn crafting_menu
