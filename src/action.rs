@@ -63,7 +63,11 @@ fn execute_move(
             },
         ), Some(dest @ WorldCell { actor: None, .. })] => {
             let actor: &mut Actor = src.actor.as_mut().unwrap();
-            let actor_ref:&mut ActorRef = game.actors.db.read_actor(&mut update.actors, &actor.actor_id).unwrap();
+            let actor_ref: &mut ActorRef = game
+                .actors
+                .db
+                .read_actor(&mut update.actors, &actor.actor_id)
+                .unwrap();
             actor_ref.location = location + offsets[1] * orientation;
             actor_ref.orientation = orientation;
             actor.facing = orientation;
@@ -147,7 +151,10 @@ fn execute_use_cloner(
                     recording: recordingid,
                     command_idx: 0,
                 };
-                let actor_id = game.actors.db.register_actor(&mut update.actors,new_actor_ref);
+                let actor_id = game
+                    .actors
+                    .db
+                    .register_actor(&mut update.actors, new_actor_ref);
                 let mut new_actor = Actor::from_recording(game.recordings.get(recordingid));
                 new_actor.facing = orientation;
                 new_actor.actor_id = actor_id;
@@ -192,6 +199,9 @@ fn execute_grant_item(
 
 #[cfg(test)]
 mod tests {
+    use crate::datatypes::Recording;
+    use crate::direction::Direction::{Absolute, Relative};
+
     use super::*;
 
     #[test]
@@ -246,6 +256,33 @@ mod tests {
 
         let location = Coordinate { x: 0, y: 0 };
         assert!(game.spawn(&location).is_ok());
+
+        let actions = vec![
+            Action {
+                direction: Absolute(AbsoluteDirection::N),
+                action: SubAction::Move,
+            },
+            Action {
+                direction: Absolute(AbsoluteDirection::N),
+                action: SubAction::Move,
+            },
+        ];
+
+        let sample_recording_id = game.recordings.register_recording(&Recording {
+            command_list: actions,
+            inventory: Default::default(),
+        });
+        let new_cloner = Item::new_cloner(sample_recording_id);
+        let update = execute_action(
+            game.actors.get_player().unwrap(),
+            Action {
+                direction: Absolute(AbsoluteDirection::N),
+                action: SubAction::GrantItem(new_cloner),
+            },
+            &mut game,
+        )
+        .unwrap();
+        game.apply_update(update).unwrap();
 
         let update = execute_use_cloner(1, location, AbsoluteDirection::N, &mut game);
         assert!(game.apply_update(update.unwrap()).is_ok());

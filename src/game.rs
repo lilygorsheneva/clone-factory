@@ -137,14 +137,6 @@ impl Game {
                 let player_id = self.actors.mut_register_actor(new_actor_ref);
                 new_actor.actor_id = player_id;
 
-                let sample_recording_id = self
-                    .recordings
-                    .register_recording(&crate::devtools::make_sample_recording());
-                let mut sample_recorder_item = Item::new(1, 1);
-                sample_recorder_item.recording = Some(sample_recording_id);
-
-                new_actor.inventory[1] = Some(sample_recorder_item);
-
                 self.actors.player = Some(PlayerRef {
                     actor_id: player_id,
                 });
@@ -272,5 +264,58 @@ mod tests {
         let recorder = actor.unwrap().inventory[1].unwrap();
         let recoding = game.recordings.get(recorder.recording.unwrap());
         assert_eq!(recoding.command_list, actions);
+    }
+
+    #[test]
+    fn clone() {
+        let mut game = Game::new(Coordinate { x: 1, y: 3 });
+
+        assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
+
+        let actions = vec![
+            Action {
+                direction: Absolute(AbsoluteDirection::N),
+                action: SubAction::Move,
+            },
+            Action {
+                direction: Absolute(AbsoluteDirection::N),
+                action: SubAction::Move,
+            },
+        ];
+
+        let sample_recording_id = game
+        .recordings
+        .register_recording(&Recording{command_list: actions, inventory: Default::default()});
+        let new_cloner = Item::new_cloner(sample_recording_id);
+        let update = action::execute_action(
+            game.actors.get_player().unwrap(),
+            Action {
+                direction: Relative(F),
+                action: SubAction::GrantItem(new_cloner),
+            },
+            &mut game,
+        ).unwrap();
+        game.apply_update(update).unwrap();
+
+        let update = action::execute_action(
+            game.actors.get_player().unwrap(),
+            Action {
+                direction: Absolute(AbsoluteDirection::N),
+                action: SubAction::Use(1),
+            },
+            &mut game,
+        )
+        .unwrap();
+        game.apply_update(update).unwrap();
+
+        let dest = game.world.get(&Coordinate{x:0, y:2});
+        assert!(dest.is_some());
+        assert!(dest.unwrap().actor.is_none());
+
+        game.do_npc_turns().unwrap();
+
+        let dest = game.world.get(&Coordinate{x:0, y:2});
+        assert!(dest.is_some());
+        assert!(dest.unwrap().actor.is_some());
     }
 }
