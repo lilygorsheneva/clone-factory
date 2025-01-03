@@ -62,15 +62,11 @@ fn execute_move(
                 actor: Some(..), ..
             },
         ), Some(dest @ WorldCell { actor: None, .. })] => {
-            let actor = src.actor.as_mut().unwrap();
-            let mut actor_ref: ActorRef = game.actors.get_actor(actor.actor_id);
+            let actor: &mut Actor = src.actor.as_mut().unwrap();
+            let actor_ref:&mut ActorRef = game.actors.db.read_actor(&mut update.actors, &actor.actor_id).unwrap();
             actor_ref.location = location + offsets[1] * orientation;
             actor_ref.orientation = orientation;
             actor.facing = orientation;
-
-            game.actors
-                .db
-                .update_actor(&mut update.actors, actor.actor_id, actor_ref);
 
             dest.actor = Some(actor.clone());
             src.actor = None;
@@ -151,8 +147,6 @@ fn execute_use_cloner(
                     recording: recordingid,
                     command_idx: 0,
                 };
-//                let actor_id = game.actors.mut_register_actor(new_actor_ref);
-
                 let actor_id = game.actors.db.register_actor(&mut update.actors,new_actor_ref);
                 let mut new_actor = Actor::from_recording(game.recordings.get(recordingid));
                 new_actor.facing = orientation;

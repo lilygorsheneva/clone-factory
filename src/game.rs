@@ -4,10 +4,7 @@ use crate::actor::{Actor, ActorRef};
 use crate::datatypes::Item;
 use crate::datatypes::Recording;
 use crate::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
-use crate::direction::{
-    Direction::{Relative},
-    RelativeDirection::F,
-};
+use crate::direction::{Direction::Relative, RelativeDirection::F};
 use crate::error::{
     Result,
     Status::{ActionFail, Error},
@@ -69,17 +66,15 @@ impl WorldActors {
     }
 
     pub fn queue_new_actors(&mut self, update: &ActorDbUpdate) {
-        for (id, new_actor_ref) in update.peek_new_actors() {
-            if !new_actor_ref.isplayer {
-                self.turnqueue.push_front(*id);
-            }
+        for id in update.peek_new_actors() {
+            self.turnqueue.push_front(*id);
         }
     }
 
     pub fn get_next_actor(&mut self) -> Option<&mut ActorRef> {
         while let Some(id) = self.turnqueue.pop_front() {
             let actor = self.db.get_actor(id);
-            if actor.live {
+            if actor.live &! actor.isplayer {
                 self.nextturn.push_back(id);
                 return Some(self.db.get_mut_actor(id));
             }
@@ -195,8 +190,7 @@ impl Game {
                 let new_cloner = Item::new_cloner(id);
                 self.current_recording = None;
                 let actor_ref = self.actors.get_player()?;
-                let update = 
-                action::execute_action(
+                let update = action::execute_action(
                     actor_ref,
                     Action {
                         direction: Relative(F),
@@ -226,7 +220,7 @@ impl Game {
     pub fn new_update(&self) -> GameUpdate {
         GameUpdate {
             world: self.world.new_update(),
-            actors: self.actors.db.new_update()
+            actors: self.actors.db.new_update(),
         }
     }
 
@@ -236,15 +230,14 @@ impl Game {
         self.actors.queue_new_actors(&update.actors);
         Ok(())
     }
-
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::direction::{Direction::Absolute, AbsoluteDirection};
+    use crate::direction::{AbsoluteDirection, Direction::Absolute};
 
     use super::*;
-    
+
     #[test]
     fn record() {
         let mut game = Game::new(Coordinate { x: 1, y: 2 });
@@ -270,7 +263,12 @@ mod tests {
         game.end_record().unwrap();
 
         // This is really ugly. Perhaps recording needs a nicer API.
-        let actor = game.world.get(&game.get_player_coords().unwrap()).unwrap().actor.as_ref();
+        let actor = game
+            .world
+            .get(&game.get_player_coords().unwrap())
+            .unwrap()
+            .actor
+            .as_ref();
         let recorder = actor.unwrap().inventory[1].unwrap();
         let recoding = game.recordings.get(recorder.recording.unwrap());
         assert_eq!(recoding.command_list, actions);

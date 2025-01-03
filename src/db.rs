@@ -1,7 +1,10 @@
-use crate::actor::ActorRef;
+use hashbrown::HashMap;
+
+use crate::actor::{Actor, ActorRef};
 use crate::datatypes::Recording;
 use crate::error::{Result, Status::StateUpdateError};
 use std::collections::HashSet;
+use std::usize;
 
 pub struct RecordingDb {
     recordings: Vec<Recording>,
@@ -42,12 +45,13 @@ pub struct ActorDb {
 }
 #[derive(Debug)]
 pub struct ActorDbUpdate {
-    changes: Vec<(ActorId, ActorRef)>,
-    new_actors: Vec<(ActorId, ActorRef)>,
+    changes: Vec<ActorId>,
+    new_actors: Vec<ActorId>,
+    map: HashMap<ActorId, ActorRef>,
 }
 
 impl ActorDbUpdate {
-    pub fn peek_new_actors(&self) -> &Vec<(ActorId, ActorRef)> {
+    pub fn peek_new_actors(&self) -> &Vec<ActorId> {
         &self.new_actors
     }
 }
@@ -85,65 +89,58 @@ impl ActorDb {
     pub fn register_actor(&self, update: &mut ActorDbUpdate, actor: ActorRef) -> ActorId {
         let idx = self.actors.len() + update.new_actors.len();
         let new_id = ActorId { idx: idx };
-        update.new_actors.push((new_id, actor));
+        update.map.insert(new_id, actor);
         new_id
     }
 
-    pub fn update_actor(&self, update: &mut ActorDbUpdate, id: ActorId, actor: ActorRef) {
-        update.changes.push((id, actor));
+
+    pub fn read_actor<'a> (&self, update: &'a mut ActorDbUpdate, id: &ActorId) -> Option<&'a mut ActorRef> {
+        if update.map.contains_key(id) {
+            update.map.get_mut(id)
+        } else {
+            update.changes.push(*id);
+            update.map.insert(*id, self.get_actor(*id));
+            update.map.get_mut(id)
+        }
+    }
+
+    pub fn read_actors<'a, const N: usize>(&self, update: &'a mut ActorDbUpdate, ids: [&ActorId;N]) ->[Option<&'a mut ActorRef>;N] {
+        for id in ids {
+            self.read_actor(update, &id);
+        }
+        update.map.get_many_mut(ids)
     }
 
     pub fn new_update(&self) -> ActorDbUpdate {
         ActorDbUpdate {
             changes: Vec::new(),
             new_actors: Vec::new(),
+            map: HashMap::new(),
         }
     }
 
     pub fn apply_update(&mut self, update: &ActorDbUpdate) -> Result<()> {
         let mut ids_set: HashSet<ActorId> = HashSet::new();
 
-        for (id, actor_ref) in &update.changes {
+        for id in &update.changes {
             if id.idx >= self.actors.len() {
                 return Err(StateUpdateError);
             }
             if !ids_set.insert(*id) {
                 return Err(StateUpdateError);
             }
-            self.actors[id.idx] = *actor_ref;
+            self.actors[id.idx] = update.map[id];
         }
 
-        for (id, actor_ref) in &update.new_actors {
+        for id in &update.new_actors {
             if id.idx < self.actors.len() {
                 return Err(StateUpdateError);
             }
             if !ids_set.insert(*id) {
                 return Err(StateUpdateError);
             }
-            self.actors.push(*actor_ref);
+            self.actors.push( update.map[id]);
         }
-
         Ok(())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::datatypes::Coordinate;
-
-    use super::*;
-
-    #[test]
-    fn reject_overlap() {
-        let mut db = ActorDb::new();
-        let mut update = db.new_update();
-        let actor = ActorRef::new(Coordinate{x:0, y:0}, crate::direction::AbsoluteDirection::N);
-
-        let id = db.register_actor(&mut update,actor);
-        db.update_actor(&mut update, id, actor);
-        
-        assert!(db.apply_update(&update).is_err())
-        
-    }
-}
-    
