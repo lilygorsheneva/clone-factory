@@ -74,7 +74,7 @@ impl WorldActors {
     pub fn get_next_actor(&mut self) -> Option<&mut ActorRef> {
         while let Some(id) = self.turnqueue.pop_front() {
             let actor = self.db.get_actor(id);
-            if actor.live &! actor.isplayer {
+            if actor.live & !actor.isplayer {
                 self.nextturn.push_back(id);
                 return Some(self.db.get_mut_actor(id));
             }

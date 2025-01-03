@@ -89,6 +89,7 @@ impl ActorDb {
     pub fn register_actor(&self, update: &mut ActorDbUpdate, actor: ActorRef) -> ActorId {
         let idx = self.actors.len() + update.new_actors.len();
         let new_id = ActorId { idx: idx };
+        update.new_actors.push(new_id);
         update.map.insert(new_id, actor);
         new_id
     }
