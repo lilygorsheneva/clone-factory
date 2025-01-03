@@ -120,3 +120,24 @@ impl ActorDb {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::datatypes::Coordinate;
+
+    use super::*;
+
+    #[test]
+    fn reject_overlap() {
+        let mut db = ActorDb::new();
+        let mut update = db.new_update();
+        let actor = ActorRef::new(Coordinate{x:0, y:0}, crate::direction::AbsoluteDirection::N);
+
+        let id = db.register_actor(&mut update,actor);
+        db.update_actor(&mut update, id, actor);
+        
+        assert!(db.apply_update(&update).is_err())
+        
+    }
+}
+    

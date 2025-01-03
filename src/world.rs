@@ -167,6 +167,41 @@ mod tests {
         assert_eq!(*w.get(&Coordinate{x:0, y:0}).unwrap(), newcell);
     }
 
-    // Get/set slice tests not implemented yet; their API will change soon.
+    #[test]
+    fn update() {
+        let mut w = World::new(Coordinate{x:1, y:1});
+        let location = Coordinate{x:0, y:0};
+        let orientation = AbsoluteDirection::N;
+        let offsets = vec![Coordinate{x:0, y:0}];
+
+        let oldcell = w.getslice(location, AbsoluteDirection::N, &offsets)[0].unwrap();
+        let newcell = WorldCell {
+            actor: Some(Actor::new()),
+            ..oldcell.clone()
+        };
+        assert_ne!(*oldcell, newcell); // Sanity check to ensure we actually mutate.
+
+        let mut update = w.new_update();
+        let res = w.update_slice(&mut update, location, orientation, &offsets, vec![Some(newcell.clone())]);
+        assert!(w.apply_update(&update).is_ok());
+        assert!(res.is_ok());
+        assert_eq!(*w.get(&Coordinate{x:0, y:0}).unwrap(), newcell);
+    }
+
+    #[test]
+    fn update_reject_overlap() {
+        let mut w = World::new(Coordinate{x:1, y:1});
+        let location = Coordinate{x:0, y:0};
+        let orientation = AbsoluteDirection::N;
+        let offsets = vec![Coordinate{x:0, y:0}];
+
+        let newcell = WorldCell::new();
+
+        let mut update = w.new_update();
+        let _ = w.update_slice(&mut update, location, orientation, &offsets, vec![Some(newcell.clone())]);
+        let _ = w.update_slice(&mut update, location, orientation, &offsets, vec![Some(newcell.clone())]);
+
+        assert!(w.apply_update(&update).is_err());
+    }
 
 }
