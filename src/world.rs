@@ -31,7 +31,6 @@ pub struct World {
 
 #[derive(Debug)]
 pub struct WorldUpdate {
-    cells: Vec<(Coordinate, Option<WorldCell>)>,
     map: HashMap<Coordinate, WorldCell>,
 }
 
@@ -100,19 +99,6 @@ impl World {
         }
     }
 
-    pub fn getslice(
-        &self,
-        location: Coordinate,
-        orientation: AbsoluteDirection,
-        offsets: &Vec<Coordinate>,
-    ) -> Vec<Option<&WorldCell>> {
-        let mut temp_vec = Vec::new();
-        for i in 0..offsets.len() {
-            temp_vec.push(self.get(&(location + offsets[i] * orientation)));
-        }
-        temp_vec
-    }
-
     pub fn readslice<'a, const N: usize>(
         &self,
         update: &'a mut WorldUpdate,
@@ -128,42 +114,10 @@ impl World {
         update.map.get_many_mut(translated_offsets.each_ref())
     }
 
-    // Try to do this without clone() calls. Cannot move an object out of vec.
-    pub fn mut_setslice(
-        &mut self,
-        location: Coordinate,
-        orientation: AbsoluteDirection,
-        offsets: &Vec<Coordinate>,
-        data: Vec<Option<WorldCell>>,
-    ) -> Result<()> {
-        for i in 0..offsets.len() {
-            self.mut_set(&(location + offsets[i] * orientation), data[i].clone())?;
-        }
-        Ok(())
-    }
-
     pub fn new_update(&self) -> WorldUpdate {
         WorldUpdate {
-            cells: Vec::new(),
             map: HashMap::new(),
         }
-    }
-
-    // Try to do this without clone() calls. Cannot move an object out of vec.
-    pub fn update_slice(
-        &self,
-        update: &mut WorldUpdate,
-        location: Coordinate,
-        orientation: AbsoluteDirection,
-        offsets: &Vec<Coordinate>,
-        data: Vec<Option<WorldCell>>,
-    ) -> Result<()> {
-        for i in 0..offsets.len() {
-            update
-                .cells
-                .push((location + offsets[i] * orientation, data[i].clone()));
-        }
-        Ok(())
     }
 
     pub fn apply_update(&mut self, update: &WorldUpdate) -> Result<()> {
