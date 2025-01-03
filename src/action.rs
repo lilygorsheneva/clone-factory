@@ -25,14 +25,11 @@ pub enum SubAction {
     GrantItem(Item),
 }
 
-pub fn execute_action(actor_ref: ActorRef, action: Action, game: &mut Game) -> Result<()> {
+pub fn execute_action(actor_ref: ActorRef, action: Action, game: &mut Game) -> Result<GameUpdate> {
     let orientation = actor_ref.orientation.rotate(&action.direction);
 
     match action.action {
-        SubAction::Move => {
-         let update =   execute_move(actor_ref.location, orientation, game)?;
-         game.apply_update(update)
-        },
+        SubAction::Move => execute_move(actor_ref.location, orientation, game),
         SubAction::Take => execute_take(actor_ref.location, orientation, game),
         SubAction::Use(i) => execute_use_cloner(i, actor_ref.location, orientation, game),
         // SubAction::Record => execute_recording(actor_ref.location, orientation, game),
@@ -45,11 +42,11 @@ fn execute_move(
     location: Coordinate,
     orientation: AbsoluteDirection,
     game: &Game,
-) -> Result<(GameUpdate)> {
+) -> Result<GameUpdate> {
     let offsets = vec![Coordinate { x: 0, y: 0 }, Coordinate { x: 0, y: 1 }];
     let cells = game.world.getslice(location, orientation, &offsets);
 
-    let mut update = game.new_update();
+    let mut update: GameUpdate = game.new_update();
 
     match (cells[0], cells[1]) {
         (None, _) => Err(Error("action performed on empty space")),
@@ -73,8 +70,10 @@ fn execute_move(
             let mut actor_ref: ActorRef = game.actors.get_actor(new_actor.actor_id);
             actor_ref.location = location + offsets[1] * orientation;
             actor_ref.orientation = orientation;
-            
-            game.actors.db.update_actor(&mut update.actors, new_actor.actor_id, actor_ref);
+
+            game.actors
+                .db
+                .update_actor(&mut update.actors, new_actor.actor_id, actor_ref);
 
             new_actor.facing = orientation;
             let new_dest = WorldCell {
@@ -105,9 +104,11 @@ fn execute_take(
     location: Coordinate,
     orientation: AbsoluteDirection,
     game: &mut Game,
-) -> Result<()> {
+) -> Result<GameUpdate> {
     let offsets = vec![Coordinate { x: 0, y: 0 }];
     let cells = game.world.getslice(location, orientation, &offsets);
+
+    let mut update: GameUpdate = game.new_update();
 
     match cells[0] {
         None => Err(Error("action performed on empty space")),
@@ -131,8 +132,14 @@ fn execute_take(
                 items: Default::default(),
             };
 
-            game.world
-                .mut_setslice(location, orientation, &offsets, vec![Some(new_cell)])
+            game.world.update_slice(
+                &mut update.world,
+                location,
+                orientation,
+                &offsets,
+                vec![Some(new_cell)],
+            )?;
+            Ok(update)
         }
     }
 }
@@ -142,9 +149,11 @@ fn execute_use_cloner(
     location: Coordinate,
     orientation: AbsoluteDirection,
     game: &mut Game,
-) -> Result<()> {
+) -> Result<GameUpdate> {
     let offsets = vec![Coordinate { x: 0, y: 0 }, Coordinate { x: 0, y: 1 }];
     let cells = game.world.getslice(location, orientation, &offsets);
+
+    let mut update: GameUpdate = game.new_update();
 
     match (cells[0], cells[1]) {
         (None, _) => Err(Error("action performed on empty space")),
@@ -184,12 +193,14 @@ fn execute_use_cloner(
                 let mut new_dest = dest.clone();
                 new_dest.actor = Some(new_actor);
 
-                game.world.mut_setslice(
+                game.world.update_slice(
+                    &mut update.world,
                     location,
                     orientation,
                     &offsets,
                     vec![Some(src.clone()), Some(new_dest)],
-                )
+                )?;
+                Ok(update)
             }
             _ => Err(ActionFail("no item to use")),
         },
@@ -201,9 +212,11 @@ fn execute_grant_item(
     location: Coordinate,
     orientation: AbsoluteDirection,
     game: &mut Game,
-) -> Result<()> {
+) -> Result<GameUpdate> {
     let offsets = vec![Coordinate { x: 0, y: 0 }];
     let cells = game.world.getslice(location, orientation, &offsets);
+
+    let mut update: GameUpdate = game.new_update();
 
     match cells[0] {
         None => Err(Error("action performed on empty space")),
@@ -223,8 +236,14 @@ fn execute_grant_item(
                 items: Default::default(),
             };
 
-            game.world
-                .mut_setslice(location, orientation, &offsets, vec![Some(new_cell)])
+            game.world.update_slice(
+                &mut update.world,
+                location,
+                orientation,
+                &offsets,
+                vec![Some(new_cell)],
+            )?;
+            Ok(update)
         }
     }
 }
@@ -257,7 +276,7 @@ mod tests {
         let mut game = Game::new(Coordinate { x: 1, y: 1 });
 
         let location = Coordinate { x: 0, y: 0 };
-        let foo =  Item::new(0, 1);
+        let foo = Item::new(0, 1);
         game.world
             .mut_set(
                 &location,
@@ -271,15 +290,13 @@ mod tests {
 
         assert!(game.spawn(&location).is_ok());
 
-
         let update = execute_take(location, AbsoluteDirection::S, &mut game);
-        assert_eq!(update, Ok(()));
+        assert!(game.apply_update(update.unwrap()).is_ok());
 
-        let cell =  game.world.get(&location).unwrap();
+        let cell = game.world.get(&location).unwrap();
         assert_eq!(cell.actor.as_ref().unwrap().inventory[0].unwrap(), foo);
         assert!(cell.items[0].is_none());
     }
-
 
     #[test]
     fn use_cloner() {
@@ -289,7 +306,7 @@ mod tests {
         assert!(game.spawn(&location).is_ok());
 
         let update = execute_use_cloner(1, location, AbsoluteDirection::N, &mut game);
-        assert_eq!(update, Ok(()));
+        assert!(game.apply_update(update.unwrap()).is_ok());
 
         let start = game.world.get(&location);
         let end = game.world.get(&Coordinate { x: 0, y: 1 });
@@ -299,5 +316,4 @@ mod tests {
         assert!(end.is_some());
         assert!(end.unwrap().actor.is_some());
     }
-
 }

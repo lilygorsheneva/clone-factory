@@ -160,9 +160,9 @@ impl Game {
             actor.command_idx += 1;
             let res = action::execute_action(*actor, action, self);
             match res {
-                Ok(()) => (),
+                Ok(update) => self.apply_update(update)?,
                 Err(ActionFail(_)) => (), // call fallback action
-                res @ _ => return res,
+                Err(res) => return Err(res),
             }
         }
         Ok(())
@@ -187,6 +187,7 @@ impl Game {
                 let new_cloner = Item::new_cloner(id);
                 self.current_recording = None;
                 let actor_ref = self.actors.get_player()?;
+                let update = 
                 action::execute_action(
                     actor_ref,
                     Action {
@@ -194,7 +195,8 @@ impl Game {
                         action: SubAction::GrantItem(new_cloner),
                     },
                     self,
-                )
+                )?;
+                self.apply_update(update)
             }
         }
     }
@@ -207,8 +209,9 @@ impl Game {
         }
 
         match action::execute_action(actor_ref, action, self) {
+            Ok(update) => self.apply_update(update),
             Err(ActionFail(_)) => Ok(()), // Call fallback action.
-            res @ _ => res,
+            Err(res) => Err(res),
         }
     }
 
