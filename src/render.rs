@@ -1,14 +1,13 @@
-use crate::datatypes::Coordinate;
+use crate::datatypes::{BasicInventory, Coordinate, Item};
 use crate::direction::AbsoluteDirection;
 use crate::game::{self, Game};
 use crate::world::{World, WorldCell};
 use ratatui::buffer::Cell;
-use ratatui::layout::Rect;
+use ratatui::layout::{self, Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Buffer;
 use ratatui::style::{Color, Style};
-use ratatui::widgets::Widget;
+use ratatui::widgets::{self, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
-use std::io::{self, Write};
 
 impl WorldCell {
     fn draw(&self, cell: &mut Cell) {
@@ -80,14 +79,36 @@ impl<'a> Widget for WorldWindow<'a> {
     }
 }
 
+fn render_items(items: &[Option<Item>; 5], area: Rect, frame: &mut Frame) {
+    let row = widgets::Row::new(items.map(|i| {
+        if let Some(item) = i {
+            // Get item name from some table instead.
+            item.id.to_string()
+        } else {
+            "Empty".to_string()
+        }
+    }));
+    // Construct blocks instead, with colors based on contents (and bordered)
+    frame.render_widget(
+        widgets::Table::new([row], [Constraint::Ratio(1, 5); 5])
+            .style(Style::default().fg(Color::Black).bg(Color::Blue)),
+        area,
+    );
+}
+
 pub fn draw(game: &Game, frame: &mut Frame) {
     let window = WorldWindow {
         world: &game.world,
         center: game.get_player_coords().unwrap(),
     };
-    frame.render_widget(window, frame.area());
+    let [main, bottom] = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Fill(1), Constraint::Length(1)])
+        .areas(frame.area());
+    frame.render_widget(window, main);
+    let actor = game.get_player_actor().unwrap();
+    render_items(&actor.inventory, bottom, frame);
 }
 // pub fn actionprompt
-// pub fn show_inventory
 // pub fn crafting_menu
 // pub fn exit_prompt
