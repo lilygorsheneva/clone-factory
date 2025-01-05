@@ -59,7 +59,7 @@ impl Coordinate {
 #[derive(Clone, Copy)]
 pub struct Item {
     pub name: &'static str,
-    quantity: u16,
+    pub quantity: u16,
     pub recording: Option<RecordingId>
 }
 
