@@ -16,7 +16,11 @@ match event.code {
     KeyCode::Up => Some(InputResult::Act(Action {direction: Absolute(N), action: SubAction::Move})),
     KeyCode::Down => Some(InputResult::Act(Action {direction: Absolute(S), action: SubAction::Move})),
     KeyCode::Char('t') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Take})),
-    KeyCode::Char('u') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Use(1)})),
+    KeyCode::Char('1') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Use(0)})),
+    KeyCode::Char('2') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Use(1)})),
+    KeyCode::Char('3') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Use(2)})),
+    KeyCode::Char('4') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Use(3)})),
+    KeyCode::Char('5') => Some(InputResult::Act(Action {direction: Relative(F), action: SubAction::Use(4)})),
     KeyCode::Char('r') => Some(InputResult::Record),
     _ => None,
 }

@@ -1,6 +1,7 @@
 use crate::action;
 use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
+use crate::data::Data;
 use crate::datatypes::Item;
 use crate::datatypes::Recording;
 use crate::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
@@ -89,6 +90,7 @@ pub struct Game {
     pub actors: WorldActors,
     pub recordings: RecordingDb,
     pub current_recording: Option<Recording>,
+    pub data: Data,
 }
 
 #[derive(Debug)]
@@ -104,7 +106,16 @@ impl Game {
             actors: WorldActors::new(),
             recordings: RecordingDb::new(),
             current_recording: None,
+            data: Data::default(),
         }
+    }
+
+    pub fn load_gamedata(&mut self) {
+        self.data = crate::data::get_config();
+    }
+
+    pub fn load_testdata(&mut self) {
+        self.data = crate::data::get_test_config();
     }
 
     pub fn get_player_actor(&self) -> Result<&Actor> {
@@ -179,7 +190,7 @@ impl Game {
             None => Err(Error("Attempted to initialize recording twice")),
             Some(rec) => {
                 let id = self.recordings.register_recording(rec);
-                let new_cloner = Item::new_cloner(id);
+                let new_cloner = Item::new_cloner("basic_cloner", id);
                 self.current_recording = None;
                 let actor_ref = self.actors.get_player()?;
                 let update = action::execute_action(
@@ -269,6 +280,7 @@ mod tests {
     #[test]
     fn clone() {
         let mut game = Game::new(Coordinate { x: 1, y: 3 });
+        game.load_testdata();
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
 
@@ -286,7 +298,7 @@ mod tests {
         let sample_recording_id = game
         .recordings
         .register_recording(&Recording{command_list: actions, inventory: Default::default()});
-        let new_cloner = Item::new_cloner(sample_recording_id);
+        let new_cloner = Item::new_cloner("basic_cloner", sample_recording_id);
         let update = action::execute_action(
             game.actors.get_player().unwrap(),
             Action {

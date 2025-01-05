@@ -1,4 +1,4 @@
-use crate::datatypes::{BasicInventory, Coordinate, Item};
+use crate::datatypes::{Coordinate, Item};
 use crate::direction::AbsoluteDirection;
 use crate::game::{self, Game};
 use crate::world::{World, WorldCell};
@@ -83,7 +83,7 @@ fn render_items(items: &[Option<Item>; 5], area: Rect, frame: &mut Frame) {
     let row = widgets::Row::new(items.map(|i| {
         if let Some(item) = i {
             // Get item name from some table instead.
-            item.id.to_string()
+            item.name.to_string()
         } else {
             "Empty".to_string()
         }
