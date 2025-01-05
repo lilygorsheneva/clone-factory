@@ -10,7 +10,7 @@ use ratatui::layout::{self, Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Buffer;
 use ratatui::style::{Color, Style, Stylize};
 use ratatui::text::Line;
-use ratatui::widgets::{self, Block, Borders, Paragraph, Widget};
+use ratatui::widgets::{self, Block, Borders, List, ListItem, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
 impl WorldCell {
@@ -119,6 +119,16 @@ fn render_items(items: &[Option<Item>; 5], data: &Data, area: Rect, frame: &mut 
     }
 }
 
+fn render_recipes(data: &Data, area: Rect, frame: &mut Frame) {
+    // TODO filter by unlocks
+    // TODO cache
+    // TODO show requirements
+    let items: Vec<ListItem> = data.recipes.iter().map(|(_, def)| {ListItem::new(def.name.clone())}).collect();
+    let list = List::new(items);
+    frame.render_widget(list, area);
+}
+
+
 pub fn draw(game: &Game, frame: &mut Frame) {
     let window = WorldWindow {
         world: &game.world,
@@ -127,14 +137,21 @@ pub fn draw(game: &Game, frame: &mut Frame) {
             .unwrap_or(Coordinate { x: 0, y: 0 }),
         data: &game.data,
     };
+
+    let [main, side] =  Layout::default()
+    .direction(Direction::Horizontal)
+    .constraints([Constraint::Fill(1), Constraint::Length(20)])
+    .areas(frame.area());
+
     let [main, bottom] = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Fill(1), Constraint::Length(3)])
-        .areas(frame.area());
+        .areas(main);
     frame.render_widget(window, main);
     if let Ok(actor) = game.get_player_actor() {
         render_items(&actor.inventory, &game.data, bottom, frame)
     }
+    render_recipes(&game.data, side, frame);
 }
 // pub fn actionprompt
 // pub fn crafting_menu
