@@ -106,7 +106,7 @@ fn render_items(items: &[Option<Item>; 5], data: &Data, area: Rect, frame: &mut 
             frame.render_widget(
                 Paragraph::new(itemdef.name.clone()).block(
                     Block::default()
-                        .title(Line::from(i.to_string()).left_aligned())
+                        .title(Line::from((i+1).to_string()).left_aligned())
                         .title(Line::from(itemdef.glyph.clone()).centered())
                         .title(Line::from(item.quantity.to_string()).right_aligned())
                         .borders(Borders::ALL),
