@@ -15,7 +15,12 @@ pub struct AppearanceDefiniton {
     pub glyph_s: Option<String>,
     pub glyph_e: Option<String>,
     pub glyph_w: Option<String>,
+
+
     pub color: String,
+    // TODO: write a custom Deserialize for Color
+    #[serde(skip_deserializing)]
+    pub color_object: Color
 }
 
 // An item.
@@ -24,8 +29,15 @@ pub struct ItemDefiniton {
     pub name: String,
     pub glyph: String,
     pub color: String,
+    // TODO: write a custom Deserialize for Color
+    #[serde(skip_deserializing)]
+    pub color_object: Color,
+
     pub description: String,
     pub on_use: Option<String>,
+
+    #[serde(skip_deserializing)]
+    pub on_use_fn: Option<Box<action::ItemUseFn>>
 }
 
 // A crafting recipe.
@@ -43,12 +55,6 @@ pub struct Data {
 
     pub items: HashMap<String, ItemDefiniton>,
     pub recipes: HashMap<String, RecipeDefiniton>,
-
-    #[serde(skip_deserializing)]
-    pub functions: HashMap<String, Box<action::ItemUseFn>>,
-
-    #[serde(skip_deserializing)]
-    pub color_map: HashMap<String, Color>
 }
 
 pub fn get_config() -> Data {
@@ -74,11 +80,22 @@ impl Data {
     }
 
     fn bind_functions(&mut self) {
-        self.functions = crate::action::get_use_fn_table();
+        let functions = crate::action::get_use_fn_table();
+        for (_, itemdef) in self.items.iter_mut() {
+            if let Some(function ) =  functions.get(itemdef.on_use.as_ref().unwrap_or(&"default".to_string())) {
+                itemdef.on_use_fn =  Some(Box::new(*function.clone()));
+            }
+        }
     }
 
     fn bind_colors(&mut self) {
-        self.color_map = crate::render::get_color_map();
+        let color_map = crate::render::get_color_map();
+        for (_, itemdef) in self.items.iter_mut() {
+            itemdef.color_object = *color_map.get(&itemdef.color).unwrap_or(&Color::White);
+        }
+        for (_, actordef) in self.actor_appearances.iter_mut() {
+            actordef.color_object = *color_map.get(&actordef.color).unwrap_or(&Color::White);
+        }
     }
 }
 

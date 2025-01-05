@@ -133,15 +133,7 @@ fn execute_use_item(
         .items
         .get(item.name)
         .ok_or(NotFoundError("item definiton not found", item.name))?;
-    let fn_name = definition
-        .on_use
-        .as_ref()
-        .ok_or(ActionFail("not a usable item"))?;
-    let function = game
-        .data
-        .functions
-        .get(fn_name)
-        .ok_or(Error("function not found"))?;
+    let function = definition.on_use_fn.as_ref().ok_or(ActionFail("Not a usable item"))?;
     function(idx, location, orientation, game)
 }
 

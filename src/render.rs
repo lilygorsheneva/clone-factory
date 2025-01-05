@@ -25,28 +25,15 @@ impl WorldCell {
                     true => "player",
                     false => "clone",
                 };
-                let actor_data = data.actor_appearances.get(actor_name).unwrap();
+                let actor_def = data.actor_appearances.get(actor_name).unwrap();
                 let glyph = match actor.facing {
-                    AbsoluteDirection::N => {
-                        actor_data.glyph_n.as_ref().unwrap_or(&actor_data.glyph)
-                    }
-                    AbsoluteDirection::S => {
-                        actor_data.glyph_s.as_ref().unwrap_or(&actor_data.glyph)
-                    }
-                    AbsoluteDirection::E => {
-                        actor_data.glyph_e.as_ref().unwrap_or(&actor_data.glyph)
-                    }
-                    AbsoluteDirection::W => {
-                        actor_data.glyph_w.as_ref().unwrap_or(&actor_data.glyph)
-                    }
+                    AbsoluteDirection::N => actor_def.glyph_n.as_ref().unwrap_or(&actor_def.glyph),
+                    AbsoluteDirection::S => actor_def.glyph_s.as_ref().unwrap_or(&actor_def.glyph),
+                    AbsoluteDirection::E => actor_def.glyph_e.as_ref().unwrap_or(&actor_def.glyph),
+                    AbsoluteDirection::W => actor_def.glyph_w.as_ref().unwrap_or(&actor_def.glyph),
                 };
                 cell.set_symbol(glyph)
-                    .set_fg(
-                        *data
-                            .color_map
-                            .get(&actor_data.color)
-                            .unwrap_or(&Color::Blue),
-                    )
+                    .set_fg(actor_def.color_object)
                     .set_bg(Color::Black);
             }
             WorldCell {
@@ -116,13 +103,16 @@ fn render_items(items: &[Option<Item>; 5], data: &Data, area: Rect, frame: &mut 
     for i in 0..items.len() {
         if let Some(item) = items[i] {
             let itemdef = data.items.get(item.name).unwrap();
-            frame.render_widget(Paragraph::new(itemdef.name.clone()).block(Block::
-                default()
-                .title(Line::from(i.to_string()).left_aligned())
-                .title(Line::from(itemdef.glyph.clone()).centered())
-                .title(Line::from(item.quantity.to_string()).right_aligned())
-                .borders(Borders::ALL)
-                        ), slots[i])
+            frame.render_widget(
+                Paragraph::new(itemdef.name.clone()).block(
+                    Block::default()
+                        .title(Line::from(i.to_string()).left_aligned())
+                        .title(Line::from(itemdef.glyph.clone()).centered())
+                        .title(Line::from(item.quantity.to_string()).right_aligned())
+                        .borders(Borders::ALL),
+                ),
+                slots[i],
+            )
         } else {
             frame.render_widget(Paragraph::new("").block(Block::default()), slots[i])
         }
@@ -132,7 +122,9 @@ fn render_items(items: &[Option<Item>; 5], data: &Data, area: Rect, frame: &mut 
 pub fn draw(game: &Game, frame: &mut Frame) {
     let window = WorldWindow {
         world: &game.world,
-        center: game.get_player_coords().unwrap(),
+        center: game
+            .get_player_coords()
+            .unwrap_or(Coordinate { x: 0, y: 0 }),
         data: &game.data,
     };
     let [main, bottom] = Layout::default()
@@ -140,8 +132,9 @@ pub fn draw(game: &Game, frame: &mut Frame) {
         .constraints([Constraint::Fill(1), Constraint::Length(3)])
         .areas(frame.area());
     frame.render_widget(window, main);
-    let actor = game.get_player_actor().unwrap();
-    render_items(&actor.inventory, &game.data, bottom, frame);
+    if let Ok(actor) = game.get_player_actor() {
+        render_items(&actor.inventory, &game.data, bottom, frame)
+    }
 }
 // pub fn actionprompt
 // pub fn crafting_menu
