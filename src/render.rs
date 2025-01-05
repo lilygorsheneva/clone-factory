@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use crate::data::Data;
 use crate::datatypes::{Coordinate, Item};
 use crate::direction::AbsoluteDirection;
 use crate::game::{self, Game};
@@ -10,24 +13,33 @@ use ratatui::widgets::{self, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
 impl WorldCell {
-    fn draw(&self, cell: &mut Cell) {
-        let generic_style = Style::default().fg(Color::White).bg(Color::DarkGray);
+    fn draw(&self, data: &Data, cell: &mut Cell) {
+        let generic_style = Style::default().fg(Color::White).bg(Color::Black);
 
         match self {
             WorldCell {
                 actor: Some(actor), ..
             } => {
+                let actor_name = match actor.isplayer {
+                    true => "player",
+                    false => "clone"
+                };
+                let actor_data = data.actor_appearances.get(actor_name).unwrap();
                 let glyph = match actor.facing {
-                    AbsoluteDirection::N => "A",
-                    AbsoluteDirection::S => "V",
-                    AbsoluteDirection::E => ">",
-                    AbsoluteDirection::W => "<",
+                    AbsoluteDirection::N => {
+                        actor_data.glyph_n.as_ref().unwrap_or(&actor_data.glyph)
+                    }
+                    AbsoluteDirection::S => {
+                        actor_data.glyph_s.as_ref().unwrap_or(&actor_data.glyph)
+                    }
+                    AbsoluteDirection::E => {
+                        actor_data.glyph_e.as_ref().unwrap_or(&actor_data.glyph)
+                    }
+                    AbsoluteDirection::W => {
+                        actor_data.glyph_w.as_ref().unwrap_or(&actor_data.glyph)
+                    }
                 };
-                let style = match actor.isplayer {
-                    true => Style::default().fg(Color::Red).bg(Color::Black),
-                    false => generic_style,
-                };
-                cell.set_symbol(glyph).set_style(style);
+                cell.set_symbol(glyph).set_fg(*data.color_map.get(&actor_data.color).unwrap_or(&Color::Blue)).set_bg(Color::Black);
             }
             WorldCell {
                 building: Some(_), ..
@@ -48,6 +60,10 @@ pub fn init_render() -> DefaultTerminal {
     ratatui::init()
 }
 
+pub fn get_color_map() -> HashMap<String, Color> {
+    HashMap::from([("white".to_string(), Color::White), ("red".to_string(), Color::Red)])
+}
+
 pub fn deinit_render() {
     ratatui::restore();
 }
@@ -55,6 +71,7 @@ pub fn deinit_render() {
 pub struct WorldWindow<'a> {
     pub world: &'a World,
     pub center: Coordinate,
+    pub data: &'a Data,
 }
 
 impl<'a> Widget for WorldWindow<'a> {
@@ -70,9 +87,9 @@ impl<'a> Widget for WorldWindow<'a> {
                 let x = centerx - i as i16;
                 let y = centery - j as i16;
                 if let Some(worldcell) = self.world.get(&Coordinate { x: x, y: y }) {
-                    worldcell.draw(&mut buf[(i, j)]);
+                    worldcell.draw(self.data, &mut buf[(i, j)]);
                 } else {
-                    buf[(i, j)].set_symbol(" ");
+                    buf[(i, j)].set_symbol(" ").set_bg(Color::DarkGray);
                 }
             }
         }
@@ -100,6 +117,7 @@ pub fn draw(game: &Game, frame: &mut Frame) {
     let window = WorldWindow {
         world: &game.world,
         center: game.get_player_coords().unwrap(),
+        data: &game.data,
     };
     let [main, bottom] = Layout::default()
         .direction(Direction::Vertical)

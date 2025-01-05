@@ -1,4 +1,23 @@
-[appearances]
+[item_appearances]
+[actor_appearances]
+[actor_appearances.player]
+    glyph = "@"
+    glyph_n = "A"
+    glyph_s = "V"
+    glyph_e = ">"
+    glyph_w =  "<"
+    color = "red"
+
+[actor_appearances.clone]
+    glyph = "@"
+    glyph_n = "A"
+    glyph_s = "V"
+    glyph_e = ">"
+    glyph_w =  "<"
+    color = "white"
+
+[building_appearances]
+
 [items]
 [items.recorder]
     name = "Empty Recorder"
