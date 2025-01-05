@@ -1,0 +1,29 @@
+[appearances]
+[items]
+[items.recorder]
+    name = "Empty Recorder"
+    description = "an empty recording item"
+    on_use = "action_special_start_record"
+
+[items.raw_crystal]
+    name = "Raw Crystal"
+    description = "TODO"
+
+[items.basic_cloner]
+    name = "Basic cloner"
+    description = "Spawns a clone of you"
+    on_use = "action_use_cloner"
+
+[items.echo_crystal]
+    name = "Echo Crystal"
+    description = "TODO"
+[recipes]
+[recipes.echo_crystal]
+    ingredients = ["raw_crystal"]
+    product = "echo_crystal"
+    name = "Echo Crystal"
+
+[recipes.basic_cloner]
+    ingredients = ["echo_crystal"]
+    product = "basic_cloner"
+    name = "Basic Cloner"

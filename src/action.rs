@@ -228,7 +228,7 @@ mod tests {
         let mut game = Game::new(Coordinate { x: 1, y: 1 });
 
         let location = Coordinate { x: 0, y: 0 };
-        let foo = Item::new(0, 1);
+        let foo = Item::new("placeholder",1);
         game.world
             .mut_set(
                 &location,
@@ -272,7 +272,7 @@ mod tests {
             command_list: actions,
             inventory: Default::default(),
         });
-        let new_cloner = Item::new_cloner(sample_recording_id);
+        let new_cloner = Item::new_cloner("basic_cloner", sample_recording_id);
         let update = execute_action(
             game.actors.get_player().unwrap(),
             Action {

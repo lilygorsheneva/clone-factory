@@ -13,6 +13,7 @@ mod input;
 mod render;
 mod world;
 mod error;
+mod data;
 
 fn main() {
     render::init_render().unwrap();
@@ -21,7 +22,7 @@ fn main() {
 
     game.spawn(&Coordinate { x: 1, y: 1 }).unwrap();
 
-    let foo = Item::new(0, 1);
+    let foo = Item::new("placeholder", 1);
 
     game.world.mut_set(
         &Coordinate { x: 10, y: 5 },

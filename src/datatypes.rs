@@ -58,24 +58,24 @@ impl Coordinate {
 #[derive(PartialEq, Debug)]
 #[derive(Clone, Copy)]
 pub struct Item {
-    id: usize,
+    name: &'static str,
     quantity: u16,
     pub recording: Option<RecordingId>
 }
 
 impl Item {
-    pub fn new(id: usize, quantity: u16) -> Item {
+    pub fn new(name: &'static str, quantity: u16) -> Item {
         Item {
-            id: id,
-            quantity: quantity,
+            name,
+            quantity,
 
             recording: None,
         }
     }
 
-    pub fn new_cloner(recordingid: RecordingId) -> Item {
+    pub fn new_cloner(name: &'static str, recordingid: RecordingId) -> Item {
         Item {
-            id: 0,
+            name,
             quantity: 1,
             recording: Some(recordingid),
         }
