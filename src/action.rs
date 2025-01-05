@@ -1,12 +1,17 @@
 use crate::actor::{Actor, ActorRef};
+use crate::data::Data;
 use crate::datatypes::{Coordinate, Item};
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::error::{
     Result,
-    Status::{ActionFail, Error},
+    Status::{ActionFail, Error, NotFoundError},
 };
 use crate::game::{Game, GameUpdate};
 use crate::world::WorldCell;
+use std::collections::HashMap;
+use std::f32::consts::E;
+
+pub type ItemUseFn = fn(usize, Coordinate, AbsoluteDirection, &Game) -> Result<GameUpdate>;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Action {
@@ -31,7 +36,7 @@ pub fn execute_action(actor_ref: ActorRef, action: Action, game: &mut Game) -> R
     match action.action {
         SubAction::Move => execute_move(actor_ref.location, orientation, game),
         SubAction::Take => execute_take(actor_ref.location, orientation, game),
-        SubAction::Use(i) => execute_use_cloner(i, actor_ref.location, orientation, game),
+        SubAction::Use(i) => execute_use_item(i, actor_ref.location, orientation, game),
         // SubAction::Record => execute_recording(actor_ref.location, orientation, game),
         SubAction::GrantItem(i) => execute_grant_item(i, actor_ref.location, orientation, game),
         // _ => world,
@@ -114,11 +119,37 @@ fn execute_take(
     }
 }
 
+fn execute_use_item(
+    idx: usize,
+    location: Coordinate,
+    orientation: AbsoluteDirection,
+    game: &Game,
+) -> Result<GameUpdate> {
+    let cell = game.world.get(&location).ok_or(Error("No worldcell"))?;
+    let actor = cell.actor.ok_or(Error("Actor missing"))?;
+    let item = actor.inventory[idx].ok_or(ActionFail("no item"))?;
+    let definition = game
+        .data
+        .items
+        .get(item.name)
+        .ok_or(NotFoundError("item definiton not found", item.name))?;
+    let fn_name = definition
+        .on_use
+        .as_ref()
+        .ok_or(ActionFail("not a usable item"))?;
+    let function = game
+        .data
+        .functions
+        .get(fn_name)
+        .ok_or(Error("function not found"))?;
+    function(idx, location, orientation, game)
+}
+
 fn execute_use_cloner(
     idx: usize,
     location: Coordinate,
     orientation: AbsoluteDirection,
-    game: &mut Game,
+    game: &Game,
 ) -> Result<GameUpdate> {
     let mut update: GameUpdate = game.new_update();
 
@@ -197,6 +228,17 @@ fn execute_grant_item(
     }
 }
 
+pub fn get_use_fn_table() -> HashMap<String, Box<ItemUseFn>> {
+    let mut map: HashMap<String, Box<ItemUseFn>> = HashMap::new();
+
+    map.insert(
+        "action_use_cloner".to_string(),
+        Box::new(execute_use_cloner),
+    );
+
+    map
+}
+
 #[cfg(test)]
 mod tests {
     use crate::datatypes::Recording;
@@ -228,7 +270,7 @@ mod tests {
         let mut game = Game::new(Coordinate { x: 1, y: 1 });
 
         let location = Coordinate { x: 0, y: 0 };
-        let foo = Item::new("placeholder",1);
+        let foo = Item::new("placeholder", 1);
         game.world
             .mut_set(
                 &location,

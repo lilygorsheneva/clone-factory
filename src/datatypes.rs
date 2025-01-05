@@ -58,7 +58,7 @@ impl Coordinate {
 #[derive(PartialEq, Debug)]
 #[derive(Clone, Copy)]
 pub struct Item {
-    name: &'static str,
+    pub name: &'static str,
     quantity: u16,
     pub recording: Option<RecordingId>
 }

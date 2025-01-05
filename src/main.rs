@@ -19,6 +19,7 @@ fn main() {
     render::init_render().unwrap();
 
     let mut game = Game::new(Coordinate { x: 20, y: 10 });
+    game.load_gamedata();
 
     game.spawn(&Coordinate { x: 1, y: 1 }).unwrap();
 
