@@ -22,6 +22,8 @@ pub struct AppearanceDefiniton {
 #[derive(Deserialize)]
 pub struct ItemDefiniton {
     pub name: String,
+    pub glyph: String,
+    pub color: String,
     pub description: String,
     pub on_use: Option<String>,
 }
@@ -36,7 +38,6 @@ pub struct RecipeDefiniton {
 
 #[derive(Default, Deserialize)]
 pub struct Data {
-    pub item_appearances: HashMap<String, AppearanceDefiniton>,
     pub actor_appearances: HashMap<String, AppearanceDefiniton>,
     pub building_appearances: HashMap<String, AppearanceDefiniton>,
 

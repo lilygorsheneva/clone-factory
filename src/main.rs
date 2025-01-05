@@ -23,7 +23,7 @@ fn main() {
 
     game.spawn(&Coordinate { x: 1, y: 1 }).unwrap();
 
-    let foo = Item::new("placeholder", 1);
+    let foo = Item::new("raw_crystal", 1);
 
     game.world.mut_set(
         &Coordinate { x: 10, y: 5 },

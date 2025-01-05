@@ -23,19 +23,28 @@
     name = "Empty Recorder"
     description = "an empty recording item"
     on_use = "action_special_start_record"
+    glyph = "ꙮ"
+    color = "blue"
 
 [items.raw_crystal]
     name = "Raw Crystal"
     description = "TODO"
+    glyph = "*"
+    color = "grey"
 
 [items.basic_cloner]
     name = "Basic cloner"
     description = "Spawns a clone of you"
     on_use = "action_use_cloner"
+    glyph = "@"
+    color = "blue"
 
 [items.echo_crystal]
     name = "Echo Crystal"
     description = "TODO"
+    glyph = "*"
+    color = "grey"
+
 [recipes]
 [recipes.echo_crystal]
     ingredients = ["raw_crystal"]

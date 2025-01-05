@@ -8,8 +8,8 @@ use crate::world::{World, WorldCell};
 use ratatui::buffer::Cell;
 use ratatui::layout::{self, Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Buffer;
-use ratatui::style::{Color, Style};
-use ratatui::widgets::{self, Widget};
+use ratatui::style::{Color, Style, Stylize};
+use ratatui::widgets::{self, Block, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
 impl WorldCell {
@@ -22,7 +22,7 @@ impl WorldCell {
             } => {
                 let actor_name = match actor.isplayer {
                     true => "player",
-                    false => "clone"
+                    false => "clone",
                 };
                 let actor_data = data.actor_appearances.get(actor_name).unwrap();
                 let glyph = match actor.facing {
@@ -39,7 +39,14 @@ impl WorldCell {
                         actor_data.glyph_w.as_ref().unwrap_or(&actor_data.glyph)
                     }
                 };
-                cell.set_symbol(glyph).set_fg(*data.color_map.get(&actor_data.color).unwrap_or(&Color::Blue)).set_bg(Color::Black);
+                cell.set_symbol(glyph)
+                    .set_fg(
+                        *data
+                            .color_map
+                            .get(&actor_data.color)
+                            .unwrap_or(&Color::Blue),
+                    )
+                    .set_bg(Color::Black);
             }
             WorldCell {
                 building: Some(_), ..
@@ -61,7 +68,10 @@ pub fn init_render() -> DefaultTerminal {
 }
 
 pub fn get_color_map() -> HashMap<String, Color> {
-    HashMap::from([("white".to_string(), Color::White), ("red".to_string(), Color::Red)])
+    HashMap::from([
+        ("white".to_string(), Color::White),
+        ("red".to_string(), Color::Red),
+    ])
 }
 
 pub fn deinit_render() {
@@ -96,21 +106,20 @@ impl<'a> Widget for WorldWindow<'a> {
     }
 }
 
-fn render_items(items: &[Option<Item>; 5], area: Rect, frame: &mut Frame) {
-    let row = widgets::Row::new(items.map(|i| {
-        if let Some(item) = i {
-            // Get item name from some table instead.
-            item.name.to_string()
+fn render_items(items: &[Option<Item>; 5], data: &Data, area: Rect, frame: &mut Frame) {
+    let slots: [Rect; 5] = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Ratio(1, 5); 5])
+        .areas(area);
+
+    for i in 0..items.len() {
+        if let Some(item) = items[i] {
+            let itemdef = data.items.get(item.name).unwrap();
+            frame.render_widget(Paragraph::new(itemdef.name.clone()).block(Block::default().title(itemdef.glyph.clone())), slots[i])
         } else {
-            "Empty".to_string()
+            frame.render_widget(Paragraph::new("").block(Block::default()), slots[i])
         }
-    }));
-    // Construct blocks instead, with colors based on contents (and bordered)
-    frame.render_widget(
-        widgets::Table::new([row], [Constraint::Ratio(1, 5); 5])
-            .style(Style::default().fg(Color::Black).bg(Color::Blue)),
-        area,
-    );
+    }
 }
 
 pub fn draw(game: &Game, frame: &mut Frame) {
@@ -121,11 +130,11 @@ pub fn draw(game: &Game, frame: &mut Frame) {
     };
     let [main, bottom] = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Fill(1), Constraint::Length(1)])
+        .constraints([Constraint::Fill(1), Constraint::Length(2)])
         .areas(frame.area());
     frame.render_widget(window, main);
     let actor = game.get_player_actor().unwrap();
-    render_items(&actor.inventory, bottom, frame);
+    render_items(&actor.inventory, &game.data, bottom, frame);
 }
 // pub fn actionprompt
 // pub fn crafting_menu
