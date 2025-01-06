@@ -1,16 +1,17 @@
 use std::collections::HashMap;
 
-use crate::data::{self, Data, ItemDefiniton};
-use crate::datatypes::{Coordinate, Item};
+use crate::data::{Data, ItemDefiniton};
+use crate::datatypes::Coordinate;
+use crate::inventory::Item;
 use crate::direction::AbsoluteDirection;
-use crate::game::{self, Game};
+use crate::game::{Game};
 use crate::world::{World, WorldCell};
 use ratatui::buffer::Cell;
-use ratatui::layout::{self, Constraint, Direction, Layout, Rect};
+use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Buffer;
-use ratatui::style::{Color, Style, Stylize};
+use ratatui::style::{Color, Style};
 use ratatui::text::Line;
-use ratatui::widgets::{self, Block, Borders, List, ListItem, Paragraph, Widget};
+use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
 impl WorldCell {

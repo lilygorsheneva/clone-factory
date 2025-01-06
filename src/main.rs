@@ -1,4 +1,6 @@
-use datatypes::{Coordinate, Item};
+use datatypes::Coordinate;
+use inventory::Item;
+
 use game::Game;
 use world::WorldCell;
 
@@ -15,6 +17,7 @@ mod game;
 mod input;
 mod render;
 mod world;
+mod inventory;
 
 fn main() {
     let mut terminal = render::init_render();

@@ -1,9 +1,11 @@
 use crate::error::{Result, Status::StateUpdateError};
 use crate::{
     actor::Actor,
-    datatypes::{Building, Coordinate, Item},
+    datatypes::{Building, Coordinate},
     direction::AbsoluteDirection,
 };
+use crate::inventory::Item;
+
 // Upstream HashMap with get_mut feature
 use hashbrown::HashMap;
 

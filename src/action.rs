@@ -1,6 +1,7 @@
 use crate::actor::{Actor, ActorRef};
 use crate::data::Data;
-use crate::datatypes::{Coordinate, Item};
+use crate::datatypes::Coordinate;
+use crate::inventory::Item;
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::error::{
     Result,

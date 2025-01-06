@@ -1,6 +1,7 @@
-use crate::datatypes::{Recording, Coordinate, Item};
+use crate::datatypes::{Recording, Coordinate};
 use crate::db::{ActorId, RecordingId};
 use crate::direction::AbsoluteDirection;
+use crate::inventory::Item;
 
 #[derive(PartialEq, Debug)]
 #[derive(Copy, Clone)]
