@@ -4,7 +4,7 @@ use crate::data::{Data, ItemDefiniton};
 use crate::datatypes::Coordinate;
 use crate::inventory::Item;
 use crate::direction::AbsoluteDirection;
-use crate::game::{Game};
+use crate::game::Game;
 use crate::world::{World, WorldCell};
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
@@ -207,7 +207,7 @@ pub fn draw(game: &Game, frame: &mut Frame) {
     let window = WorldWindowWidget::new(game);
     let item_widget = ItemBar::new(&game);
 
-    let (main, side, bottom, corner) = generate_main_layout(frame.area());
+    let (main, side, bottom, _corner) = generate_main_layout(frame.area());
 
     frame.render_widget(item_widget, bottom);
     frame.render_widget(window, main);

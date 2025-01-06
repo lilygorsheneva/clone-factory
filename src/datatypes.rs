@@ -46,13 +46,6 @@ impl ops::Mul<AbsoluteDirection> for Coordinate {
     }
 }
 
-impl Coordinate {
-    pub fn in_rect(&self, a: &Coordinate, b: &Coordinate) -> bool {
-        self.x >= a.x && self.x < b.x && self.y >= a.y && self.x < b.y
-    }
-
-    pub const ZERO: Coordinate = Coordinate { x: 0, y: 0 };
-}
 #[derive(PartialEq, Debug, Clone)]
 pub struct Building {
     name: String,

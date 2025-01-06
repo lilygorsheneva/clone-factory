@@ -1,6 +1,6 @@
 use hashbrown::HashMap;
 
-use crate::actor::{Actor, ActorRef};
+use crate::actor::ActorRef;
 use crate::datatypes::Recording;
 use crate::error::{Result, Status::StateUpdateError};
 use std::collections::HashSet;

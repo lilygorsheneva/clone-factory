@@ -2,7 +2,7 @@ use crate::action::{self};
 use ratatui::style::Color;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
-use std::{fs, io};
+use std::fs;
 use toml;
 
 // Functions responsible for loading essential data from config files.
@@ -64,7 +64,7 @@ pub fn get_config() -> Data {
     data
 }
 
-// Currently same as get_config
+// Currently same as get_config, can be changed to read a smaller file.
 pub fn get_test_config() -> Data {
     let mut data = Data::read();
     data.bind_functions();
