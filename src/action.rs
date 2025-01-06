@@ -1,13 +1,13 @@
 use crate::actor::{Actor, ActorRef};
-use crate::datatypes::Coordinate;
-use crate::inventory::Item;
 use crate::data::{Data, RecipeDefiniton};
+use crate::datatypes::Coordinate;
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::error::{
     Result,
     Status::{ActionFail, Error, NotFoundError},
 };
 use crate::game::{Game, GameUpdate};
+use crate::inventory::Item;
 use crate::world::WorldCell;
 use std::collections::HashMap;
 
@@ -111,10 +111,13 @@ fn execute_take(
 
             let actor = src.actor.as_mut().unwrap();
             actor.facing = orientation;
-            actor.inventory[0] = src.items[0].clone();
-            src.items[0] = None;
-
-            Ok(update)
+            if let Some(item) = src.items[0] {
+                actor.inventory.insert(item);
+                src.items[0] = None;
+                Ok(update)
+            } else {
+                Err(ActionFail("no  item to take"))
+            }
         }
     }
 }
@@ -127,13 +130,16 @@ fn execute_use_item(
 ) -> Result<GameUpdate> {
     let cell = game.world.get(&location).ok_or(Error("No worldcell"))?;
     let actor = cell.actor.ok_or(Error("Actor missing"))?;
-    let item = actor.inventory[idx].ok_or(ActionFail("no item"))?;
+    let item = actor.inventory.get_items()[idx].ok_or(ActionFail("no item"))?;
     let definition = game
         .data
         .items
         .get(item.name)
         .ok_or(NotFoundError("item definiton not found", item.name))?;
-    let function = definition.on_use_fn.as_ref().ok_or(ActionFail("Not a usable item"))?;
+    let function = definition
+        .on_use_fn
+        .as_ref()
+        .ok_or(ActionFail("Not a usable item"))?;
     function(idx, location, orientation, game)
 }
 
@@ -157,11 +163,9 @@ fn execute_use_cloner(
         [Some(_), Some(WorldCell {
             actor: Some(..), ..
         })] => Err(ActionFail("destination occupied")),
-        [Some(
-            &mut WorldCell {
-                actor: Some(actor), ..
-            },
-        ), Some(dest @ WorldCell { actor: None, .. })] => match actor.inventory[idx] {
+        [Some(&mut WorldCell {
+            actor: Some(actor), ..
+        }), Some(dest @ WorldCell { actor: None, .. })] => match actor.inventory.get_items()[idx] {
             Some(Item {
                 recording: Some(recordingid),
                 ..
@@ -213,31 +217,41 @@ fn execute_grant_item(
             let actor = src.actor.as_mut().unwrap();
 
             actor.facing = orientation;
-            actor.inventory[1] = Some(item);
+            actor.inventory.insert(item)?;
 
             Ok(update)
         }
     }
 }
 
-fn execute_craft(
-    recipe: &RecipeDefiniton,
-    location: Coordinate,
-    orientation: AbsoluteDirection,
-    game: &Game,
-) -> Result<GameUpdate> {
-    let cell = game.world.get(&location).ok_or(Error("No worldcell"))?;
-    let actor = cell.actor.ok_or(Error("Actor missing"))?;
-    let inventory = actor.inventory;
+// fn execute_craft(
+//     recipe: &RecipeDefiniton,
+//     location: Coordinate,
+//     orientation: AbsoluteDirection,
+//     game: &Game,
+// ) -> Result<GameUpdate> {
+//     let mut update: GameUpdate = game.new_update();
+//     let offsets = [Coordinate { x: 0, y: 0 }];
 
-    
-    // for item in recipe.ingredients
-    // {inventory.sutract_item}?
-    // inventory.insert(item(recipe.name, 0))?
+//     let mut cells = game
+//     .world
+//     .readslice(&mut update.world, location, orientation, &offsets);
 
-    Err(Error("Not implemented"))
+//     let cell = cells[0].as_mut().ok_or(Error("out of bounds"))?;
+//     let actor = &mut cell.actor.ok_or(Error("Actor missing"))?;
+//     let inventory = &mut actor.inventory;
 
-}
+//     let product: Item = Item::new(&recipe.product, recipe.product_count as u16);
+
+//     for idx in 0..recipe.ingredients.len() {
+//         let ingedient : Item = Item::new(&recipe.ingredients[idx], recipe.ingredient_counts[idx] as u16);
+//         inventory.remove(ingedient)?;
+//     }
+
+//     inventory.insert(product)?;
+//     Err(Error("Not implemented"))
+
+// }
 
 pub fn get_use_fn_table() -> HashMap<String, Box<ItemUseFn>> {
     let mut map: HashMap<String, Box<ItemUseFn>> = HashMap::new();
@@ -299,7 +313,10 @@ mod tests {
         assert!(game.apply_update(update.unwrap()).is_ok());
 
         let cell = game.world.get(&location).unwrap();
-        assert_eq!(cell.actor.as_ref().unwrap().inventory[0].unwrap(), foo);
+        assert_eq!(
+            cell.actor.as_ref().unwrap().inventory.get_items()[0].unwrap(),
+            foo
+        );
         assert!(cell.items[0].is_none());
     }
 
@@ -337,7 +354,7 @@ mod tests {
         .unwrap();
         game.apply_update(update).unwrap();
 
-        let update = execute_use_cloner(1, location, AbsoluteDirection::N, &mut game);
+        let update = execute_use_cloner(0, location, AbsoluteDirection::N, &mut game);
         assert!(game.apply_update(update.unwrap()).is_ok());
 
         let start = game.world.get(&location);

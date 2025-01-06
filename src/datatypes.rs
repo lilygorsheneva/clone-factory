@@ -1,7 +1,7 @@
 use crate::action::Action;
 use crate::actor::Actor;
 use crate::direction::AbsoluteDirection;
-use crate::inventory::Item;
+use crate::inventory::{BasicInventory, Item};
 use std::ops;
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
@@ -55,7 +55,7 @@ pub struct Building {
 #[derive(Clone)]
 pub struct Recording {
     pub command_list: Vec<Action>,
-    pub inventory: [Option<Item>; 5],
+    pub inventory: BasicInventory,
 }
 
 impl Recording {

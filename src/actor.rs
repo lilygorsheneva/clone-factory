@@ -1,7 +1,7 @@
 use crate::datatypes::{Recording, Coordinate};
 use crate::db::{ActorId, RecordingId};
 use crate::direction::AbsoluteDirection;
-use crate::inventory::Item;
+use crate::inventory::{BasicInventory, Item};
 
 #[derive(PartialEq, Debug)]
 #[derive(Copy, Clone)]
@@ -9,8 +9,7 @@ pub struct Actor {
     pub facing: AbsoluteDirection,
     pub isplayer: bool,
     pub actor_id: ActorId,
-    pub inventory: [Option<Item>; 5],
-    //equipment:[Option<Item>; 1],
+    pub inventory: BasicInventory,
 }
 
 #[derive(Copy, Clone, Debug)]

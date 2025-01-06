@@ -272,7 +272,7 @@ mod tests {
             .unwrap()
             .actor
             .as_ref();
-        let recorder = actor.unwrap().inventory[1].unwrap();
+        let recorder = actor.unwrap().inventory.get_items()[0].unwrap();
         let recoding = game.recordings.get(recorder.recording.unwrap());
         assert_eq!(recoding.command_list, actions);
     }
@@ -313,7 +313,7 @@ mod tests {
             game.actors.get_player().unwrap(),
             Action {
                 direction: Absolute(AbsoluteDirection::N),
-                action: SubAction::Use(1),
+                action: SubAction::Use(0),
             },
             &mut game,
         )

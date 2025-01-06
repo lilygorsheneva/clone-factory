@@ -27,6 +27,7 @@ impl Item {
     }
 }
 
+#[derive(PartialEq, Copy, Clone, Debug, Default)]
 pub struct BasicInventory {
     items: [Option<Item>; 5],
 }

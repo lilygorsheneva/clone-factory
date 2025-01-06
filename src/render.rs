@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::data::{Data, ItemDefiniton};
 use crate::datatypes::Coordinate;
-use crate::inventory::Item;
+use crate::inventory::{BasicInventory, Item};
 use crate::direction::AbsoluteDirection;
 use crate::game::Game;
 use crate::world::{World, WorldCell};
@@ -133,7 +133,7 @@ impl<'a> Widget for ItemWidget<'a> {
 }
 
 struct ItemBar<'a> {
-    items: &'a [Option<Item>; 5],
+    items: BasicInventory,
     data: &'a Data,
 }
 
@@ -141,12 +141,12 @@ impl<'a> ItemBar<'a> {
     fn new(game: &'a Game) -> ItemBar<'a> {
         if let Ok(actor) = game.get_player_actor() {
             ItemBar {
-                items: &actor.inventory,
+                items: actor.inventory,
                 data: &game.data,
             }
         } else {
             ItemBar {
-                items: &[None; 5],
+                items: Default::default(),
                 data: &game.data,
             }
         }
@@ -159,8 +159,8 @@ impl<'a> Widget for ItemBar<'a> {
             .direction(Direction::Horizontal)
             .constraints([Constraint::Ratio(1, 5); 5])
             .areas(area);
-        for i in 0..self.items.len() {
-            if let Some(item) = self.items[i] {
+        for i in 0..self.items.get_items().len() {
+            if let Some(item) = self.items.get_items()[i] {
                 ItemWidget::new(item, i, self.data).render(slots[i], buf);
             } else {
                 Paragraph::new("")
