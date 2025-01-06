@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::data::Data;
+use crate::data::{self, Data, ItemDefiniton};
 use crate::datatypes::{Coordinate, Item};
 use crate::direction::AbsoluteDirection;
 use crate::game::{self, Game};
@@ -66,13 +66,25 @@ pub fn deinit_render() {
     ratatui::restore();
 }
 
-pub struct WorldWindow<'a> {
-    pub world: &'a World,
-    pub center: Coordinate,
-    pub data: &'a Data,
+pub struct WorldWindowWidget<'a> {
+    world: &'a World,
+    center: Coordinate,
+    data: &'a Data,
 }
 
-impl<'a> Widget for WorldWindow<'a> {
+impl<'a> WorldWindowWidget<'a> {
+    fn new(game: &Game) -> WorldWindowWidget {
+        WorldWindowWidget {
+            world: &game.world,
+            center: game
+                .get_player_coords()
+                .unwrap_or(Coordinate { x: 0, y: 0 }),
+            data: &game.data,
+        }
+    }
+}
+
+impl<'a> Widget for WorldWindowWidget<'a> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let (cols, rows) = (area.width, area.height);
         let (centerx, centery) = (
@@ -94,27 +106,66 @@ impl<'a> Widget for WorldWindow<'a> {
     }
 }
 
-fn render_items(items: &[Option<Item>; 5], data: &Data, area: Rect, frame: &mut Frame) {
-    let slots: [Rect; 5] = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Ratio(1, 5); 5])
-        .areas(area);
+struct ItemWidget<'a> {
+    item: Item,
+    idx: usize,
+    itemdef: &'a ItemDefiniton,
+}
+impl<'a> ItemWidget<'a> {
+    fn new(item: Item, idx: usize, data: &Data) -> ItemWidget {
+        let itemdef = data.items.get(item.name).unwrap();
+        ItemWidget { item, idx, itemdef }
+    }
+}
 
-    for i in 0..items.len() {
-        if let Some(item) = items[i] {
-            let itemdef = data.items.get(item.name).unwrap();
-            frame.render_widget(
-                Paragraph::new(itemdef.name.clone()).block(
-                    Block::default()
-                        .title(Line::from((i+1).to_string()).left_aligned())
-                        .title(Line::from(itemdef.glyph.clone()).centered())
-                        .title(Line::from(item.quantity.to_string()).right_aligned())
-                        .borders(Borders::ALL),
-                ),
-                slots[i],
-            )
+impl<'a> Widget for ItemWidget<'a> {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let block = Paragraph::new(self.itemdef.name.clone()).block(
+            Block::default()
+                .title(Line::from((self.idx + 1).to_string()).left_aligned())
+                .title(Line::from(self.itemdef.glyph.clone()).centered())
+                .title(Line::from(self.item.quantity.to_string()).right_aligned())
+                .borders(Borders::ALL),
+        );
+        block.render(area, buf);
+    }
+}
+
+struct ItemBar<'a> {
+    items: &'a [Option<Item>; 5],
+    data: &'a Data,
+}
+
+impl<'a> ItemBar<'a> {
+    fn new(game: &'a Game) -> ItemBar<'a> {
+        if let Ok(actor) = game.get_player_actor() {
+            ItemBar {
+                items: &actor.inventory,
+                data: &game.data,
+            }
         } else {
-            frame.render_widget(Paragraph::new("").block(Block::default()), slots[i])
+            ItemBar {
+                items: &[None; 5],
+                data: &game.data,
+            }
+        }
+    }
+}
+
+impl<'a> Widget for ItemBar<'a> {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let slots: [Rect; 5] = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Ratio(1, 5); 5])
+            .areas(area);
+        for i in 0..self.items.len() {
+            if let Some(item) = self.items[i] {
+                ItemWidget::new(item, i, self.data).render(slots[i], buf);
+            } else {
+                Paragraph::new("")
+                    .block(Block::default())
+                    .render(slots[i], buf);
+            }
         }
     }
 }
@@ -123,34 +174,42 @@ fn render_recipes(data: &Data, area: Rect, frame: &mut Frame) {
     // TODO filter by unlocks
     // TODO cache
     // TODO show requirements
-    let items: Vec<ListItem> = data.recipes.iter().map(|(_, def)| {ListItem::new(def.name.clone())}).collect();
+    let items: Vec<ListItem> = data
+        .recipes
+        .iter()
+        .map(|(_, def)| ListItem::new(def.name.clone()))
+        .collect();
     let list = List::new(items);
     frame.render_widget(list, area);
 }
 
-
-pub fn draw(game: &Game, frame: &mut Frame) {
-    let window = WorldWindow {
-        world: &game.world,
-        center: game
-            .get_player_coords()
-            .unwrap_or(Coordinate { x: 0, y: 0 }),
-        data: &game.data,
-    };
-
-    let [main, side] =  Layout::default()
-    .direction(Direction::Horizontal)
-    .constraints([Constraint::Fill(1), Constraint::Length(20)])
-    .areas(frame.area());
+pub fn generate_main_layout(area: Rect) -> (Rect, Rect, Rect, Rect) {
+    let [tmp_main, tmp_side] = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Fill(1), Constraint::Length(20)])
+        .areas(area);
 
     let [main, bottom] = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Fill(1), Constraint::Length(3)])
-        .areas(main);
+        .areas(tmp_main);
+
+    let [side, corner] = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Fill(1), Constraint::Length(3)])
+        .areas(tmp_side);
+
+    (main, side, bottom, corner)
+}
+
+pub fn draw(game: &Game, frame: &mut Frame) {
+    let window = WorldWindowWidget::new(game);
+    let item_widget = ItemBar::new(&game);
+
+    let (main, side, bottom, corner) = generate_main_layout(frame.area());
+
+    frame.render_widget(item_widget, bottom);
     frame.render_widget(window, main);
-    if let Ok(actor) = game.get_player_actor() {
-        render_items(&actor.inventory, &game.data, bottom, frame)
-    }
     render_recipes(&game.data, side, frame);
 }
 // pub fn actionprompt
