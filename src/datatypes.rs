@@ -1,8 +1,8 @@
 use crate::action::Action;
-use crate::direction::AbsoluteDirection;
 use crate::actor::Actor;
+use crate::direction::AbsoluteDirection;
+use crate::inventory::Item;
 use std::ops;
-use crate::db::RecordingId;
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub struct Coordinate {
@@ -46,44 +46,7 @@ impl ops::Mul<AbsoluteDirection> for Coordinate {
     }
 }
 
-impl Coordinate {
-    pub fn in_rect(&self, a: &Coordinate, b: &Coordinate) -> bool {
-        self.x >= a.x && self.x < b.x && self.y >= a.y && self.x < b.y
-    }
-
-    pub const ZERO: Coordinate = Coordinate { x: 0, y: 0 };
-    
-}
-
-#[derive(PartialEq, Debug)]
-#[derive(Clone, Copy)]
-pub struct Item {
-    pub name: &'static str,
-    pub quantity: u16,
-    pub recording: Option<RecordingId>
-}
-
-impl Item {
-    pub fn new(name: &'static str, quantity: u16) -> Item {
-        Item {
-            name,
-            quantity,
-
-            recording: None,
-        }
-    }
-
-    pub fn new_cloner(name: &'static str, recordingid: RecordingId) -> Item {
-        Item {
-            name,
-            quantity: 1,
-            recording: Some(recordingid),
-        }
-    }
-}
-
-#[derive(PartialEq, Debug)]
-#[derive(Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Building {
     name: String,
     facing: AbsoluteDirection,
@@ -96,21 +59,21 @@ pub struct Recording {
 }
 
 impl Recording {
-    pub fn blank() -> Recording{
+    pub fn blank() -> Recording {
         Recording {
             command_list: Vec::new(),
             inventory: Default::default(),
         }
     }
 
-    pub fn from_creator(actor: &Actor) -> Recording{
+    pub fn from_creator(actor: &Actor) -> Recording {
         Recording {
             command_list: Vec::new(),
             inventory: actor.inventory,
         }
     }
 
-    pub fn at(&self, idx: usize) -> Action{
+    pub fn at(&self, idx: usize) -> Action {
         self.command_list[idx % self.command_list.len()]
     }
 

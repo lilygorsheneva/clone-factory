@@ -1,6 +1,7 @@
 use crate::actor::{Actor, ActorRef};
+use crate::datatypes::Coordinate;
+use crate::inventory::Item;
 use crate::data::{Data, RecipeDefiniton};
-use crate::datatypes::{Coordinate, Item};
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::error::{
     Result,
@@ -9,7 +10,6 @@ use crate::error::{
 use crate::game::{Game, GameUpdate};
 use crate::world::WorldCell;
 use std::collections::HashMap;
-use std::f32::consts::E;
 
 pub type ItemUseFn = fn(usize, Coordinate, AbsoluteDirection, &Game) -> Result<GameUpdate>;
 
@@ -158,7 +158,7 @@ fn execute_use_cloner(
             actor: Some(..), ..
         })] => Err(ActionFail("destination occupied")),
         [Some(
-            src @ &mut WorldCell {
+            &mut WorldCell {
                 actor: Some(actor), ..
             },
         ), Some(dest @ WorldCell { actor: None, .. })] => match actor.inventory[idx] {
@@ -253,7 +253,7 @@ pub fn get_use_fn_table() -> HashMap<String, Box<ItemUseFn>> {
 #[cfg(test)]
 mod tests {
     use crate::datatypes::Recording;
-    use crate::direction::Direction::{Absolute, Relative};
+    use crate::direction::Direction::Absolute;
 
     use super::*;
 

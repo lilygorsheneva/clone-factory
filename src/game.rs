@@ -2,7 +2,7 @@ use crate::action;
 use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
 use crate::data::Data;
-use crate::datatypes::Item;
+use crate::inventory::Item;
 use crate::datatypes::Recording;
 use crate::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
 use crate::direction::{Direction::Relative, RelativeDirection::F};
