@@ -48,10 +48,14 @@
 [recipes]
 [recipes.echo_crystal]
     ingredients = ["raw_crystal"]
+    ingredient_counts = [1]
     product = "echo_crystal"
+    product_count = 1
     name = "Echo Crystal"
 
 [recipes.basic_cloner]
     ingredients = ["echo_crystal"]
+    ingredient_counts = [1]
     product = "basic_cloner"
+    product_count = 1
     name = "Basic Cloner"

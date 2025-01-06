@@ -1,5 +1,5 @@
 use crate::actor::{Actor, ActorRef};
-use crate::data::Data;
+use crate::data::{Data, RecipeDefiniton};
 use crate::datatypes::{Coordinate, Item};
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::error::{
@@ -194,7 +194,7 @@ fn execute_grant_item(
     item: Item,
     location: Coordinate,
     orientation: AbsoluteDirection,
-    game: &mut Game,
+    game: &Game,
 ) -> Result<GameUpdate> {
     let mut update: GameUpdate = game.new_update();
     let offsets = [Coordinate { x: 0, y: 0 }];
@@ -218,6 +218,25 @@ fn execute_grant_item(
             Ok(update)
         }
     }
+}
+
+fn execute_craft(
+    recipe: &RecipeDefiniton,
+    location: Coordinate,
+    orientation: AbsoluteDirection,
+    game: &Game,
+) -> Result<GameUpdate> {
+    let cell = game.world.get(&location).ok_or(Error("No worldcell"))?;
+    let actor = cell.actor.ok_or(Error("Actor missing"))?;
+    let inventory = actor.inventory;
+
+    
+    // for item in recipe.ingredients
+    // {inventory.sutract_item}?
+    // inventory.insert(item(recipe.name, 0))?
+
+    Err(Error("Not implemented"))
+
 }
 
 pub fn get_use_fn_table() -> HashMap<String, Box<ItemUseFn>> {

@@ -44,7 +44,9 @@ pub struct ItemDefiniton {
 #[derive(Deserialize)]
 pub struct RecipeDefiniton {
     pub ingredients: Vec<String>,
+    pub ingredient_counts: Vec<i64>,
     pub product: String,
+    pub product_count: i64,
     pub name: String,
 }
 
