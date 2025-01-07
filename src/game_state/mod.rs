@@ -1,35 +1,70 @@
 //! Modules representing the state of the game.
 
-pub mod world;
 pub mod db;
 pub mod game;
+pub mod world;
 
 // Playing with static lifetimes. This should, in theory, allow me to give Items
 // a reference to ItemDefinition.
 #[cfg(test)]
-mod test{
-    struct StaticDataSample {
-        foo: i8,
-        bar: i8
-    } 
+mod test {
 
-    struct Container_1<'pseudostatic> {
-        foo: &'pseudostatic StaticDataSample
+    #[derive(Default)]
+    struct ItemDefinition {
+        id: i128,
     }
 
-    struct Container_2<'pseudostatic> {
-        c1: Container_1<'pseudostatic> 
+    #[derive(Clone, Copy)]
+    struct Item<'ps> {
+        def: &'ps ItemDefinition,
+        quantity: i16,
+    }
+
+    #[derive(Default)]
+    struct StaticDataSample {
+        foo: Vec<ItemDefinition>,
+    }
+
+    #[derive(Default)]
+    struct Inventory<'ps> {
+        items: Vec<Item<'ps>>,
+    }
+
+    impl<'ps> Inventory<'ps> {
+        fn get(&self, idx: usize) -> Item<'ps> {
+            self.items[idx]
+        }
+
+        fn set(&mut self, idx: usize, item: Item<'ps>) {
+            self.items.push(item.clone());
+        }
+    }
+
+    struct Game<'ps> {
+        inv: Inventory<'ps>,
+        data: &'ps StaticDataSample,
+    }
+
+    impl<'ps> Game<'ps> {
+        fn giveyourselfoneof(&mut self, idx: usize) {
+            self.inv.items.push(Item {
+                def: &self.data.foo[idx],
+                quantity: 1,
+            });
+        }
     }
 
     #[test]
-    fn testme() {
-        let staticky = StaticDataSample {foo:1, bar: 1};
-        let mut c2 = Some(Container_2 {c1: {Container_1 {foo: &staticky}}});
+    fn aaaaa() {
+        let mut definitions = StaticDataSample::default();
+        definitions.foo.push(ItemDefinition { id: 100 });
 
-        let c_new = Container_1{foo: c2.unwrap().c1.foo};
-
-        c2 = None;
-
-        assert_eq!(c_new.foo.bar, staticky.bar);
+        let mut game = Game {
+            inv: Default::default(),
+            data: &definitions,
+        };
+        game.giveyourselfoneof(0);
+        let item = game.inv.get(0);
+        game.inv.set(0, item);
     }
 }
