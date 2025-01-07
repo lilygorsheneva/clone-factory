@@ -8,7 +8,7 @@ use crate::actor::{Actor, ActorRef};
 use crate::static_data::Data;
 use crate::inventory::Item;
 use crate::datatypes::Recording;
-use crate::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
+use crate::game_state::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
 use crate::direction::{Direction::Relative, RelativeDirection::F};
 use crate::error::{
     Result,
@@ -16,7 +16,7 @@ use crate::error::{
 };
 use crate::{
     datatypes::Coordinate,
-    world::{World, WorldCell, WorldUpdate},
+    game_state::world::{World, WorldCell, WorldUpdate},
 };
 use std::collections::VecDeque;
 

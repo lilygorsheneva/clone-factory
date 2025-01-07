@@ -9,7 +9,7 @@ use crate::error::{
 };
 use crate::game::{Game, GameUpdate};
 use crate::inventory::Item;
-use crate::world::WorldCell;
+use crate::game_state::world::WorldCell;
 use std::collections::HashMap;
 
 pub type ItemUseFn = fn(usize, Coordinate, AbsoluteDirection, &Game) -> Result<GameUpdate>;

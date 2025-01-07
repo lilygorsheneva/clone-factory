@@ -1,4 +1,4 @@
-//! Datastructures to represent the state of the world.
+//! Datastructures to represent spatial data (e.g. a map of the world).
 
 use crate::error::{Result, Status::StateUpdateError};
 use crate::{

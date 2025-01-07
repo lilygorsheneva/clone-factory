@@ -2,13 +2,13 @@ use datatypes::Coordinate;
 use inventory::Item;
 
 use game::Game;
-use world::WorldCell;
+use game_state::world::WorldCell;
 
 mod action;
 mod actor;
 mod static_data;
 mod datatypes;
-mod db;
+mod game_state;
 mod devtools;
 mod direction;
 mod error;
@@ -16,7 +16,6 @@ mod eventloop;
 mod game;
 mod input;
 mod render;
-mod world;
 mod inventory;
 
 fn main() {

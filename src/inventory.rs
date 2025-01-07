@@ -1,6 +1,6 @@
 //! Item and Inventory datatype definitions.
 
-use crate::db::RecordingId;
+use crate::game_state::db::RecordingId;
 use crate::error::{Result, Status};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
