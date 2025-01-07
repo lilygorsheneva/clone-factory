@@ -3,24 +3,23 @@ use crate::error::{Result, Status};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub struct Item {
-    pub name: &'static str,
+    pub id: i64,
     pub quantity: u16,
     pub recording: Option<RecordingId>,
 }
 
 impl Item {
-    pub fn new(name: &'static str, quantity: u16) -> Item {
+    pub fn new(id: i64, quantity: u16) -> Item {
         Item {
-            name,
+            id,
             quantity,
-
             recording: None,
         }
     }
 
-    pub fn new_cloner(name: &'static str, recordingid: RecordingId) -> Item {
+    pub fn new_cloner(id: i64,  recordingid: RecordingId) -> Item {
         Item {
-            name,
+            id,
             quantity: 1,
             recording: Some(recordingid),
         }
@@ -41,7 +40,7 @@ impl BasicInventory {
     pub fn insert(&mut self, new_item: Item) -> Result<()> {
         for i in &mut self.items {
             if let Some(existing_item) = i {
-                if existing_item.name == new_item.name {
+                if existing_item.id == new_item.id {
                     existing_item.quantity += new_item.quantity;
                     return Ok(());
                 }
@@ -59,7 +58,7 @@ impl BasicInventory {
     pub fn remove(&mut self, target_item: Item) -> Result<()> {
         for i in &mut self.items {
             if let Some(existing_item) = i {
-                if existing_item.name == target_item.name {
+                if existing_item.id == target_item.id {
                     if existing_item.quantity > target_item.quantity {
                         existing_item.quantity -= target_item.quantity;
                         return Ok(());

@@ -114,7 +114,7 @@ struct ItemWidget<'a> {
 }
 impl<'a> ItemWidget<'a> {
     fn new(item: Item, idx: usize, data: &Data) -> ItemWidget {
-        let itemdef = data.items.get(item.name).unwrap();
+        let itemdef = data.items_by_id.get(&item.id).unwrap();
         ItemWidget { item, idx, itemdef }
     }
 }

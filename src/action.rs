@@ -133,9 +133,9 @@ fn execute_use_item(
     let item = actor.inventory.get_items()[idx].ok_or(ActionFail("no item"))?;
     let definition = game
         .data
-        .items
-        .get(item.name)
-        .ok_or(NotFoundError("item definiton not found", item.name))?;
+        .items_by_id
+        .get(&item.id)
+        .ok_or(Error("item definiton not found"))?;
     let function = definition
         .on_use_fn
         .as_ref()
@@ -295,7 +295,7 @@ mod tests {
         let mut game = Game::new(Coordinate { x: 1, y: 1 });
 
         let location = Coordinate { x: 0, y: 0 };
-        let foo = Item::new("placeholder", 1);
+        let foo = Item::new(0, 1);
         game.world
             .mut_set(
                 &location,
@@ -342,7 +342,7 @@ mod tests {
             command_list: actions,
             inventory: Default::default(),
         });
-        let new_cloner = Item::new_cloner("basic_cloner", sample_recording_id);
+        let new_cloner = Item::new_cloner(4, sample_recording_id);
         let update = execute_action(
             game.actors.get_player().unwrap(),
             Action {

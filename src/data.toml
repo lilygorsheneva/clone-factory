@@ -21,6 +21,7 @@
 [items]
 [items.recorder]
     name = "Empty Recorder"
+    id = 2
     description = "an empty recording item"
     on_use = "action_special_start_record"
     glyph = "ꙮ"
@@ -28,12 +29,14 @@
 
 [items.raw_crystal]
     name = "Raw Crystal"
+    id = 0
     description = "TODO"
     glyph = "*"
     color = "grey"
 
 [items.basic_cloner]
     name = "Basic cloner"
+    id = 4
     description = "Spawns a clone of you"
     on_use = "action_use_cloner"
     glyph = "@"
@@ -41,6 +44,7 @@
 
 [items.echo_crystal]
     name = "Echo Crystal"
+    id = 1
     description = "TODO"
     glyph = "*"
     color = "grey"

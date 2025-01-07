@@ -190,7 +190,7 @@ impl Game {
             None => Err(Error("Attempted to initialize recording twice")),
             Some(rec) => {
                 let id = self.recordings.register_recording(rec);
-                let new_cloner = Item::new_cloner("basic_cloner", id);
+                let new_cloner = Item::new_cloner(4, id);
                 self.current_recording = None;
                 let actor_ref = self.actors.get_player()?;
                 let update = action::execute_action(
@@ -298,7 +298,7 @@ mod tests {
         let sample_recording_id = game
         .recordings
         .register_recording(&Recording{command_list: actions, inventory: Default::default()});
-        let new_cloner = Item::new_cloner("basic_cloner", sample_recording_id);
+        let new_cloner = Item::new_cloner(4, sample_recording_id);
         let update = action::execute_action(
             game.actors.get_player().unwrap(),
             Action {
