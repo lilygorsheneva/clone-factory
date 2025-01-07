@@ -50,7 +50,7 @@ impl<'ps> World<'ps> {
         (location.x + location.y * self.dimensions.x) as usize
     }
 
-    pub fn get(&self, location: &Coordinate) -> Option<&WorldCell> {
+    pub fn get(&self, location: &Coordinate) -> Option<&WorldCell<'ps>> {
         // In_rect misbehaves for some reason.
         if self.in_bounds(&location) {
             return Some(&self.data[self.coord_to_idx(location)]);
@@ -118,7 +118,7 @@ impl<'ps> World<'ps> {
         update.map.get_many_mut(translated_offsets.each_ref())
     }
 
-    pub fn new_update(&self) -> WorldUpdate {
+    pub fn new_update(&self) -> WorldUpdate<'ps> {
         WorldUpdate {
             map: HashMap::new(),
         }

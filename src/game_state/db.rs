@@ -36,7 +36,7 @@ impl<'ps> RecordingDb<'ps> {
         db
     }
 
-    pub fn get(&self, id: RecordingId) -> &Recording {
+    pub fn get(&self, id: RecordingId) -> &Recording<'ps> {
         &self.recordings[id.idx]
     }
 }

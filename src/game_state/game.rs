@@ -224,7 +224,7 @@ impl<'ps> Game<'ps> {
         }
     }
 
-    pub fn apply_update(&mut self, update: GameUpdate) -> Result<()> {
+    pub fn apply_update(&mut self, update: GameUpdate<'ps>) -> Result<()> {
         self.world.apply_update(&update.world)?;
         self.actors.db.apply_update(&update.actors)?;
         self.actors.queue_new_actors(&update.actors);

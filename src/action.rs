@@ -330,8 +330,8 @@ mod tests {
 
     #[test]
     fn craft() {
-        let mut game = Game::new(Coordinate { x: 1, y: 2 });
-        game.load_testdata();
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         let location = Coordinate { x: 0, y: 0 };
         assert!(game.spawn(&location).is_ok());
