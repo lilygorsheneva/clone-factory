@@ -2,7 +2,7 @@
 use crate::datatypes::{Recording, Coordinate};
 use crate::game_state::db::{ActorId, RecordingId};
 use crate::direction::AbsoluteDirection;
-use crate::inventory::{BasicInventory, Item};
+use crate::inventory::BasicInventory;
 
 #[derive(PartialEq, Debug)]
 #[derive(Copy, Clone)]

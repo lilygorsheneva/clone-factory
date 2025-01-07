@@ -1,13 +1,11 @@
 //! Game state container, combining world state with other data containers.
 
 use crate::{action, devtools};
-use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
 use crate::static_data::Data;
 use crate::inventory::Item;
 use crate::datatypes::Recording;
 use crate::game_state::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
-use crate::direction::{Direction::Relative, RelativeDirection::F};
 use crate::error::{
     Result,
     Status::{ActionFail, Error},
@@ -236,6 +234,7 @@ impl<'ps> Game<'ps> {
 #[cfg(test)]
 mod tests {
     use crate::direction::{AbsoluteDirection, Direction::Absolute};
+    use crate::action::{Action, SubAction};
 
     use super::*;
 

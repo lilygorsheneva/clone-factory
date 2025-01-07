@@ -1,11 +1,11 @@
 //! Definitons for Actions performed by players or npcs.
 use crate::actor::{Actor, ActorRef};
-use crate::static_data::{Data, ItemDefiniton, RecipeDefiniton};
+use crate::static_data::RecipeDefiniton;
 use crate::datatypes::Coordinate;
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::error::{
     Result,
-    Status::{ActionFail, Error, NotFoundError},
+    Status::{ActionFail, Error},
 };
 use crate::game_state::game::{Game, GameUpdate};
 use crate::inventory::Item;
@@ -239,6 +239,7 @@ mod tests {
     use crate::datatypes::Recording;
     use crate::devtools;
     use crate::direction::Direction::Absolute;
+    use crate::static_data::Data;
 
     use super::*;
 
