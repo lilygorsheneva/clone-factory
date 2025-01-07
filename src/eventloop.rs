@@ -3,7 +3,7 @@
 use ratatui::DefaultTerminal;
 use crate::input;
 use crate::render;
-use crate::game::Game;
+use crate::game_state::game::Game;
 
 
 pub fn main_event_loop(game: &mut Game, terminal: &mut DefaultTerminal) {

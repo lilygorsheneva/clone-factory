@@ -7,7 +7,7 @@ use crate::error::{
     Result,
     Status::{ActionFail, Error, NotFoundError},
 };
-use crate::game::{Game, GameUpdate};
+use crate::game_state::game::{Game, GameUpdate};
 use crate::inventory::Item;
 use crate::game_state::world::WorldCell;
 use std::collections::HashMap;

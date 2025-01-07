@@ -1,7 +1,7 @@
 use datatypes::Coordinate;
 use inventory::Item;
 
-use game::Game;
+use game_state::game::Game;
 use game_state::world::WorldCell;
 
 mod action;
@@ -13,7 +13,6 @@ mod devtools;
 mod direction;
 mod error;
 mod eventloop;
-mod game;
 mod input;
 mod render;
 mod inventory;

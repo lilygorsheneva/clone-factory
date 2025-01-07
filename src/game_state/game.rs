@@ -1,7 +1,5 @@
 //! Game state container, combining world state with other data containers.
 
-// TODO The Actors struct should be moved out somwehere.
-
 use crate::action;
 use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
@@ -20,6 +18,7 @@ use crate::{
 };
 use std::collections::VecDeque;
 
+// Move the WorldActors struct out to a dedicated module.
 pub struct WorldActors {
     pub player: Option<PlayerRef>,
     turnqueue: VecDeque<ActorId>,
@@ -95,6 +94,8 @@ pub struct Game {
     pub actors: WorldActors,
     pub recordings: RecordingDb,
     pub current_recording: Option<Recording>,
+
+    // TODO: don't store data by value within a game.
     pub data: Data,
 }
 

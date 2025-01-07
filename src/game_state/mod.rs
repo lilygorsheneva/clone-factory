@@ -4,3 +4,4 @@
 
 pub mod world;
 pub mod db;
+pub mod game;
