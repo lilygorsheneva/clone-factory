@@ -1,6 +1,7 @@
 //! Functions for loading external game data.
 
-use crate::action::{self};
+use crate::action::{ItemUseFn, get_use_fn_table};
+use crate::interface::render::get_color_map;
 use ratatui::style::Color;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
@@ -40,7 +41,7 @@ pub struct ItemDefiniton {
     pub on_use: Option<String>,
 
     #[serde(skip_deserializing)]
-    pub on_use_fn: Option<Box<action::ItemUseFn>>
+    pub on_use_fn: Option<Box<ItemUseFn>>
 }
 
 // A crafting recipe.
@@ -91,7 +92,7 @@ impl Data {
     }
 
     fn bind_functions(&mut self) {
-        let functions = crate::action::get_use_fn_table();
+        let functions = get_use_fn_table();
         for (_, itemdef) in self.items.iter_mut() {
             if let Some(function ) =  functions.get(itemdef.on_use.as_ref().unwrap_or(&"default".to_string())) {
                 itemdef.on_use_fn =  Some(Box::new(*function.clone()));
@@ -100,7 +101,7 @@ impl Data {
     }
 
     fn bind_colors(&mut self) {
-        let color_map = crate::render::get_color_map();
+        let color_map = get_color_map();
         for (_, itemdef) in self.items.iter_mut() {
             itemdef.color_object = *color_map.get(&itemdef.color).unwrap_or(&Color::White);
         }

@@ -1,8 +1,8 @@
 // TODO move the npc turns event loop here.
 
 use ratatui::DefaultTerminal;
-use crate::input;
-use crate::render;
+use crate::interface::input;
+use crate::interface::render;
 use crate::game_state::game::Game;
 
 

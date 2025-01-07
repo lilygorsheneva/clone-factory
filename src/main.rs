@@ -13,12 +13,11 @@ mod devtools;
 mod direction;
 mod error;
 mod eventloop;
-mod input;
-mod render;
+mod interface;
 mod inventory;
 
 fn main() {
-    let mut terminal = render::init_render();
+    let mut terminal = interface::render::init_render();
 
     let mut game = Game::new(Coordinate { x: 20, y: 10 });
     game.load_gamedata();
@@ -38,8 +37,8 @@ fn main() {
         )
         .unwrap();
 
-    terminal.draw(|frame| render::draw(&game, frame)).unwrap();
+    terminal.draw(|frame| interface::render::draw(&game, frame)).unwrap();
     eventloop::main_event_loop(&mut game, &mut terminal);
 
-    render::deinit_render();
+    interface::render::deinit_render();
 }
