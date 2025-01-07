@@ -67,7 +67,6 @@ pub struct Data {
     pub building_appearances: HashMap<String, AppearanceDefiniton>,
 
     pub items: HashMap<String, ItemDefiniton>,
-    #[serde(skip_deserializing)]
     pub recipes: HashMap<String, RecipeDefiniton>,
 }
 
