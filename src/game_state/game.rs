@@ -118,7 +118,7 @@ impl<'ps> Game<'ps> {
         }
     }
 
-    pub fn get_player_actor(&self) -> Result<&Actor> {
+    pub fn get_player_actor(&self) -> Result<&Actor<'ps>> {
         let location = self.get_player_coords()?;
         match self.world.get(&location) {
             None => Err(Error("Player coordinates out of bounds")),
@@ -193,7 +193,8 @@ impl<'ps> Game<'ps> {
             None => Err(Error("Attempted to initialize recording twice")),
             Some(rec) => {
                 let id = self.recordings.register_recording(rec);
-                let new_cloner = Item::new_cloner(4, id);
+                let definition = self.data.items.get("basic_cloner").unwrap();
+                let new_cloner = Item::new_cloner(&definition, id);
                 self.current_recording = None;
                 let actor_ref = self.actors.get_player()?;
                 let update = devtools::grant_item(new_cloner, actor_ref.location, self)?;
@@ -217,7 +218,7 @@ impl<'ps> Game<'ps> {
         }
     }
 
-    pub fn new_update(&self) -> GameUpdate {
+    pub fn new_update<'a>(&'a self) -> GameUpdate<'ps> {
         GameUpdate {
             world: self.world.new_update(),
             actors: self.actors.db.new_update(),
@@ -240,7 +241,8 @@ mod tests {
 
     #[test]
     fn record() {
-        let mut game = Game::new(Coordinate { x: 1, y: 2 });
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
 
@@ -276,8 +278,8 @@ mod tests {
 
     #[test]
     fn clone() {
-        let mut game = Game::new(Coordinate { x: 1, y: 3 });
-        game.load_testdata();
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 3 }, &data);
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
 
@@ -295,7 +297,8 @@ mod tests {
         let sample_recording_id = game
         .recordings
         .register_recording(&Recording{command_list: actions, inventory: Default::default()});
-        let new_cloner = Item::new_cloner(4, sample_recording_id);
+        let definition = game.data.items.get("basic_cloner").unwrap();
+        let new_cloner = Item::new_cloner(&definition, sample_recording_id);
         let update = devtools::grant_item(new_cloner, game.get_player_coords().unwrap(), &game).unwrap();
         game.apply_update(update).unwrap();
 

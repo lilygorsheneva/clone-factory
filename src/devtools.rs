@@ -35,11 +35,11 @@ pub fn make_sample_recording() -> Recording<'static> {
 }
 
 
-pub fn grant_item(
-    item: Item,
+pub fn grant_item<'a, 'ps>(
+    item: Item<'ps>,
     location: Coordinate,
-    game: &Game,
-) -> Result<GameUpdate> {
+    game: &'a Game<'ps>,
+) -> Result<GameUpdate<'ps>> {
     let mut update: GameUpdate = game.new_update();
     let offsets = [Coordinate { x: 0, y: 0 }];
     let mut cells = game
