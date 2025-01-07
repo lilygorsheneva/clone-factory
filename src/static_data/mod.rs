@@ -25,7 +25,8 @@ pub struct AppearanceDefiniton {
 }
 
 // An item.
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Debug)]
+#[cfg_attr(test, derive(Default))]
 pub struct ItemDefiniton {
     
 
@@ -44,6 +45,12 @@ pub struct ItemDefiniton {
     pub on_use_fn: Option<Box<ItemUseFn>>
 }
 
+impl PartialEq<ItemDefiniton> for ItemDefiniton {
+    fn eq(&self, other: &ItemDefiniton) -> bool {
+        self.name == other.name
+    }}
+
+
 // A crafting recipe.
 #[derive(Deserialize)]
 pub struct RecipeDefiniton {
@@ -60,8 +67,6 @@ pub struct Data {
     pub building_appearances: HashMap<String, AppearanceDefiniton>,
 
     pub items: HashMap<String, ItemDefiniton>,
-    #[serde(skip_deserializing)]
-    pub items_by_id: HashMap<i64, ItemDefiniton>,
     pub recipes: HashMap<String, RecipeDefiniton>,
 }
 
@@ -70,7 +75,6 @@ impl Data {
         let mut data = Data::read();
         data.bind_functions();
         data.bind_colors();
-        data.build_item_map();
         data
     }
     
@@ -80,7 +84,6 @@ impl Data {
         let mut data = Data::read();
         data.bind_functions();
         data.bind_colors();
-        data.build_item_map();
         data
     }
     
@@ -107,13 +110,6 @@ impl Data {
         }
         for (_, actordef) in self.actor_appearances.iter_mut() {
             actordef.color_object = *color_map.get(&actordef.color).unwrap_or(&Color::White);
-        }
-    }
-
-    // Map items to their numerical ids. Must be run *AFTER* all operations that augment the contents of self.items.
-    fn build_item_map(&mut self) {
-        for (_, itemdef) in self.items.iter_mut() {
-            self.items_by_id.insert(itemdef.id, itemdef.clone());
         }
     }
 }

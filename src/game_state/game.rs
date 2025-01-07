@@ -1,13 +1,11 @@
 //! Game state container, combining world state with other data containers.
 
 use crate::{action, devtools};
-use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
 use crate::static_data::Data;
 use crate::inventory::Item;
 use crate::datatypes::Recording;
 use crate::game_state::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
-use crate::direction::{Direction::Relative, RelativeDirection::F};
 use crate::error::{
     Result,
     Status::{ActionFail, Error},
@@ -89,46 +87,36 @@ impl WorldActors {
 }
 
 // Game state container.
-pub struct Game {
-    pub world: World,
+pub struct Game<'pseudostatic> {
+    pub world: World<'pseudostatic>,
     pub actors: WorldActors,
-    pub recordings: RecordingDb,
-    pub current_recording: Option<Recording>,
+    pub recordings: RecordingDb<'pseudostatic>,
+    pub current_recording: Option<Recording<'pseudostatic>>,
 
-    // TODO: don't store data by value within a game.
-    pub data: Data,
+    pub data: &'pseudostatic Data,
 }
 
 // A container that stores game updates.
 // Most operations on the game can be performed with an immutable game and a mutable update.
 // Muate game state with game.apply_update(update).
 #[derive(Debug)]
-pub struct GameUpdate {
-    pub world: WorldUpdate,
+pub struct GameUpdate<'ps> {
+    pub world: WorldUpdate<'ps>,
     pub actors: ActorDbUpdate,
 }
 
-impl Game {
-    pub fn new(dimensions: Coordinate) -> Game {
+impl<'ps> Game<'ps> {
+    pub fn new(dimensions: Coordinate, data: &'ps Data) -> Game<'ps> {
         Game {
             world: World::new(dimensions),
             actors: WorldActors::new(),
             recordings: RecordingDb::new(),
             current_recording: None,
-            data: Data::default(),
+            data: data,
         }
     }
 
-    pub fn load_gamedata(&mut self) {
-        self.data = Data::get_config();
-    }
-
-    #[cfg(test)]
-    pub fn load_testdata(&mut self) {
-        self.data = Data::get_test_config();
-    }
-
-    pub fn get_player_actor(&self) -> Result<&Actor> {
+    pub fn get_player_actor(&self) -> Result<&Actor<'ps>> {
         let location = self.get_player_coords()?;
         match self.world.get(&location) {
             None => Err(Error("Player coordinates out of bounds")),
@@ -203,7 +191,8 @@ impl Game {
             None => Err(Error("Attempted to initialize recording twice")),
             Some(rec) => {
                 let id = self.recordings.register_recording(rec);
-                let new_cloner = Item::new_cloner(4, id);
+                let definition = self.data.items.get("basic_cloner").unwrap();
+                let new_cloner = Item::new_cloner(&definition, id);
                 self.current_recording = None;
                 let actor_ref = self.actors.get_player()?;
                 let update = devtools::grant_item(new_cloner, actor_ref.location, self)?;
@@ -227,14 +216,14 @@ impl Game {
         }
     }
 
-    pub fn new_update(&self) -> GameUpdate {
+    pub fn new_update<'a>(&'a self) -> GameUpdate<'ps> {
         GameUpdate {
             world: self.world.new_update(),
             actors: self.actors.db.new_update(),
         }
     }
 
-    pub fn apply_update(&mut self, update: GameUpdate) -> Result<()> {
+    pub fn apply_update(&mut self, update: GameUpdate<'ps>) -> Result<()> {
         self.world.apply_update(&update.world)?;
         self.actors.db.apply_update(&update.actors)?;
         self.actors.queue_new_actors(&update.actors);
@@ -245,12 +234,14 @@ impl Game {
 #[cfg(test)]
 mod tests {
     use crate::direction::{AbsoluteDirection, Direction::Absolute};
+    use crate::action::{Action, SubAction};
 
     use super::*;
 
     #[test]
     fn record() {
-        let mut game = Game::new(Coordinate { x: 1, y: 2 });
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
 
@@ -286,8 +277,8 @@ mod tests {
 
     #[test]
     fn clone() {
-        let mut game = Game::new(Coordinate { x: 1, y: 3 });
-        game.load_testdata();
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 3 }, &data);
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
 
@@ -305,7 +296,8 @@ mod tests {
         let sample_recording_id = game
         .recordings
         .register_recording(&Recording{command_list: actions, inventory: Default::default()});
-        let new_cloner = Item::new_cloner(4, sample_recording_id);
+        let definition = game.data.items.get("basic_cloner").unwrap();
+        let new_cloner = Item::new_cloner(&definition, sample_recording_id);
         let update = devtools::grant_item(new_cloner, game.get_player_coords().unwrap(), &game).unwrap();
         game.apply_update(update).unwrap();
 

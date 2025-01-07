@@ -4,7 +4,7 @@
 use crate::action::Action;
 use crate::actor::Actor;
 use crate::direction::AbsoluteDirection;
-use crate::inventory::{BasicInventory, Item};
+use crate::inventory::BasicInventory;
 use std::ops;
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
@@ -56,20 +56,20 @@ pub struct Building {
 }
 
 #[derive(Clone)]
-pub struct Recording {
+pub struct Recording<'ps> {
     pub command_list: Vec<Action>,
-    pub inventory: BasicInventory,
+    pub inventory: BasicInventory<'ps>,
 }
 
-impl Recording {
-    pub fn blank() -> Recording {
+impl<'ps> Recording<'ps> {
+    pub fn blank() -> Recording<'static> {
         Recording {
             command_list: Vec::new(),
             inventory: Default::default(),
         }
     }
 
-    pub fn from_creator(actor: &Actor) -> Recording {
+    pub fn from_creator(actor: &Actor<'ps>) -> Recording<'ps> {
         Recording {
             command_list: Vec::new(),
             inventory: actor.inventory,

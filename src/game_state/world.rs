@@ -12,14 +12,14 @@ use crate::inventory::Item;
 use hashbrown::HashMap;
 
 #[derive(PartialEq, Debug, Clone)]
-pub struct WorldCell {
-    pub actor: Option<Actor>,
+pub struct WorldCell<'ps> {
+    pub actor: Option<Actor<'ps>>,
     pub building: Option<Building>,
-    pub items: [Option<Item>; 1],
+    pub items: [Option<Item<'ps>>; 1],
 }
 
-impl WorldCell {
-    pub fn new() -> WorldCell {
+impl WorldCell<'_> {
+    pub fn new() -> WorldCell<'static> {
         WorldCell {
             actor: None,
             building: None,
@@ -28,17 +28,17 @@ impl WorldCell {
     }
 }
 
-pub struct World {
+pub struct World<'ps> {
     pub dimensions: Coordinate,
-    data: rpds::Vector<WorldCell>,
+    data: rpds::Vector<WorldCell<'ps>>,
 }
 
 #[derive(Debug)]
-pub struct WorldUpdate {
-    map: HashMap<Coordinate, WorldCell>,
+pub struct WorldUpdate<'ps> {
+    map: HashMap<Coordinate, WorldCell<'ps>>,
 }
 
-impl World {
+impl<'ps> World<'ps> {
     fn in_bounds(&self, location: &Coordinate) -> bool {
         location.x >= 0
             && location.x < self.dimensions.x
@@ -50,7 +50,7 @@ impl World {
         (location.x + location.y * self.dimensions.x) as usize
     }
 
-    pub fn get(&self, location: &Coordinate) -> Option<&WorldCell> {
+    pub fn get(&self, location: &Coordinate) -> Option<&WorldCell<'ps>> {
         // In_rect misbehaves for some reason.
         if self.in_bounds(&location) {
             return Some(&self.data[self.coord_to_idx(location)]);
@@ -61,9 +61,9 @@ impl World {
 
     fn read<'a>(
         &self,
-        update: &'a mut WorldUpdate,
+        update: &'a mut WorldUpdate<'ps>,
         location: &Coordinate,
-    ) -> Option<&'a mut WorldCell> {
+    ) -> Option<&'a mut WorldCell<'ps>> {
         match (self.in_bounds(location), update.map.contains_key(location)) {
             (true, false) => {
                 update
@@ -76,7 +76,7 @@ impl World {
         }
     }
 
-    pub fn mut_set(&mut self, location: &Coordinate, data: Option<WorldCell>) -> Result<()> {
+    pub fn mut_set(&mut self, location: &Coordinate, data: Option<WorldCell<'ps>>) -> Result<()> {
         match (data, self.in_bounds(&location)) {
             (None, false) => Ok(()),
             (None, true) => Err(StateUpdateError),
@@ -92,7 +92,7 @@ impl World {
         }
     }
 
-    pub fn new(dimensions: Coordinate) -> World {
+    pub fn new(dimensions: Coordinate) -> World<'static> {
         let mut datavec = rpds::Vector::new();
         for _ in 0..(dimensions.x * dimensions.y) {
             datavec = datavec.push_back(WorldCell::new());
@@ -105,11 +105,11 @@ impl World {
 
     pub fn readslice<'a, const N: usize>(
         &self,
-        update: &'a mut WorldUpdate,
+        update: &'a mut WorldUpdate<'ps>,
         location: Coordinate,
         orientation: AbsoluteDirection,
         offsets: &[Coordinate; N],
-    ) -> [Option<&'a mut WorldCell>; N] {
+    ) -> [Option<&'a mut WorldCell<'ps>>; N] {
         let translated_offsets = offsets.map(|offset| location +  offset * orientation);
 
         for offset in translated_offsets {
@@ -118,13 +118,13 @@ impl World {
         update.map.get_many_mut(translated_offsets.each_ref())
     }
 
-    pub fn new_update(&self) -> WorldUpdate {
+    pub fn new_update(&self) -> WorldUpdate<'ps> {
         WorldUpdate {
             map: HashMap::new(),
         }
     }
 
-    pub fn apply_update(&mut self, update: &WorldUpdate) -> Result<()> {
+    pub fn apply_update(&mut self, update: &WorldUpdate<'ps>) -> Result<()> {
         for (coordinate, cell) in &update.map {
             self.mut_set(&coordinate, Some(cell.clone()))?;
         }
@@ -148,12 +148,12 @@ mod tests {
     fn mutate() {
         let mut w = World::new(Coordinate { x: 1, y: 1 });
         let location = Coordinate { x: 0, y: 0 };
-        let oldcell = w.get(&location).unwrap();
+        let oldcell = w.get(&location).unwrap().clone();
         let newcell = WorldCell {
             actor: Some(Actor::new()),
             ..oldcell.clone()
         };
-        assert_ne!(*oldcell, newcell); // Sanity check to ensure we actually mutate.
+        assert_ne!(oldcell, newcell); // Sanity check to ensure we actually mutate.
         w.mut_set(&location, Some(newcell.clone())).unwrap();
         assert_eq!(*w.get(&Coordinate { x: 0, y: 0 }).unwrap(), newcell);
     }

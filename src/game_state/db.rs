@@ -7,8 +7,8 @@ use crate::error::{Result, Status::StateUpdateError};
 use std::collections::HashSet;
 use std::usize;
 
-pub struct RecordingDb {
-    recordings: Vec<Recording>,
+pub struct RecordingDb<'ps> {
+    recordings: Vec<Recording<'ps>>,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone)]
@@ -20,15 +20,15 @@ impl RecordingId {
     pub const DEFAULT: RecordingId = RecordingId { idx: 0 };
 }
 
-impl RecordingDb {
-    pub fn register_recording(&mut self, recording: &Recording) -> RecordingId {
+impl<'ps> RecordingDb<'ps> {
+    pub fn register_recording(&mut self, recording: &Recording<'ps>) -> RecordingId {
         self.recordings.push(recording.clone());
         RecordingId {
             idx: self.recordings.len() - 1,
         }
     }
 
-    pub fn new() -> RecordingDb {
+    pub fn new() -> RecordingDb<'static> {
         let mut db = RecordingDb {
             recordings: Vec::new(),
         };
@@ -36,7 +36,7 @@ impl RecordingDb {
         db
     }
 
-    pub fn get(&self, id: RecordingId) -> &Recording {
+    pub fn get(&self, id: RecordingId) -> &Recording<'ps> {
         &self.recordings[id.idx]
     }
 }

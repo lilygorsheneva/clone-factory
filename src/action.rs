@@ -1,18 +1,19 @@
 //! Definitons for Actions performed by players or npcs.
 use crate::actor::{Actor, ActorRef};
-use crate::static_data::{Data, ItemDefiniton, RecipeDefiniton};
+use crate::static_data::RecipeDefiniton;
 use crate::datatypes::Coordinate;
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::error::{
     Result,
-    Status::{ActionFail, Error, NotFoundError},
+    Status::{ActionFail, Error},
 };
 use crate::game_state::game::{Game, GameUpdate};
 use crate::inventory::Item;
 use crate::game_state::world::WorldCell;
 use std::collections::HashMap;
 
-pub type ItemUseFn = fn(usize, Coordinate, AbsoluteDirection, &Game) -> Result<GameUpdate>;
+pub type ItemUseFn = for<'ps> fn(usize, Coordinate, AbsoluteDirection, &Game<'ps>) -> Result<GameUpdate<'ps>>;
+
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Action {
@@ -30,7 +31,7 @@ pub enum SubAction {
     // Record,
 }
 
-pub fn execute_action(actor_ref: ActorRef, action: Action, game: &Game) -> Result<GameUpdate> {
+pub fn execute_action<'a,'ps>(actor_ref: ActorRef, action: Action, game: &'a Game<'ps>) -> Result<GameUpdate<'ps>> {
     let orientation = actor_ref.orientation.rotate(&action.direction);
 
     match action.action {
@@ -42,11 +43,11 @@ pub fn execute_action(actor_ref: ActorRef, action: Action, game: &Game) -> Resul
     }
 }
 
-fn execute_move(
+fn execute_move<'a, 'ps>(
     location: Coordinate,
     orientation: AbsoluteDirection,
-    game: &Game,
-) -> Result<GameUpdate> {
+    game: &'a Game<'ps>,
+) -> Result<GameUpdate<'ps>> {
     let mut update: GameUpdate = game.new_update();
 
     let offsets = [Coordinate { x: 0, y: 0 }, Coordinate { x: 0, y: 1 }];
@@ -84,11 +85,11 @@ fn execute_move(
     }
 }
 
-fn execute_take(
+fn execute_take<'a, 'ps>(
     location: Coordinate,
     orientation: AbsoluteDirection,
-    game: &Game,
-) -> Result<GameUpdate> {
+    game: &'a Game<'ps>,
+) -> Result<GameUpdate<'ps>> {
     let mut update: GameUpdate = game.new_update();
 
     let offsets = [Coordinate { x: 0, y: 0 }];
@@ -121,20 +122,16 @@ fn execute_take(
     }
 }
 
-fn execute_use_item(
+fn execute_use_item<'a, 'ps>(
     idx: usize,
     location: Coordinate,
     orientation: AbsoluteDirection,
-    game: &Game,
-) -> Result<GameUpdate> {
+    game: &'a Game<'ps>,
+) -> Result<GameUpdate<'ps>> {
     let cell = game.world.get(&location).ok_or(Error("No worldcell"))?;
     let actor = cell.actor.ok_or(Error("Actor missing"))?;
     let item = actor.inventory.get_items()[idx].ok_or(ActionFail("no item"))?;
-    let definition = game
-        .data
-        .items_by_id
-        .get(&item.id)
-        .ok_or(Error("item definiton not found"))?;
+    let definition = item.definition;
     let function = definition
         .on_use_fn
         .as_ref()
@@ -142,12 +139,12 @@ fn execute_use_item(
     function(idx, location, orientation, game)
 }
 
-fn execute_use_cloner(
+fn execute_use_cloner<'a, 'ps>(
     idx: usize,
     location: Coordinate,
     orientation: AbsoluteDirection,
-    game: &Game,
-) -> Result<GameUpdate> {
+    game: &'a Game<'ps>,
+) -> Result<GameUpdate<'ps>> {
     let mut update: GameUpdate = game.new_update();
 
     let offsets = [Coordinate { x: 0, y: 0 }, Coordinate { x: 0, y: 1 }];
@@ -195,12 +192,12 @@ fn execute_use_cloner(
 
 
 
-fn execute_craft(
+fn execute_craft<'a, 'ps>(
     recipe: &RecipeDefiniton,
     location: Coordinate,
     orientation: AbsoluteDirection,
-    game: &Game,
-) -> Result<GameUpdate> {
+    game: &'a Game<'ps>,
+) -> Result<GameUpdate<'ps>> {
     let mut update: GameUpdate = game.new_update();
     let offsets = [Coordinate { x: 0, y: 0 }];
 
@@ -213,11 +210,11 @@ fn execute_craft(
     let inventory = &mut actor.inventory;
 
     let product_definiton = game.data.items.get(&recipe.product).ok_or(Error("product undefined"))?;
-    let product: Item = Item::new(product_definiton.id, recipe.product_count as u16);
+    let product: Item = Item::new(product_definiton, recipe.product_count as u16);
 
     for idx in 0..recipe.ingredients.len() {
         let ingredient_definiton = game.data.items.get(&recipe.ingredients[idx]).ok_or(Error("ingredient undefined"))?;
-        let ingedient : Item = Item::new(ingredient_definiton.id, recipe.ingredient_counts[idx] as u16);
+        let ingedient : Item = Item::new(ingredient_definiton, recipe.ingredient_counts[idx] as u16);
         inventory.remove(ingedient)?;
     }
 
@@ -242,12 +239,14 @@ mod tests {
     use crate::datatypes::Recording;
     use crate::devtools;
     use crate::direction::Direction::Absolute;
+    use crate::static_data::Data;
 
     use super::*;
 
     #[test]
     fn move_action() {
-        let mut game = Game::new(Coordinate { x: 1, y: 2 });
+        let data = Data::default();
+        let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         let location = Coordinate { x: 0, y: 1 };
         assert!(game.spawn(&location).is_ok());
@@ -266,10 +265,12 @@ mod tests {
 
     #[test]
     fn take_action() {
-        let mut game = Game::new(Coordinate { x: 1, y: 1 });
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 1 }, &data);
 
         let location = Coordinate { x: 0, y: 0 };
-        let foo = Item::new(0, 1);
+        let definition = game.data.items.get("raw_crystal").unwrap();
+        let foo = Item::new(&definition, 1);
         game.world
             .mut_set(
                 &location,
@@ -296,7 +297,8 @@ mod tests {
 
     #[test]
     fn use_cloner() {
-        let mut game = Game::new(Coordinate { x: 1, y: 2 });
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         let location = Coordinate { x: 0, y: 0 };
         assert!(game.spawn(&location).is_ok());
@@ -316,7 +318,8 @@ mod tests {
             command_list: actions,
             inventory: Default::default(),
         });
-        let new_cloner = Item::new_cloner(4, sample_recording_id);
+        let definition = game.data.items.get("basic_cloner").unwrap();
+        let new_cloner = Item::new_cloner(&definition, sample_recording_id);
         let update =devtools::grant_item(new_cloner, location, &game).unwrap();
         game.apply_update(update).unwrap();
 
@@ -334,12 +337,13 @@ mod tests {
 
     #[test]
     fn craft() {
-        let mut game = Game::new(Coordinate { x: 1, y: 2 });
-        game.load_testdata();
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         let location = Coordinate { x: 0, y: 0 };
         assert!(game.spawn(&location).is_ok());
-        let update =devtools::grant_item(Item::new(0, 2), location, &game).unwrap();
+        let definition = game.data.items.get("raw_crystal").unwrap();
+        let update =devtools::grant_item(Item::new(definition, 2), location, &game).unwrap();
 
         game.apply_update(update).unwrap();
         
@@ -351,7 +355,8 @@ mod tests {
         let cell = game.world.get(&location).unwrap();
         let crafted_item = cell.actor.as_ref().unwrap().inventory.get_items()[1].unwrap();
         
-        let target_item  =Item::new(1, 1);
+        let definition = game.data.items.get("echo_crystal").unwrap();
+        let target_item  =Item::new(definition, 1);
 
         assert_eq!(crafted_item, target_item);
     }

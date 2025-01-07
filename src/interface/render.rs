@@ -16,7 +16,7 @@ use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
-impl WorldCell {
+impl WorldCell<'_> {
     fn draw(&self, data: &Data, cell: &mut Cell) {
         let generic_style = Style::default().fg(Color::White).bg(Color::Black);
 
@@ -70,13 +70,13 @@ pub fn deinit_render() {
 }
 
 pub struct WorldWindowWidget<'a> {
-    world: &'a World,
+    world: &'a World<'a>,
     center: Coordinate,
     data: &'a Data,
 }
 
 impl<'a> WorldWindowWidget<'a> {
-    fn new(game: &Game) -> WorldWindowWidget {
+    fn new(game: &'a Game) -> WorldWindowWidget<'a> {
         WorldWindowWidget {
             world: &game.world,
             center: game
@@ -110,23 +110,22 @@ impl<'a> Widget for WorldWindowWidget<'a> {
 }
 
 struct ItemWidget<'a> {
-    item: Item,
+    item: Item<'a>,
     idx: usize,
-    itemdef: &'a ItemDefiniton,
 }
+
 impl<'a> ItemWidget<'a> {
-    fn new(item: Item, idx: usize, data: &Data) -> ItemWidget {
-        let itemdef = data.items_by_id.get(&item.id).unwrap();
-        ItemWidget { item, idx, itemdef }
+    fn new(item: Item<'a>, idx: usize) -> ItemWidget<'a> {
+        ItemWidget {item, idx}
     }
 }
 
 impl<'a> Widget for ItemWidget<'a> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let block = Paragraph::new(self.itemdef.name.clone()).block(
+        let block = Paragraph::new(self.item.definition.name.clone()).block(
             Block::default()
                 .title(Line::from((self.idx + 1).to_string()).left_aligned())
-                .title(Line::from(self.itemdef.glyph.clone()).centered())
+                .title(Line::from(self.item.definition.glyph.clone()).centered())
                 .title(Line::from(self.item.quantity.to_string()).right_aligned())
                 .borders(Borders::ALL),
         );
@@ -135,8 +134,7 @@ impl<'a> Widget for ItemWidget<'a> {
 }
 
 struct ItemBar<'a> {
-    items: BasicInventory,
-    data: &'a Data,
+    items: BasicInventory<'a>,
 }
 
 impl<'a> ItemBar<'a> {
@@ -144,12 +142,10 @@ impl<'a> ItemBar<'a> {
         if let Ok(actor) = game.get_player_actor() {
             ItemBar {
                 items: actor.inventory,
-                data: &game.data,
             }
         } else {
             ItemBar {
                 items: Default::default(),
-                data: &game.data,
             }
         }
     }
@@ -163,7 +159,7 @@ impl<'a> Widget for ItemBar<'a> {
             .areas(area);
         for i in 0..self.items.get_items().len() {
             if let Some(item) = self.items.get_items()[i] {
-                ItemWidget::new(item, i, self.data).render(slots[i], buf);
+                ItemWidget::new(item, i).render(slots[i], buf);
             } else {
                 Paragraph::new("")
                     .block(Block::default())
