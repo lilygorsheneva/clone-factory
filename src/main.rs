@@ -19,8 +19,8 @@ mod inventory;
 fn main() {
     let mut terminal = interface::render::init_render();
 
-    let mut game = Game::new(Coordinate { x: 20, y: 10 });
-    game.load_gamedata();
+    let data = static_data::Data::get_config();
+    let mut game = Game::new(Coordinate { x: 20, y: 10 }, &data);
 
     game.spawn(&Coordinate { x: 1, y: 1 }).unwrap();
 

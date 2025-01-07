@@ -1,6 +1,5 @@
 //! Definitons for Actions performed by players or npcs.
 use crate::actor::{Actor, ActorRef};
-use crate::static_data::{Data, ItemDefiniton, RecipeDefiniton};
 use crate::datatypes::Coordinate;
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::error::{
@@ -8,8 +7,9 @@ use crate::error::{
     Status::{ActionFail, Error, NotFoundError},
 };
 use crate::game_state::game::{Game, GameUpdate};
-use crate::inventory::Item;
 use crate::game_state::world::WorldCell;
+use crate::inventory::Item;
+use crate::static_data::{Data, ItemDefiniton, RecipeDefiniton};
 use std::collections::HashMap;
 
 pub type ItemUseFn = fn(usize, Coordinate, AbsoluteDirection, &Game) -> Result<GameUpdate>;
@@ -235,19 +235,30 @@ fn execute_craft(
     let offsets = [Coordinate { x: 0, y: 0 }];
 
     let mut cells = game
-    .world
-    .readslice(&mut update.world, location, orientation, &offsets);
+        .world
+        .readslice(&mut update.world, location, orientation, &offsets);
 
     let cell = cells[0].as_mut().ok_or(Error("out of bounds"))?;
     let actor = &mut cell.actor.as_mut().ok_or(Error("Actor missing"))?;
     let inventory = &mut actor.inventory;
 
-    let product_definiton = game.data.items.get(&recipe.product).ok_or(Error("product undefined"))?;
+    let product_definiton = game
+        .data
+        .items
+        .get(&recipe.product)
+        .ok_or(Error("product undefined"))?;
     let product: Item = Item::new(product_definiton.id, recipe.product_count as u16);
 
     for idx in 0..recipe.ingredients.len() {
-        let ingredient_definiton = game.data.items.get(&recipe.ingredients[idx]).ok_or(Error("ingredient undefined"))?;
-        let ingedient : Item = Item::new(ingredient_definiton.id, recipe.ingredient_counts[idx] as u16);
+        let ingredient_definiton = game
+            .data
+            .items
+            .get(&recipe.ingredients[idx])
+            .ok_or(Error("ingredient undefined"))?;
+        let ingedient: Item = Item::new(
+            ingredient_definiton.id,
+            recipe.ingredient_counts[idx] as u16,
+        );
         inventory.remove(ingedient)?;
     }
 
@@ -276,7 +287,8 @@ mod tests {
 
     #[test]
     fn move_action() {
-        let mut game = Game::new(Coordinate { x: 1, y: 2 });
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         let location = Coordinate { x: 0, y: 1 };
         assert!(game.spawn(&location).is_ok());
@@ -295,7 +307,8 @@ mod tests {
 
     #[test]
     fn take_action() {
-        let mut game = Game::new(Coordinate { x: 1, y: 1 });
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 1 }, &data);
 
         let location = Coordinate { x: 0, y: 0 };
         let foo = Item::new(0, 1);
@@ -325,7 +338,8 @@ mod tests {
 
     #[test]
     fn use_cloner() {
-        let mut game = Game::new(Coordinate { x: 1, y: 2 });
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         let location = Coordinate { x: 0, y: 0 };
         assert!(game.spawn(&location).is_ok());
@@ -371,8 +385,8 @@ mod tests {
 
     #[test]
     fn craft() {
-        let mut game = Game::new(Coordinate { x: 1, y: 2 });
-        game.load_testdata();
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         let location = Coordinate { x: 0, y: 0 };
         assert!(game.spawn(&location).is_ok());
@@ -383,9 +397,9 @@ mod tests {
                 action: SubAction::GrantItem(Item::new(0, 2)),
             },
             &game,
-        ).unwrap();
+        )
+        .unwrap();
         game.apply_update(update).unwrap();
-        
 
         let recipe = game.data.recipes.get("echo_crystal").unwrap();
         let update = execute_craft(recipe, location, AbsoluteDirection::N, &game);
@@ -393,8 +407,8 @@ mod tests {
 
         let cell = game.world.get(&location).unwrap();
         let crafted_item = cell.actor.as_ref().unwrap().inventory.get_items()[1].unwrap();
-        
-        let target_item  =Item::new(1, 1);
+
+        let target_item = Item::new(1, 1);
 
         assert_eq!(crafted_item, target_item);
     }

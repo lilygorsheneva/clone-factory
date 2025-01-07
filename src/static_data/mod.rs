@@ -83,7 +83,7 @@ impl Data {
         data.build_item_map();
         data
     }
-    
+   
 
     fn read() -> Data {
         let path = "src/static_data/data.toml";

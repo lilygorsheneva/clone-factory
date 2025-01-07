@@ -76,7 +76,7 @@ pub struct WorldWindowWidget<'a> {
 }
 
 impl<'a> WorldWindowWidget<'a> {
-    fn new(game: &Game) -> WorldWindowWidget {
+    fn new(game: &'a Game<'_>) -> WorldWindowWidget<'a> {
         WorldWindowWidget {
             world: &game.world,
             center: game

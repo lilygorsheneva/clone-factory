@@ -89,14 +89,13 @@ impl WorldActors {
 }
 
 // Game state container.
-pub struct Game {
+pub struct Game<'a> {
     pub world: World,
     pub actors: WorldActors,
     pub recordings: RecordingDb,
     pub current_recording: Option<Recording>,
 
-    // TODO: don't store data by value within a game.
-    pub data: Data,
+    pub data: &'a Data,
 }
 
 // A container that stores game updates.
@@ -108,24 +107,15 @@ pub struct GameUpdate {
     pub actors: ActorDbUpdate,
 }
 
-impl Game {
-    pub fn new(dimensions: Coordinate) -> Game {
+impl<'a> Game<'a> {
+    pub fn new(dimensions: Coordinate, data: &Data) -> Game {
         Game {
             world: World::new(dimensions),
             actors: WorldActors::new(),
             recordings: RecordingDb::new(),
             current_recording: None,
-            data: Data::default(),
+            data,
         }
-    }
-
-    pub fn load_gamedata(&mut self) {
-        self.data = Data::get_config();
-    }
-
-    #[cfg(test)]
-    pub fn load_testdata(&mut self) {
-        self.data = Data::get_test_config();
     }
 
     pub fn get_player_actor(&self) -> Result<&Actor> {
@@ -257,7 +247,8 @@ mod tests {
 
     #[test]
     fn record() {
-        let mut game = Game::new(Coordinate { x: 1, y: 2 });
+        let data = &Data::default();
+        let mut game = Game::new(Coordinate { x: 1, y: 2 }, data);
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
 
@@ -293,8 +284,8 @@ mod tests {
 
     #[test]
     fn clone() {
-        let mut game = Game::new(Coordinate { x: 1, y: 3 });
-        game.load_testdata();
+        let data = Data::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 3 }, &data);
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
 
