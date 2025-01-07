@@ -2,7 +2,7 @@
 //! Anything backend specific (ratatui) should be contained here.
 use std::collections::HashMap;
 
-use crate::data::{Data, ItemDefiniton};
+use crate::static_data::{Data, ItemDefiniton};
 use crate::datatypes::Coordinate;
 use crate::inventory::{BasicInventory, Item};
 use crate::direction::AbsoluteDirection;

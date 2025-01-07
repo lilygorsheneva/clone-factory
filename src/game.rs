@@ -5,7 +5,7 @@
 use crate::action;
 use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
-use crate::data::Data;
+use crate::static_data::Data;
 use crate::inventory::Item;
 use crate::datatypes::Recording;
 use crate::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
@@ -119,12 +119,12 @@ impl Game {
     }
 
     pub fn load_gamedata(&mut self) {
-        self.data = crate::data::get_config();
+        self.data = Data::get_config();
     }
 
     #[cfg(test)]
     pub fn load_testdata(&mut self) {
-        self.data = crate::data::get_test_config();
+        self.data = Data::get_test_config();
     }
 
     pub fn get_player_actor(&self) -> Result<&Actor> {

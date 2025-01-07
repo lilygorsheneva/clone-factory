@@ -64,27 +64,28 @@ pub struct Data {
     pub recipes: HashMap<String, RecipeDefiniton>,
 }
 
-pub fn get_config() -> Data {
-    let mut data = Data::read();
-    data.bind_functions();
-    data.bind_colors();
-    data.build_item_map();
-    data
-}
-
-// Currently same as get_config, can be changed to read a smaller file.
-#[cfg(test)]
-pub fn get_test_config() -> Data {
-    let mut data = Data::read();
-    data.bind_functions();
-    data.bind_colors();
-    data.build_item_map();
-    data
-}
-
 impl Data {
+    pub fn get_config() -> Data {
+        let mut data = Data::read();
+        data.bind_functions();
+        data.bind_colors();
+        data.build_item_map();
+        data
+    }
+    
+    // Currently same as get_config, can be changed to read a smaller file.
+    #[cfg(test)]
+    pub fn get_test_config() -> Data {
+        let mut data = Data::read();
+        data.bind_functions();
+        data.bind_colors();
+        data.build_item_map();
+        data
+    }
+    
+
     fn read() -> Data {
-        let path = "src/data.toml";
+        let path = "src/static_data/data.toml";
         let s = fs::read_to_string(path).unwrap();
         toml::from_str(&s).unwrap()
     }

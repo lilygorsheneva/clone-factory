@@ -6,7 +6,7 @@ use world::WorldCell;
 
 mod action;
 mod actor;
-mod data;
+mod static_data;
 mod datatypes;
 mod db;
 mod devtools;
