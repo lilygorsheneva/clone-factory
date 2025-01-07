@@ -25,7 +25,8 @@ pub struct AppearanceDefiniton {
 }
 
 // An item.
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Debug)]
+#[cfg_attr(test, derive(Default))]
 pub struct ItemDefiniton {
     
 
@@ -43,6 +44,12 @@ pub struct ItemDefiniton {
     #[serde(skip_deserializing)]
     pub on_use_fn: Option<Box<ItemUseFn>>
 }
+
+impl PartialEq<ItemDefiniton> for ItemDefiniton {
+    fn eq(&self, other: &ItemDefiniton) -> bool {
+        self.name == other.name
+    }}
+
 
 // A crafting recipe.
 #[derive(Deserialize)]

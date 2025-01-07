@@ -6,7 +6,7 @@ use crate::game_state::world::WorldCell;
 use crate::inventory::Item;
 use crate::error::{Result,Status::Error};
 
-pub fn make_sample_recording() -> Recording {
+pub fn make_sample_recording() -> Recording<'static> {
     Recording {
         command_list: vec![
             Action {

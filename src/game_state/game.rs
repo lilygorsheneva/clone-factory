@@ -89,43 +89,33 @@ impl WorldActors {
 }
 
 // Game state container.
-pub struct Game {
-    pub world: World,
+pub struct Game<'pseudostatic> {
+    pub world: World<'pseudostatic>,
     pub actors: WorldActors,
-    pub recordings: RecordingDb,
-    pub current_recording: Option<Recording>,
+    pub recordings: RecordingDb<'pseudostatic>,
+    pub current_recording: Option<Recording<'pseudostatic>>,
 
-    // TODO: don't store data by value within a game.
-    pub data: Data,
+    pub data: &'pseudostatic Data,
 }
 
 // A container that stores game updates.
 // Most operations on the game can be performed with an immutable game and a mutable update.
 // Muate game state with game.apply_update(update).
 #[derive(Debug)]
-pub struct GameUpdate {
-    pub world: WorldUpdate,
+pub struct GameUpdate<'ps> {
+    pub world: WorldUpdate<'ps>,
     pub actors: ActorDbUpdate,
 }
 
-impl Game {
-    pub fn new(dimensions: Coordinate) -> Game {
+impl<'ps> Game<'ps> {
+    pub fn new(dimensions: Coordinate, data: &'ps Data) -> Game<'ps> {
         Game {
             world: World::new(dimensions),
             actors: WorldActors::new(),
             recordings: RecordingDb::new(),
             current_recording: None,
-            data: Data::default(),
+            data: data,
         }
-    }
-
-    pub fn load_gamedata(&mut self) {
-        self.data = Data::get_config();
-    }
-
-    #[cfg(test)]
-    pub fn load_testdata(&mut self) {
-        self.data = Data::get_test_config();
     }
 
     pub fn get_player_actor(&self) -> Result<&Actor> {

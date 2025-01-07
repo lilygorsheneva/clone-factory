@@ -6,11 +6,11 @@ use crate::inventory::{BasicInventory, Item};
 
 #[derive(PartialEq, Debug)]
 #[derive(Copy, Clone)]
-pub struct Actor {
+pub struct Actor<'ps> {
     pub facing: AbsoluteDirection,
     pub isplayer: bool,
     pub actor_id: ActorId,
-    pub inventory: BasicInventory,
+    pub inventory: BasicInventory<'ps>,
 }
 
 // A way to locate an actor within a world.
@@ -53,8 +53,8 @@ impl ActorRef {
     }
 }
 
-impl Actor {
-    pub fn new() -> Actor {
+impl<'ps> Actor<'ps> {
+    pub fn new() -> Actor<'static> {
         Actor {
             facing: AbsoluteDirection::N,
             isplayer: false,
@@ -63,7 +63,7 @@ impl Actor {
         }
     }
 
-    pub fn from_recording(recording: &Recording) -> Actor {
+    pub fn from_recording(recording: &Recording<'ps>) -> Actor<'ps> {
         Actor {
             facing: AbsoluteDirection::N,
             isplayer: false,
@@ -72,7 +72,7 @@ impl Actor {
         }
     }
 
-    pub fn new_player() -> Actor {
+    pub fn new_player() -> Actor<'static> {
         let mut actor = Actor::new();
         actor.isplayer = true;
         actor
