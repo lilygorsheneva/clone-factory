@@ -28,7 +28,6 @@ pub enum SubAction {
     Use(usize),
     // Craft(String),
     // Record,
-    GrantItem(Item),
 }
 
 pub fn execute_action(actor_ref: ActorRef, action: Action, game: &Game) -> Result<GameUpdate> {
@@ -39,7 +38,6 @@ pub fn execute_action(actor_ref: ActorRef, action: Action, game: &Game) -> Resul
         SubAction::Take => execute_take(actor_ref.location, orientation, game),
         SubAction::Use(i) => execute_use_item(i, actor_ref.location, orientation, game),
         // SubAction::Record => execute_recording(actor_ref.location, orientation, game),
-        SubAction::GrantItem(i) => execute_grant_item(i, actor_ref.location, orientation, game),
         // _ => world,
     }
 }
@@ -195,35 +193,7 @@ fn execute_use_cloner(
     }
 }
 
-fn execute_grant_item(
-    item: Item,
-    location: Coordinate,
-    orientation: AbsoluteDirection,
-    game: &Game,
-) -> Result<GameUpdate> {
-    let mut update: GameUpdate = game.new_update();
-    let offsets = [Coordinate { x: 0, y: 0 }];
-    let mut cells = game
-        .world
-        .readslice(&mut update.world, location, orientation, &offsets);
 
-    match &mut cells[0] {
-        None => Err(Error("action performed on empty space")),
-        Some(WorldCell { actor: None, .. }) => Err(Error("actor Missing")),
-        Some(
-            src @ WorldCell {
-                actor: Some(..), ..
-            },
-        ) => {
-            let actor = src.actor.as_mut().unwrap();
-
-            actor.facing = orientation;
-            actor.inventory.insert(item)?;
-
-            Ok(update)
-        }
-    }
-}
 
 fn execute_craft(
     recipe: &RecipeDefiniton,
@@ -270,6 +240,7 @@ pub fn get_use_fn_table() -> HashMap<String, Box<ItemUseFn>> {
 #[cfg(test)]
 mod tests {
     use crate::datatypes::Recording;
+    use crate::devtools;
     use crate::direction::Direction::Absolute;
 
     use super::*;
@@ -346,15 +317,7 @@ mod tests {
             inventory: Default::default(),
         });
         let new_cloner = Item::new_cloner(4, sample_recording_id);
-        let update = execute_action(
-            game.actors.get_player().unwrap(),
-            Action {
-                direction: Absolute(AbsoluteDirection::N),
-                action: SubAction::GrantItem(new_cloner),
-            },
-            &game,
-        )
-        .unwrap();
+        let update =devtools::grant_item(new_cloner, location, &game).unwrap();
         game.apply_update(update).unwrap();
 
         let update = execute_use_cloner(0, location, AbsoluteDirection::N, &game);
@@ -376,14 +339,8 @@ mod tests {
 
         let location = Coordinate { x: 0, y: 0 };
         assert!(game.spawn(&location).is_ok());
-        let update = execute_action(
-            game.actors.get_player().unwrap(),
-            Action {
-                direction: Absolute(AbsoluteDirection::N),
-                action: SubAction::GrantItem(Item::new(0, 2)),
-            },
-            &game,
-        ).unwrap();
+        let update =devtools::grant_item(Item::new(0, 2), location, &game).unwrap();
+
         game.apply_update(update).unwrap();
         
 

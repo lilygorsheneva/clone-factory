@@ -1,6 +1,6 @@
 //! Game state container, combining world state with other data containers.
 
-use crate::action;
+use crate::{action, devtools};
 use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
 use crate::static_data::Data;
@@ -206,14 +206,7 @@ impl Game {
                 let new_cloner = Item::new_cloner(4, id);
                 self.current_recording = None;
                 let actor_ref = self.actors.get_player()?;
-                let update = action::execute_action(
-                    actor_ref,
-                    Action {
-                        direction: Relative(F),
-                        action: SubAction::GrantItem(new_cloner),
-                    },
-                    self,
-                )?;
+                let update = devtools::grant_item(new_cloner, actor_ref.location, self)?;
                 self.apply_update(update)
             }
         }
@@ -313,14 +306,7 @@ mod tests {
         .recordings
         .register_recording(&Recording{command_list: actions, inventory: Default::default()});
         let new_cloner = Item::new_cloner(4, sample_recording_id);
-        let update = action::execute_action(
-            game.actors.get_player().unwrap(),
-            Action {
-                direction: Relative(F),
-                action: SubAction::GrantItem(new_cloner),
-            },
-            &mut game,
-        ).unwrap();
+        let update = devtools::grant_item(new_cloner, game.get_player_coords().unwrap(), &game).unwrap();
         game.apply_update(update).unwrap();
 
         let update = action::execute_action(
