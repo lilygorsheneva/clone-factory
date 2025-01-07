@@ -1,3 +1,4 @@
+//! Definitons for Actions performed by players or npcs.
 use crate::actor::{Actor, ActorRef};
 use crate::data::{Data, ItemDefiniton, RecipeDefiniton};
 use crate::datatypes::Coordinate;

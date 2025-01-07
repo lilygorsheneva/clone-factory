@@ -1,3 +1,4 @@
+//! Containers for non-spatial data.
 use hashbrown::HashMap;
 
 use crate::actor::ActorRef;

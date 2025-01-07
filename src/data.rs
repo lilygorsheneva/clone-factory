@@ -1,3 +1,5 @@
+//! Functions for loading external game data.
+
 use crate::action::{self};
 use ratatui::style::Color;
 use serde_derive::Deserialize;
@@ -5,9 +7,7 @@ use std::collections::HashMap;
 use std::fs;
 use toml;
 
-// Functions responsible for loading essential data from config files.
-
-// The appearance of an item. Ratatui-specific
+// The appearance of an item or entity. Ratatui-specific
 #[derive(Deserialize)]
 pub struct AppearanceDefiniton {
     pub glyph: String,
@@ -26,6 +26,8 @@ pub struct AppearanceDefiniton {
 // An item.
 #[derive(Clone, Deserialize)]
 pub struct ItemDefiniton {
+    
+
     pub name: String,
     pub id: i64,
     pub glyph: String,
@@ -71,6 +73,7 @@ pub fn get_config() -> Data {
 }
 
 // Currently same as get_config, can be changed to read a smaller file.
+#[cfg(test)]
 pub fn get_test_config() -> Data {
     let mut data = Data::read();
     data.bind_functions();

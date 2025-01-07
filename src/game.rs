@@ -1,3 +1,7 @@
+//! Game state container, combining world state with other data containers.
+
+// TODO The Actors struct should be moved out somwehere.
+
 use crate::action;
 use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
@@ -85,6 +89,7 @@ impl WorldActors {
     }
 }
 
+// Game state container.
 pub struct Game {
     pub world: World,
     pub actors: WorldActors,
@@ -93,6 +98,9 @@ pub struct Game {
     pub data: Data,
 }
 
+// A container that stores game updates.
+// Most operations on the game can be performed with an immutable game and a mutable update.
+// Muate game state with game.apply_update(update).
 #[derive(Debug)]
 pub struct GameUpdate {
     pub world: WorldUpdate,
@@ -114,6 +122,7 @@ impl Game {
         self.data = crate::data::get_config();
     }
 
+    #[cfg(test)]
     pub fn load_testdata(&mut self) {
         self.data = crate::data::get_test_config();
     }
@@ -174,6 +183,7 @@ impl Game {
         Ok(())
     }
 
+    // Start recording. 
     pub fn init_record(&mut self) -> Result<()> {
         match self.current_recording {
             Some(_) => Err(Error("Attempted to initialize recording twice")),
@@ -185,6 +195,8 @@ impl Game {
         }
     }
 
+    // End recording and spawn a recording item.
+    // TODO Currently bugged; items will stack.
     pub fn end_record(&mut self) -> Result<()> {
         match &self.current_recording {
             None => Err(Error("Attempted to initialize recording twice")),
@@ -206,6 +218,7 @@ impl Game {
         }
     }
 
+    // Process a player's actions.
     pub fn player_action(&mut self, action: action::Action) -> Result<()> {
         let actor_ref = self.actors.get_player()?;
 

@@ -1,3 +1,5 @@
+// TODO move the npc turns event loop here.
+
 use ratatui::DefaultTerminal;
 use crate::input;
 use crate::render;

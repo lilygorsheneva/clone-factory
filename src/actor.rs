@@ -1,3 +1,4 @@
+//! A player or npc.
 use crate::datatypes::{Recording, Coordinate};
 use crate::db::{ActorId, RecordingId};
 use crate::direction::AbsoluteDirection;
@@ -12,6 +13,10 @@ pub struct Actor {
     pub inventory: BasicInventory,
 }
 
+// A way to locate an actor within a world.
+// This could be done more cleanly with references,
+// but a planned time-travel mechanic would make 
+// normal references impossible to reason about.
 #[derive(Copy, Clone, Debug)]
 pub struct ActorRef {
     pub location: Coordinate,

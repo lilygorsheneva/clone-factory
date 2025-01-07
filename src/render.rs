@@ -1,3 +1,5 @@
+//! Functions related to UI rendering.
+//! Anything backend specific (ratatui) should be contained here.
 use std::collections::HashMap;
 
 use crate::data::{Data, ItemDefiniton};

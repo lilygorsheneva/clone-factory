@@ -1,3 +1,5 @@
+//! Functions related to processing player input.
+//! Any backend-specific input actions (crossterm) should be limited to this module.
 use crate::action::{Action, SubAction};
 use crate::direction::{
     AbsoluteDirection::{E, N, S, W},

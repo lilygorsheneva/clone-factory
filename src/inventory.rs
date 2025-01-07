@@ -1,3 +1,5 @@
+//! Item and Inventory datatype definitions.
+
 use crate::db::RecordingId;
 use crate::error::{Result, Status};
 
@@ -26,6 +28,9 @@ impl Item {
     }
 }
 
+// TODO: inventory trait
+
+// A container for Items.
 #[derive(PartialEq, Copy, Clone, Debug, Default)]
 pub struct BasicInventory {
     items: [Option<Item>; 5],

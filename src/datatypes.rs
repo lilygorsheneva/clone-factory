@@ -1,3 +1,6 @@
+//! Temporary miscellaneous datatype container.
+//! Any structure that increases in complexity should be moved to its own file.
+
 use crate::action::Action;
 use crate::actor::Actor;
 use crate::direction::AbsoluteDirection;

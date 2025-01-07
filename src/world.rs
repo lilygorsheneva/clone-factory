@@ -1,3 +1,5 @@
+//! Datastructures to represent the state of the world.
+
 use crate::error::{Result, Status::StateUpdateError};
 use crate::{
     actor::Actor,
