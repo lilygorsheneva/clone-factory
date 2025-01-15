@@ -28,7 +28,7 @@ pub struct AppearanceDefiniton {
 }
 
 // An item.
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct ItemDefiniton {
     
 
@@ -45,6 +45,12 @@ pub struct ItemDefiniton {
 
     #[serde(skip_deserializing)]
     pub on_use_fn: Option<Box<ItemUseFn>>
+}
+
+impl PartialEq for ItemDefiniton {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
 }
 
 // A crafting recipe.
@@ -67,10 +73,10 @@ pub struct Data {
 }
 
 pub struct StaticData {
-    actor_appearances: StaticDataMap<String, AppearanceDefiniton>,
-    building_appearances: StaticDataMap<String, AppearanceDefiniton>,
-    items: StaticDataMap<String, ItemDefiniton>,
-    recipes: StaticDataMap<String, RecipeDefiniton>,
+    pub actor_appearances: StaticDataMap<String, AppearanceDefiniton>,
+    pub building_appearances: StaticDataMap<String, AppearanceDefiniton>,
+    pub items: StaticDataMap<String, ItemDefiniton>,
+    pub recipes: StaticDataMap<String, RecipeDefiniton>,
 }
 
 impl StaticData {
@@ -82,7 +88,24 @@ impl StaticData {
             recipes: StaticDataMap::from_map(&data.recipes),
         }
     }
+
+    pub fn get_config() -> StaticData {
+        let mut data = Data::read();
+        data.bind_functions();
+        data.bind_colors();
+        StaticData::from_data(&data)
+    }
+    
+    // This should be a test fixture; otherwise it's a leak. 
+    #[cfg(test)]
+    pub fn get_test_config() -> StaticData {
+        let mut data = Data::read();
+        data.bind_functions();
+        data.bind_colors();
+        StaticData::from_data(&data)
+    }
 }
+
 
 impl Data {
     pub fn get_config() -> Data {

@@ -6,7 +6,6 @@ pub enum Status {
     StateUpdateError,
     // An unexpected error. Panic.
     Error(&'static str),
-    NotFoundError(&'static str, &'static str),
 }
 
 pub type Result<T> = std::result::Result<T, Status>;

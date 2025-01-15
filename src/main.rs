@@ -3,6 +3,7 @@ use inventory::Item;
 
 use game_state::game::Game;
 use game_state::world::WorldCell;
+use static_data::StaticData;
 
 mod action;
 mod actor;
@@ -19,12 +20,13 @@ mod inventory;
 fn main() {
     let mut terminal = interface::render::init_render();
 
-    let mut game = Game::new(Coordinate { x: 20, y: 10 });
-    game.load_gamedata();
+    let data = StaticData::get_config();
+    let mut game = Game::new(Coordinate { x: 20, y: 10 }, &data);
 
     game.spawn(&Coordinate { x: 1, y: 1 }).unwrap();
 
-    let foo = Item::new(0, 1);
+    let item_def = data.items.get(&"raw_crystal".to_string()).unwrap();
+    let foo = Item::new(item_def, 1);
 
     game.world
         .mut_set(

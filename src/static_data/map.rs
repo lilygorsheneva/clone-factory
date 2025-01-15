@@ -11,6 +11,10 @@ impl<K: Hash + Eq + Display + Clone, V: Clone> StaticDataMap<K, V> {
         }
     }
 
+    pub fn iter(&self) -> std::collections::hash_map::Iter<'_, K, &V>{
+        return self.map.iter()
+    }
+
     pub fn from_map(input: &HashMap<K, V>) -> StaticDataMap<K, V> {
         let iter = input.iter();
         let mut out = StaticDataMap {
@@ -31,8 +35,8 @@ impl<K: Hash + Eq + Display + Clone, V: Clone> StaticDataMap<K, V> {
         self.map.insert(key.clone(), Box::leak(tmp));
     }
 
-    pub fn get(&self, key:K) -> Option<&'static V> {
-        let tmp = self.map.get(&key);
+    pub fn get(&self, key: &K) -> Option<&'static V> {
+        let tmp = self.map.get(key);
         match tmp {
             None => None,
             Some(foo) => Some(*foo)

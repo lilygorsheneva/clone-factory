@@ -2,7 +2,7 @@
 //! Anything backend specific (ratatui) should be contained here.
 use std::collections::HashMap;
 
-use crate::static_data::{Data, ItemDefiniton};
+use crate::static_data::{StaticData, ItemDefiniton};
 use crate::datatypes::Coordinate;
 use crate::inventory::{BasicInventory, Item};
 use crate::direction::AbsoluteDirection;
@@ -17,7 +17,7 @@ use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
 impl WorldCell {
-    fn draw(&self, data: &Data, cell: &mut Cell) {
+    fn draw(&self, data: &StaticData, cell: &mut Cell) {
         let generic_style = Style::default().fg(Color::White).bg(Color::Black);
 
         match self {
@@ -28,7 +28,7 @@ impl WorldCell {
                     true => "player",
                     false => "clone",
                 };
-                let actor_def = data.actor_appearances.get(actor_name).unwrap();
+                let actor_def = data.actor_appearances.get(&actor_name.to_string()).unwrap();
                 let glyph = match actor.facing {
                     AbsoluteDirection::N => actor_def.glyph_n.as_ref().unwrap_or(&actor_def.glyph),
                     AbsoluteDirection::S => actor_def.glyph_s.as_ref().unwrap_or(&actor_def.glyph),
@@ -72,11 +72,11 @@ pub fn deinit_render() {
 pub struct WorldWindowWidget<'a> {
     world: &'a World,
     center: Coordinate,
-    data: &'a Data,
+    data: &'a StaticData,
 }
 
 impl<'a> WorldWindowWidget<'a> {
-    fn new(game: &Game) -> WorldWindowWidget {
+    fn new(game: &'a Game) -> WorldWindowWidget<'a> {
         WorldWindowWidget {
             world: &game.world,
             center: game
@@ -115,9 +115,8 @@ struct ItemWidget<'a> {
     itemdef: &'a ItemDefiniton,
 }
 impl<'a> ItemWidget<'a> {
-    fn new(item: Item, idx: usize, data: &Data) -> ItemWidget {
-        let itemdef = data.items_by_id.get(&item.id).unwrap();
-        ItemWidget { item, idx, itemdef }
+    fn new(item: Item, idx: usize, data: &StaticData) -> ItemWidget {
+        ItemWidget { item, idx, itemdef: item.definition }
     }
 }
 
@@ -136,7 +135,7 @@ impl<'a> Widget for ItemWidget<'a> {
 
 struct ItemBar<'a> {
     items: BasicInventory,
-    data: &'a Data,
+    data: &'a StaticData,
 }
 
 impl<'a> ItemBar<'a> {
@@ -173,7 +172,7 @@ impl<'a> Widget for ItemBar<'a> {
     }
 }
 
-fn render_recipes(data: &Data, area: Rect, frame: &mut Frame) {
+fn render_recipes(data: &StaticData, area: Rect, frame: &mut Frame) {
     // TODO filter by unlocks
     // TODO cache
     // TODO show requirements

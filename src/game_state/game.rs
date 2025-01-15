@@ -3,7 +3,7 @@
 use crate::{action, devtools};
 use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
-use crate::static_data::Data;
+use crate::static_data::StaticData;
 use crate::inventory::Item;
 use crate::datatypes::Recording;
 use crate::game_state::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
@@ -89,14 +89,13 @@ impl WorldActors {
 }
 
 // Game state container.
-pub struct Game {
+pub struct Game<'a> {
     pub world: World,
     pub actors: WorldActors,
     pub recordings: RecordingDb,
     pub current_recording: Option<Recording>,
 
-    // TODO: don't store data by value within a game.
-    pub data: Data,
+    pub data: &'a StaticData,
 }
 
 // A container that stores game updates.
@@ -108,25 +107,17 @@ pub struct GameUpdate {
     pub actors: ActorDbUpdate,
 }
 
-impl Game {
-    pub fn new(dimensions: Coordinate) -> Game {
+impl<'a> Game<'a> {
+    pub fn new(dimensions: Coordinate, data: &'a StaticData) -> Game {
         Game {
             world: World::new(dimensions),
             actors: WorldActors::new(),
             recordings: RecordingDb::new(),
             current_recording: None,
-            data: Data::default(),
+            data: data,
         }
     }
 
-    pub fn load_gamedata(&mut self) {
-        self.data = Data::get_config();
-    }
-
-    #[cfg(test)]
-    pub fn load_testdata(&mut self) {
-        self.data = Data::get_test_config();
-    }
 
     pub fn get_player_actor(&self) -> Result<&Actor> {
         let location = self.get_player_coords()?;
@@ -203,7 +194,8 @@ impl Game {
             None => Err(Error("Attempted to initialize recording twice")),
             Some(rec) => {
                 let id = self.recordings.register_recording(rec);
-                let new_cloner = Item::new_cloner(4, id);
+                let cloner_def = self.data.items.get(&"basic_cloner".to_string()).ok_or(Error("unable to get basic cloner definition"))?;
+                let new_cloner = Item::new_cloner(cloner_def, id);
                 self.current_recording = None;
                 let actor_ref = self.actors.get_player()?;
                 let update = devtools::grant_item(new_cloner, actor_ref.location, self)?;
@@ -250,7 +242,8 @@ mod tests {
 
     #[test]
     fn record() {
-        let mut game = Game::new(Coordinate { x: 1, y: 2 });
+        let data = StaticData::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
 
@@ -286,8 +279,8 @@ mod tests {
 
     #[test]
     fn clone() {
-        let mut game = Game::new(Coordinate { x: 1, y: 3 });
-        game.load_testdata();
+        let data = StaticData::get_test_config();
+        let mut game = Game::new(Coordinate { x: 1, y: 3 }, &data);
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
 
@@ -305,7 +298,8 @@ mod tests {
         let sample_recording_id = game
         .recordings
         .register_recording(&Recording{command_list: actions, inventory: Default::default()});
-        let new_cloner = Item::new_cloner(4, sample_recording_id);
+        let cloner_def = data.items.get(&"basic_cloner".to_string()).unwrap();
+        let new_cloner = Item::new_cloner(cloner_def, sample_recording_id);
         let update = devtools::grant_item(new_cloner, game.get_player_coords().unwrap(), &game).unwrap();
         game.apply_update(update).unwrap();
 
