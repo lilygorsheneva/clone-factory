@@ -2,16 +2,17 @@
 
 use crate::action::{ItemUseFn, get_use_fn_table};
 use crate::interface::render::get_color_map;
+use map::StaticDataMap;
 use ratatui::style::Color;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
 use std::fs;
 use toml;
 
-mod map;
+pub mod map;
 
 // The appearance of an item or entity. Ratatui-specific
-#[derive(Deserialize)]
+#[derive(Clone,Deserialize)]
 pub struct AppearanceDefiniton {
     pub glyph: String,
     pub glyph_n: Option<String>,
@@ -47,7 +48,7 @@ pub struct ItemDefiniton {
 }
 
 // A crafting recipe.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct RecipeDefiniton {
     pub ingredients: Vec<String>,
     pub ingredient_counts: Vec<i64>,
@@ -57,14 +58,30 @@ pub struct RecipeDefiniton {
 }
 
 #[derive(Default, Deserialize)]
-pub struct Data {
-    pub actor_appearances: HashMap<String, AppearanceDefiniton>,
-    pub building_appearances: HashMap<String, AppearanceDefiniton>,
 
-    pub items: HashMap<String, ItemDefiniton>,
-    #[serde(skip_deserializing)]
-    pub items_by_id: HashMap<i64, ItemDefiniton>,
-    pub recipes: HashMap<String, RecipeDefiniton>,
+pub struct Data {
+    actor_appearances: HashMap<String, AppearanceDefiniton>,
+    building_appearances: HashMap<String, AppearanceDefiniton>,
+    items: HashMap<String, ItemDefiniton>,
+    recipes: HashMap<String, RecipeDefiniton>,
+}
+
+pub struct StaticData {
+    actor_appearances: StaticDataMap<String, AppearanceDefiniton>,
+    building_appearances: StaticDataMap<String, AppearanceDefiniton>,
+    items: StaticDataMap<String, ItemDefiniton>,
+    recipes: StaticDataMap<String, RecipeDefiniton>,
+}
+
+impl StaticData {
+    pub fn from_data(data: &Data ) -> StaticData {
+            StaticData {
+            actor_appearances: StaticDataMap::from_map(&data.actor_appearances),
+            building_appearances: StaticDataMap::from_map(&data.building_appearances),
+            items: StaticDataMap::from_map(&data.items),
+            recipes: StaticDataMap::from_map(&data.recipes),
+        }
+    }
 }
 
 impl Data {
@@ -72,7 +89,6 @@ impl Data {
         let mut data = Data::read();
         data.bind_functions();
         data.bind_colors();
-        data.build_item_map();
         data
     }
     
@@ -82,7 +98,6 @@ impl Data {
         let mut data = Data::read();
         data.bind_functions();
         data.bind_colors();
-        data.build_item_map();
         data
     }
     
@@ -112,12 +127,6 @@ impl Data {
         }
     }
 
-    // Map items to their numerical ids. Must be run *AFTER* all operations that augment the contents of self.items.
-    fn build_item_map(&mut self) {
-        for (_, itemdef) in self.items.iter_mut() {
-            self.items_by_id.insert(itemdef.id, itemdef.clone());
-        }
-    }
 }
 
 #[cfg(test)]
