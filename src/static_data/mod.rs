@@ -8,6 +8,8 @@ use std::collections::HashMap;
 use std::fs;
 use toml;
 
+mod map;
+
 // The appearance of an item or entity. Ratatui-specific
 #[derive(Deserialize)]
 pub struct AppearanceDefiniton {
