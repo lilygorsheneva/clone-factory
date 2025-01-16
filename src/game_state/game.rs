@@ -15,7 +15,7 @@ use crate::error::{
 };
 use crate::{
     datatypes::Coordinate,
-    game_state::world::{World, WorldCell, WorldUpdate},
+    game_state::world::{World, WorldUpdate},
 };
 use std::collections::VecDeque;
 
@@ -265,10 +265,7 @@ mod tests {
         // This is really ugly. Perhaps recording needs a nicer API.
         let actor = game
             .world
-            .get(&game.get_player_coords().unwrap())
-            .unwrap()
-            .actor
-            .as_ref();
+            .actors.get(&game.get_player_coords().unwrap()).unwrap();
         let recorder = actor.unwrap().inventory.get_items()[0].unwrap();
         let recoding = game.recordings.get(recorder.recording.unwrap());
         assert_eq!(recoding.command_list, actions);
@@ -311,14 +308,12 @@ mod tests {
         .unwrap();
         game.apply_update(update).unwrap();
 
-        let dest = game.world.get(&Coordinate{x:0, y:2});
-        assert!(dest.is_some());
-        assert!(dest.unwrap().actor.is_none());
+        let dest = game.world.actors.get(&Coordinate{x:0, y:2}).unwrap();
+        assert!(dest.is_none());
 
         game.do_npc_turns().unwrap();
 
-        let dest = game.world.get(&Coordinate{x:0, y:2});
+        let dest = game.world.actors.get(&Coordinate{x:0, y:2}).unwrap();
         assert!(dest.is_some());
-        assert!(dest.unwrap().actor.is_some());
     }
 }

@@ -7,7 +7,7 @@ use crate::datatypes::Coordinate;
 use crate::inventory::{BasicInventory, Item};
 use crate::direction::AbsoluteDirection;
 use crate::game_state::game::Game;
-use crate::game_state::world::{World, WorldCell};
+use crate::game_state::world::{self, World, WorldCell};
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Buffer;
@@ -16,8 +16,8 @@ use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
-impl WorldCell {
-    fn draw(&self, data: &StaticData, cell: &mut Cell) {
+impl<'a> WorldCell<'a> {
+    fn draw(&'a self, data: &StaticData, cell: &mut Cell) {
         let generic_style = Style::default().fg(Color::White).bg(Color::Black);
 
         match self {
@@ -99,8 +99,10 @@ impl<'a> Widget for WorldWindowWidget<'a> {
             for j in 0..rows {
                 let x = centerx - i as i16;
                 let y = centery - j as i16;
-                if let Some(worldcell) = self.world.get(&Coordinate { x: x, y: y }) {
-                    worldcell.draw(self.data, &mut buf[(i, j)]);
+                let coord = Coordinate{x, y};
+                if self.world.actors.in_bounds(&coord) {
+                    let cell = self.world.get_cell(&coord).expect("Cell out of bounds but was checked in bounds.");
+                    cell.draw(self.data, &mut buf[(i, j)]);
                 } else {
                     buf[(i, j)].set_symbol(" ").set_bg(Color::DarkGray);
                 }

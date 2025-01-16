@@ -13,20 +13,10 @@ use crate::{
 pub type FloorInventory = [Option<Item>; 1];
 
 #[derive(PartialEq, Debug, Clone)]
-pub struct WorldCell {
-    pub actor: Option<Actor>,
-    pub building: Option<Building>,
-    pub items: [Option<Item>; 1],
-}
-
-impl WorldCell {
-    pub fn new() -> WorldCell {
-        WorldCell {
-            actor: None,
-            building: None,
-            items: Default::default(),
-        }
-    }
+pub struct WorldCell<'a> {
+    pub actor: Option<&'a Actor>,
+    pub building: Option<&'a Building>,
+    pub items: &'a [Option<Item>; 1],
 }
 
 pub struct World {
@@ -44,6 +34,17 @@ impl World {
             buildings: WorldLayer::new(dimensions, None),
             items: WorldLayer::new(dimensions, [None]),
         }
+    }
+
+    pub fn get_cell(&self, location: &Coordinate) -> Result<WorldCell> {
+        let actor = self.actors.get(location)?;
+        let building = self.buildings.get(location)?;
+        let items = self.items.get(location)?;
+        Ok(WorldCell{
+            actor: actor.as_ref(),
+            building: building.as_ref(),
+            items
+        })
     }
 }
 
@@ -110,7 +111,7 @@ mod tests {
 
         assert!(actor.is_none());
         actor = Some(Actor::new());
-        update.actor_updates.set(&offsets[0], actor);
+        update.actor_updates.set(&offsets[0], &actor);
 
         update.apply(&mut w).unwrap();
         assert!(w.actors.get(&Coordinate { x: 0, y: 0 }).unwrap().is_some());

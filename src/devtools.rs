@@ -1,8 +1,9 @@
 use crate::action::{Action, SubAction};
+use crate::actor;
 use crate::datatypes::{Coordinate, Recording};
 use crate::direction::RelativeDirection;
+use crate::engine::update::Update;
 use crate::game_state::game::{Game, GameUpdate};
-use crate::game_state::world::WorldCell;
 use crate::inventory::Item;
 use crate::error::{Result,Status::Error};
 
@@ -42,22 +43,16 @@ pub fn grant_item(
 ) -> Result<GameUpdate> {
     let mut update: GameUpdate = game.new_update();
     let offsets = [Coordinate { x: 0, y: 0 }];
-    let mut cells = game
-        .world
-        .readslice(&mut update.world, location, crate::direction::AbsoluteDirection::N, &offsets);
+    let actor  = update.world.actor_updates.get(&game.world.actors, &location)?;
 
-    match &mut cells[0] {
-        None => Err(Error("action performed on empty space")),
-        Some(WorldCell { actor: None, .. }) => Err(Error("actor Missing")),
-        Some(
-            src @ WorldCell {
-                actor: Some(..), ..
-            },
+    match actor{
+        None => Err(Error("actor Missing")),
+        Some(actor 
         ) => {
-            let actor = src.actor.as_mut().unwrap();
-
+            let mut actor = actor.clone();
             actor.inventory.insert(item)?;
 
+            update.world.actor_updates.set(&location, &Some(actor));
             Ok(update)
         }
     }

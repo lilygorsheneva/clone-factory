@@ -3,7 +3,7 @@
 
 use crate::action::Action;
 use crate::actor::Actor;
-use crate::direction::AbsoluteDirection;
+use crate::direction::{AbsoluteDirection};
 use crate::inventory::{BasicInventory, Item};
 use std::ops;
 
@@ -11,6 +11,12 @@ use std::ops;
 pub struct Coordinate {
     pub x: i16,
     pub y: i16,
+}
+
+impl Coordinate {
+    pub fn as_offset(offset: Coordinate, location: Coordinate, orientation: AbsoluteDirection) -> Coordinate {
+        location + offset*orientation
+    } 
 }
 
 impl ops::Add<Coordinate> for Coordinate {

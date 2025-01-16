@@ -1,22 +1,22 @@
 use datatypes::Coordinate;
+use engine::update::Updatable;
 use inventory::Item;
 
 use game_state::game::Game;
-use game_state::world::WorldCell;
 use static_data::StaticData;
 
 mod action;
 mod actor;
-mod static_data;
 mod datatypes;
-mod game_state;
 mod devtools;
 mod direction;
+mod engine;
 mod error;
 mod eventloop;
+mod game_state;
 mod interface;
 mod inventory;
-mod engine;
+mod static_data;
 
 fn main() {
     let mut terminal = interface::render::init_render();
@@ -30,17 +30,13 @@ fn main() {
     let foo = Item::new(item_def, 1);
 
     game.world
-        .mut_set(
-            &Coordinate { x: 10, y: 5 },
-            Some(WorldCell {
-                actor: None,
-                building: None,
-                items: [Some(foo)],
-            }),
-        )
+        .items
+        .mut_set(&Coordinate { x: 10, y: 5 }, &[Some(foo)])
         .unwrap();
 
-    terminal.draw(|frame| interface::render::draw(&game, frame)).unwrap();
+    terminal
+        .draw(|frame| interface::render::draw(&game, frame))
+        .unwrap();
     eventloop::main_event_loop(&mut game, &mut terminal);
 
     interface::render::deinit_render();
