@@ -7,21 +7,19 @@ pub trait Updatable {
     fn mut_set(&mut self, key: &Self::CoordinateType, value: &Self::DataType) -> Result<()>;
 }
 
-pub trait Update<'a> {
+pub trait Update {
     type CoordinateType;
     type DataType;
     type UpdateTarget: Updatable<CoordinateType = Self::CoordinateType, DataType = Self::DataType>;
 
-    fn new(source: &'a Self::UpdateTarget) -> Self;
+    fn new() -> Self;
 
-    fn source(&self) -> &'a Self::UpdateTarget;
-
-    fn get(&'a self, key: &Self::CoordinateType) -> Result<&Self::DataType> {
+    fn get<'a>(&'a self, source: &'a Self::UpdateTarget, key: &Self::CoordinateType) -> Result<&'a Self::DataType> {
         let cached = self.get_cached(key)?;
         match cached {
             Some(val) => Ok(val),
             None => {
-                let real = self.source().get(key)?;
+                let real = source.get(key)?;
                 Ok(real)
             }
         }

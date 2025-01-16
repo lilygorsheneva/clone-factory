@@ -1,5 +1,6 @@
 //! Game state container, combining world state with other data containers.
 
+use crate::engine::update::Updatable;
 use crate::{action, devtools};
 use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
@@ -110,7 +111,7 @@ pub struct GameUpdate {
 impl<'a> Game<'a> {
     pub fn new(dimensions: Coordinate, data: &'a StaticData) -> Game {
         Game {
-            world: World::new(dimensions),
+            world: World::new(dimensions, WorldCell::new()),
             actors: WorldActors::new(),
             recordings: RecordingDb::new(),
             current_recording: None,
@@ -122,11 +123,12 @@ impl<'a> Game<'a> {
     pub fn get_player_actor(&self) -> Result<&Actor> {
         let location = self.get_player_coords()?;
         match self.world.get(&location) {
-            None => Err(Error("Player coordinates out of bounds")),
-            Some(WorldCell { actor: None, .. }) => Err(Error("No actor at player coordinates")),
-            Some(WorldCell {
+            Err(crate::error::Status::OutOfBounds) => Err(Error("Player coordinates out of bounds")),
+            Err(foo) => Err(foo),
+            Ok(WorldCell { actor: None, .. }) => Err(Error("No actor at player coordinates")),
+            Ok(WorldCell {
                 actor: Some(actor), ..
-            }) => Ok(actor),
+            }) => Ok(&actor),
         }
     }
 
