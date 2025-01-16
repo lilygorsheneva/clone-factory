@@ -16,6 +16,7 @@ mod error;
 mod eventloop;
 mod interface;
 mod inventory;
+mod engine;
 
 fn main() {
     let mut terminal = interface::render::init_render();
