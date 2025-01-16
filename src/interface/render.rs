@@ -2,12 +2,12 @@
 //! Anything backend specific (ratatui) should be contained here.
 use std::collections::HashMap;
 
-use crate::static_data::{StaticData, ItemDefiniton};
 use crate::datatypes::Coordinate;
-use crate::inventory::{BasicInventory, Item};
 use crate::direction::AbsoluteDirection;
 use crate::game_state::game::Game;
 use crate::game_state::world::{World, WorldCell};
+use crate::inventory::{BasicInventory, Item};
+use crate::static_data::{ItemDefiniton, StaticData};
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Buffer;
@@ -99,9 +99,12 @@ impl<'a> Widget for WorldWindowWidget<'a> {
             for j in 0..rows {
                 let x = centerx - i as i16;
                 let y = centery - j as i16;
-                let coord = Coordinate{x, y};
+                let coord = Coordinate { x, y };
                 if self.world.actors.in_bounds(&coord) {
-                    let cell = self.world.get_cell(&coord).expect("Cell out of bounds but was checked in bounds.");
+                    let cell = self
+                        .world
+                        .get_cell(&coord)
+                        .expect("Cell out of bounds but was checked in bounds.");
                     cell.draw(self.data, &mut buf[(i, j)]);
                 } else {
                     buf[(i, j)].set_symbol(" ").set_bg(Color::DarkGray);
@@ -111,18 +114,22 @@ impl<'a> Widget for WorldWindowWidget<'a> {
     }
 }
 
-struct ItemWidget<'a> {
+struct ItemWidget {
     item: Item,
     idx: usize,
-    itemdef: &'a ItemDefiniton,
+    itemdef: &'static ItemDefiniton,
 }
-impl<'a> ItemWidget<'a> {
-    fn new(item: Item, idx: usize, data: &StaticData) -> ItemWidget {
-        ItemWidget { item, idx, itemdef: item.definition }
+impl ItemWidget {
+    fn new(item: Item, idx: usize) -> ItemWidget {
+        ItemWidget {
+            item,
+            idx,
+            itemdef: item.definition,
+        }
     }
 }
 
-impl<'a> Widget for ItemWidget<'a> {
+impl Widget for ItemWidget {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let block = Paragraph::new(self.itemdef.name.clone()).block(
             Block::default()
@@ -135,28 +142,25 @@ impl<'a> Widget for ItemWidget<'a> {
     }
 }
 
-struct ItemBar<'a> {
+struct ItemBar {
     items: BasicInventory,
-    data: &'a StaticData,
 }
 
-impl<'a> ItemBar<'a> {
-    fn new(game: &'a Game) -> ItemBar<'a> {
+impl ItemBar {
+    fn new(game: &Game) -> ItemBar {
         if let Ok(actor) = game.get_player_actor() {
             ItemBar {
                 items: actor.inventory,
-                data: &game.data,
             }
         } else {
             ItemBar {
                 items: Default::default(),
-                data: &game.data,
             }
         }
     }
 }
 
-impl<'a> Widget for ItemBar<'a> {
+impl Widget for ItemBar {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let slots: [Rect; 5] = Layout::default()
             .direction(Direction::Horizontal)
@@ -164,7 +168,7 @@ impl<'a> Widget for ItemBar<'a> {
             .areas(area);
         for i in 0..self.items.get_items().len() {
             if let Some(item) = self.items.get_items()[i] {
-                ItemWidget::new(item, i, self.data).render(slots[i], buf);
+                ItemWidget::new(item, i).render(slots[i], buf);
             } else {
                 Paragraph::new("")
                     .block(Block::default())
