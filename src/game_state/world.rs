@@ -2,12 +2,11 @@
 
 use crate::engine::update::{Updatable, Update};
 use crate::engine::worldlayer::{WorldLayer, WorldLayerUpdate};
-use crate::error::{Result, Status::StateUpdateError};
+use crate::error::Result;
 use crate::inventory::Item;
 use crate::{
     actor::Actor,
     datatypes::{Building, Coordinate},
-    direction::AbsoluteDirection,
 };
 
 pub type FloorInventory = [Option<Item>; 1];
@@ -99,19 +98,17 @@ mod tests {
     fn update() {
         let mut w = World::new(Coordinate { x: 1, y: 1 });
         let location = Coordinate { x: 0, y: 0 };
-        let orientation = AbsoluteDirection::N;
-        let offsets = [Coordinate { x: 0, y: 0 }];
         let mut update = WorldUpdate::new();
 
         let mut actor = update
             .actor_updates
-            .get(&w.actors, &offsets[0])
+            .get(&w.actors, &location)
             .unwrap()
             .clone();
 
         assert!(actor.is_none());
         actor = Some(Actor::new());
-        update.actor_updates.set(&offsets[0], &actor);
+        update.actor_updates.set(&location, &actor).unwrap();
 
         update.apply(&mut w).unwrap();
         assert!(w.actors.get(&Coordinate { x: 0, y: 0 }).unwrap().is_some());

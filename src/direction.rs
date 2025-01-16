@@ -8,6 +8,7 @@ pub enum AbsoluteDirection {
 }
 #[derive(Debug,PartialEq)]
 #[derive(Copy, Clone)]
+#[allow(dead_code)]
 pub enum RelativeDirection {
     F,
     B,
@@ -20,15 +21,6 @@ pub enum RelativeDirection {
 pub enum Direction {
     Absolute(AbsoluteDirection),
     Relative(RelativeDirection),
-}
-
-impl Direction {
-    fn to_int(&self) -> i8 {
-        match self {
-            Direction::Absolute(x) => x.to_int(),
-            Direction::Relative(x) => x.to_int(),
-        }
-    }
 }
 
 impl RelativeDirection {

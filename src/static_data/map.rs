@@ -5,12 +5,6 @@ pub struct StaticDataMap<K: Hash + Eq + Display + Clone, V: 'static + Clone> {
 }
 
 impl<K: Hash + Eq + Display + Clone, V: Clone> StaticDataMap<K, V> {
-    pub fn new() -> StaticDataMap<K, V> {
-        StaticDataMap {
-            map: HashMap::new()
-        }
-    }
-
     pub fn iter(&self) -> std::collections::hash_map::Iter<'_, K, &V>{
         return self.map.iter()
     }

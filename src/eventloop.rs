@@ -29,9 +29,9 @@ pub fn main_event_loop(game: &mut Game, terminal: &mut DefaultTerminal) {
 
 }
 
-fn craft(game: &mut Game, terminal: &mut DefaultTerminal) {
-    // let list compose_recipe_list
-    //  render::request_crafting_recipe(list)
-    // if let Some(Numeral(i)) = input::read_numeral
-    // game.player_action(craft(list(i)))
-}
+// fn craft(game: &mut Game, terminal: &mut DefaultTerminal) {
+//     // let list compose_recipe_list
+//     //  render::request_crafting_recipe(list)
+//     // if let Some(Numeral(i)) = input::read_numeral
+//     // game.player_action(craft(list(i)))
+// }

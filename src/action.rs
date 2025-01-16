@@ -69,10 +69,10 @@ fn execute_move(
         (Ok(Some(_)), Ok(Some(_))) => Err(ActionFail("destination occupied")),
         (Ok(Some(actor)), Ok(None)) => {
             let mut actor = actor.clone();
-            update.world.actor_updates.set(&src_coord, &None);
+            update.world.actor_updates.set(&src_coord, &None)?;
 
             actor.facing = orientation;
-            update.world.actor_updates.set(&dst_coord, &Some(actor));
+            update.world.actor_updates.set(&dst_coord, &Some(actor))?;
 
             let actor_ref: &mut ActorRef = game
                 .actors
@@ -185,8 +185,8 @@ fn execute_use_cloner(
             update
                 .world
                 .actor_updates
-                .set(&src_coord, &Some(source_actor));
-            update.world.actor_updates.set(&dst_coord, &Some(new_actor));
+                .set(&src_coord, &Some(source_actor))?;
+            update.world.actor_updates.set(&dst_coord, &Some(new_actor))?;
             Ok(update)
         }
     }
@@ -231,7 +231,7 @@ fn execute_craft(
 
         inventory.insert(product)?;
 
-        update.world.actor_updates.set(&location, &Some(actor));
+        update.world.actor_updates.set(&location, &Some(actor))?;
         Ok(update)
     } else {
         Err(Error("Actor Missing"))

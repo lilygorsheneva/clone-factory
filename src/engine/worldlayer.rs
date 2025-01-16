@@ -1,4 +1,4 @@
-use std::{default, vec};
+use std::vec;
 
 use hashbrown::HashMap;
 

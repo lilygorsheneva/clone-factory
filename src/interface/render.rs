@@ -7,7 +7,7 @@ use crate::datatypes::Coordinate;
 use crate::inventory::{BasicInventory, Item};
 use crate::direction::AbsoluteDirection;
 use crate::game_state::game::Game;
-use crate::game_state::world::{self, World, WorldCell};
+use crate::game_state::world::{World, WorldCell};
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Buffer;

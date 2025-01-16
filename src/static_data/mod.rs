@@ -90,18 +90,14 @@ impl StaticData {
     }
 
     pub fn get_config() -> StaticData {
-        let mut data = Data::read();
-        data.bind_functions();
-        data.bind_colors();
+        let data = Data::get_config();
         StaticData::from_data(&data)
     }
     
     // This should be a test fixture; otherwise it's a leak. 
     #[cfg(test)]
     pub fn get_test_config() -> StaticData {
-        let mut data = Data::read();
-        data.bind_functions();
-        data.bind_colors();
+        let data = Data::get_test_config();
         StaticData::from_data(&data)
     }
 }

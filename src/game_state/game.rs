@@ -2,13 +2,11 @@
 
 use crate::engine::update::Updatable;
 use crate::{action, devtools};
-use crate::action::{Action, SubAction};
 use crate::actor::{Actor, ActorRef};
 use crate::static_data::StaticData;
 use crate::inventory::Item;
 use crate::datatypes::Recording;
 use crate::game_state::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
-use crate::direction::{Direction::Relative, RelativeDirection::F};
 use crate::error::{
     Result,
     Status::{ActionFail, Error},
@@ -109,7 +107,7 @@ pub struct GameUpdate {
 }
 
 impl<'a> Game<'a> {
-    pub fn new(dimensions: Coordinate, data: &'a StaticData) -> Game {
+    pub fn new(dimensions: Coordinate, data: &'a StaticData) -> Game<'a> {
         Game {
             world: World::new(dimensions),
             actors: WorldActors::new(),
@@ -233,6 +231,8 @@ impl<'a> Game<'a> {
 
 #[cfg(test)]
 mod tests {
+    use action::{Action, SubAction};
+
     use crate::direction::{AbsoluteDirection, Direction::Absolute};
 
     use super::*;

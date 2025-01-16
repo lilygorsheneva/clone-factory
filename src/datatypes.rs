@@ -3,8 +3,8 @@
 
 use crate::action::Action;
 use crate::actor::Actor;
-use crate::direction::{AbsoluteDirection};
-use crate::inventory::{BasicInventory, Item};
+use crate::direction::AbsoluteDirection;
+use crate::inventory::BasicInventory;
 use std::ops;
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
