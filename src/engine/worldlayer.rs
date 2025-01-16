@@ -75,7 +75,7 @@ impl<DataType:Clone> Update for WorldLayerUpdate<DataType> {
     }
 
     // Call mut_set in a loop. Needs some sort of Iterator that I don't know how to define yet.
-    fn apply(&mut self, target: &mut WorldLayer<DataType>) -> Result<()> {
+    fn apply(&self, target: &mut WorldLayer<DataType>) -> Result<()> {
         for (k, v) in &self.writes {
             target.mut_set(k, v)?
         }

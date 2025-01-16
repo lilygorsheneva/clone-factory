@@ -111,7 +111,7 @@ pub struct GameUpdate {
 impl<'a> Game<'a> {
     pub fn new(dimensions: Coordinate, data: &'a StaticData) -> Game {
         Game {
-            world: World::new(dimensions, WorldCell::new()),
+            world: World::new(dimensions),
             actors: WorldActors::new(),
             recordings: RecordingDb::new(),
             current_recording: None,
@@ -122,14 +122,12 @@ impl<'a> Game<'a> {
 
     pub fn get_player_actor(&self) -> Result<&Actor> {
         let location = self.get_player_coords()?;
-        match self.world.get(&location) {
+        match self.world.actors.get(&location) {
             Err(crate::error::Status::OutOfBounds) => Err(Error("Player coordinates out of bounds")),
             Err(foo) => Err(foo),
-            Ok(WorldCell { actor: None, .. }) => Err(Error("No actor at player coordinates")),
-            Ok(WorldCell {
-                actor: Some(actor), ..
-            }) => Ok(&actor),
-        }
+            Ok(None) => Err(Error("No actor at player coordinates")),
+            Ok(Some(actor)) => Ok(actor),
+         }
     }
 
     pub fn get_player_coords(&self) -> Result<Coordinate> {
@@ -142,24 +140,21 @@ impl<'a> Game<'a> {
             return Err(Error("Player exists"));
         }
 
-        match self.world.get(&location) {
-            Some(target @ WorldCell { actor: None, .. }) => {
-                let mut new_actor = Actor::new_player();
-                let mut new_actor_ref =
-                    ActorRef::new(*location, crate::direction::AbsoluteDirection::N);
-                new_actor_ref.isplayer = true;
-                let player_id = self.actors.mut_register_actor(new_actor_ref);
-                new_actor.actor_id = player_id;
-
-                self.actors.player = Some(PlayerRef {
-                    actor_id: player_id,
-                });
-                let mut newcell = target.clone();
-                newcell.actor = Some(new_actor);
-                self.world.mut_set(location, Some(newcell))
-            }
-            _ => Err(Error("Invalid player spawn")),
+        let dest = self.world.actors.get(location)?;
+        if dest.is_some() {
+            return Err(Error("Destination Occupied"));
         }
+        let mut new_actor = Actor::new_player();
+        let mut new_actor_ref =
+            ActorRef::new(*location, crate::direction::AbsoluteDirection::N);
+        new_actor_ref.isplayer = true;
+        let player_id = self.actors.mut_register_actor(new_actor_ref);
+        new_actor.actor_id = player_id;
+
+        self.actors.player = Some(PlayerRef {
+            actor_id: player_id,
+        });
+        self.world.actors.mut_set(location,&Some(new_actor))
     }
 
     pub fn do_npc_turns(&mut self) -> Result<()> {
@@ -223,13 +218,13 @@ impl<'a> Game<'a> {
 
     pub fn new_update(&self) -> GameUpdate {
         GameUpdate {
-            world: self.world.new_update(),
+            world: WorldUpdate::new(),
             actors: self.actors.db.new_update(),
         }
     }
 
     pub fn apply_update(&mut self, update: GameUpdate) -> Result<()> {
-        self.world.apply_update(&update.world)?;
+        update.world.apply(&mut self.world)?;
         self.actors.db.apply_update(&update.actors)?;
         self.actors.queue_new_actors(&update.actors);
         Ok(())
