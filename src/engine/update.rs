@@ -32,5 +32,5 @@ pub trait Update<'a> {
     fn get_cached(&self, key: &Self::CoordinateType) -> Result<Option<&Self::DataType>>;
 
     // Call mut_set in a loop. Needs some sort of Iterator that I don't know how to define yet.
-    fn apply(&self, target: &mut Self::UpdateTarget) -> Result<()>;
+    fn apply(&mut self, target: &mut Self::UpdateTarget) -> Result<()>;
 }
