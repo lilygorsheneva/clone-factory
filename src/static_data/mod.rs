@@ -80,23 +80,25 @@ pub struct StaticData {
 }
 
 impl StaticData {
-    pub fn from_data(data: &Data ) -> StaticData {
-            StaticData {
+    pub fn from_data(data: &Data ) -> &'static StaticData {
+        let tmp = StaticData {
             actor_appearances: StaticDataMap::from_map(&data.actor_appearances),
             building_appearances: StaticDataMap::from_map(&data.building_appearances),
             items: StaticDataMap::from_map(&data.items),
             recipes: StaticDataMap::from_map(&data.recipes),
-        }
+        };
+        let boxed = Box::new(tmp);
+        Box::leak(boxed)
     }
 
-    pub fn get_config() -> StaticData {
+    pub fn get_config() -> &'static StaticData {
         let data = Data::get_config();
         StaticData::from_data(&data)
     }
     
     // This should be a test fixture; otherwise it's a leak. 
     #[cfg(test)]
-    pub fn get_test_config() -> StaticData {
+    pub fn get_test_config() ->&'static StaticData {
         let data = Data::get_test_config();
         StaticData::from_data(&data)
     }

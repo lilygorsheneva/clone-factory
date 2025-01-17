@@ -213,7 +213,12 @@ pub fn generate_main_layout(area: Rect) -> (Rect, Rect, Rect, Rect) {
     (main, side, bottom, corner)
 }
 
-pub fn draw(game: &Game,menu: &Menu, frame: &mut Frame) {
+pub fn draw_main_menu( frame: &mut Frame) {
+    let text = Paragraph::new("Enter: start/continue.\n Esc: Quit" );
+    frame.render_widget(text, frame.area());
+}
+
+pub fn draw_game_window(game: &Game,menu: &Menu, frame: &mut Frame) {
     let window = WorldWindowWidget::new(game);
     let item_widget = ItemBar::new(&game);
 

@@ -88,13 +88,13 @@ impl WorldActors {
 }
 
 // Game state container.
-pub struct Game<'a> {
+pub struct Game {
     pub world: World,
     pub actors: WorldActors,
     pub recordings: RecordingDb,
     pub current_recording: Option<Recording>,
 
-    pub data: &'a StaticData,
+    pub data: &'static  StaticData,
 }
 
 // A container that stores game updates.
@@ -106,8 +106,8 @@ pub struct GameUpdate {
     pub actors: ActorDbUpdate,
 }
 
-impl<'a> Game<'a> {
-    pub fn new(dimensions: Coordinate, data: &'a StaticData) -> Game<'a> {
+impl Game {
+    pub fn new(dimensions: Coordinate, data: &'static StaticData) -> Game {
         Game {
             world: World::new(dimensions),
             actors: WorldActors::new(),

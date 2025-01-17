@@ -12,69 +12,16 @@ use ratatui::widgets::{List, ListItem};
 #[derive(Clone, Copy)]
 pub enum InputResult {
     Act(Action),
-    Craft,
-    Redraw,
     Exit,
     Record,
-    Numeral(u8),
-    Pass,
+    None,
 }
 
-fn event_to_act(event: KeyEvent) -> Option<InputResult> {
-    match event.code {
-        KeyCode::Left => Some(InputResult::Act(Action {
-            direction: Absolute(W),
-            action: SubAction::Move,
-        })),
-        KeyCode::Right => Some(InputResult::Act(Action {
-            direction: Absolute(E),
-            action: SubAction::Move,
-        })),
-        KeyCode::Up => Some(InputResult::Act(Action {
-            direction: Absolute(N),
-            action: SubAction::Move,
-        })),
-        KeyCode::Down => Some(InputResult::Act(Action {
-            direction: Absolute(S),
-            action: SubAction::Move,
-        })),
-        KeyCode::Char('t') => Some(InputResult::Act(Action {
-            direction: Relative(F),
-            action: SubAction::Take,
-        })),
-        KeyCode::Char('1') => Some(InputResult::Act(Action {
-            direction: Relative(F),
-            action: SubAction::Use(0),
-        })),
-        KeyCode::Char('2') => Some(InputResult::Act(Action {
-            direction: Relative(F),
-            action: SubAction::Use(1),
-        })),
-        KeyCode::Char('3') => Some(InputResult::Act(Action {
-            direction: Relative(F),
-            action: SubAction::Use(2),
-        })),
-        KeyCode::Char('4') => Some(InputResult::Act(Action {
-            direction: Relative(F),
-            action: SubAction::Use(3),
-        })),
-        KeyCode::Char('5') => Some(InputResult::Act(Action {
-            direction: Relative(F),
-            action: SubAction::Use(4),
-        })),
-        KeyCode::Char('c') => Some(InputResult::Craft),
-        KeyCode::Char('r') => Some(InputResult::Record),
-        _ => None,
-    }
-}
 
-pub fn readinput(menu: &Menu) -> Option<InputResult> {
+pub fn readinput(menu: &Menu) -> InputResult {
     match event::read() {
-        Ok(Event::Key(event)) if event.kind == KeyEventKind::Release => None,
-        Ok(Event::Key(event)) if event.code == KeyCode::Esc => Some(InputResult::Exit),
-        Ok(Event::Key(event)) => Some(menu.decode(event)),
-        Ok(Event::Resize(_, _)) => Some(InputResult::Redraw),
-        _ => None,
+        Ok(Event::Key(event)) => menu.decode(event),
+        _ => InputResult::None,
     }
 }
 
@@ -177,6 +124,12 @@ pub fn normal_menu() -> Menu {
                 "Record",
                 InputResult::Record
             ),
+            MenuOption::new(
+                KeyCode::Esc,
+                KeyModifiers::NONE,
+                "Quit",
+                InputResult::Exit
+            ),
         ],
     }
 }
@@ -207,13 +160,13 @@ pub struct Menu {
 }
 
 impl Menu {
-    fn decode(&self, event: KeyEvent) -> InputResult {
+    pub fn decode(&self, event: KeyEvent) -> InputResult {
         for option in &self.options {
             if option.key == event {
                 return option.outcome;
             }
         }
-        InputResult::Pass
+        InputResult::None
     }
 }
 
