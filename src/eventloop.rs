@@ -8,16 +8,20 @@ use crate::game_state::game::Game;
 
 pub fn main_event_loop(game: &mut Game, terminal: &mut DefaultTerminal) {
 
+    let menu = input::normal_menu();
+
     loop {
-        match input::readinput() {
+
+
+        match input::readinput(&menu) {
             Some(input::InputResult::Exit) => break,
             Some(input::InputResult::Redraw) => {
-                terminal.draw(|frame| render::draw(&game, frame)).unwrap();
+                terminal.draw(|frame| render::draw(&game,  &menu, frame)).unwrap();
             }
             Some(input::InputResult::Act(act)) => {
                 game.player_action(act).unwrap();
                 game.do_npc_turns().unwrap();
-                terminal.draw(|frame| render::draw(&game, frame)).unwrap();
+                terminal.draw(|frame| render::draw(&game,  &menu, frame)).unwrap();
             }
             Some(input::InputResult::Record) => match game.current_recording {
                 Some(_) => game.end_record().unwrap(),

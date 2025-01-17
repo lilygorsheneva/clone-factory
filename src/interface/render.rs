@@ -213,7 +213,7 @@ pub fn generate_main_layout(area: Rect) -> (Rect, Rect, Rect, Rect) {
     (main, side, bottom, corner)
 }
 
-pub fn draw(game: &Game, frame: &mut Frame, menu: Menu) {
+pub fn draw(game: &Game,menu: &Menu, frame: &mut Frame) {
     let window = WorldWindowWidget::new(game);
     let item_widget = ItemBar::new(&game);
 
@@ -226,19 +226,19 @@ pub fn draw(game: &Game, frame: &mut Frame, menu: Menu) {
 
 const NORMAL_ROW_BG: Color = Color::LightBlue;
 const ALT_ROW_BG_COLOR: Color = Color::LightMagenta;
-impl Widget for Menu {
+impl Widget for &Menu {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let mut idx = 0;
         let mut items = Vec::new();
-        for option in self.options {
+        for option in &self.options {
             let text;
             if option.key.modifiers != KeyModifiers::NONE {
                 text = format!(
                     "{}+{} : {}",
-                    option.key.modifiers, option.key.code, option.text
+                    option.key.modifiers, option.key.code, option.description
                 );
             } else {
-                text = format!("{} : {}", option.key.code, option.text);
+                text = format!("{} : {}", option.key.code, option.description);
             }
             let color = if idx % 2 == 0 {
                 NORMAL_ROW_BG

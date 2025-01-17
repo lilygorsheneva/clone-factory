@@ -34,9 +34,9 @@ fn main() {
         .mut_set(&Coordinate { x: 10, y: 5 }, &[Some(foo)])
         .unwrap();
 
-    terminal
-        .draw(|frame| interface::render::draw(&game, frame))
-        .unwrap();
+    // terminal
+    //     .draw(|frame| interface::render::draw(&game, frame))
+    //     .unwrap();
     eventloop::main_event_loop(&mut game, &mut terminal);
 
     interface::render::deinit_render();

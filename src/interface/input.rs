@@ -6,7 +6,7 @@ use crate::direction::{
     Direction::{Absolute, Relative},
     RelativeDirection::F,
 };
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::widgets::{List, ListItem};
 
 #[derive(Clone, Copy)]
@@ -68,50 +68,149 @@ fn event_to_act(event: KeyEvent) -> Option<InputResult> {
     }
 }
 
-pub fn read_numeral() -> Option<InputResult> {
-    match event::read() {
-        Ok(Event::Key(KeyEvent{code: KeyCode::Char('1'),..})) => Some(InputResult::Numeral(1)),
-        Ok(Event::Key(KeyEvent{code: KeyCode::Char('2'),..})) => Some(InputResult::Numeral(2)),
-        Ok(Event::Key(KeyEvent{code: KeyCode::Char('3'),..})) => Some(InputResult::Numeral(3)),
-        Ok(Event::Key(KeyEvent{code: KeyCode::Char('4'),..})) => Some(InputResult::Numeral(4)),
-        Ok(Event::Key(KeyEvent{code: KeyCode::Char('5'),..})) => Some(InputResult::Numeral(5)),
-        Ok(Event::Key(KeyEvent{code: KeyCode::Char('6'),..})) => Some(InputResult::Numeral(6)),
-        Ok(Event::Key(KeyEvent{code: KeyCode::Char('7'),..})) => Some(InputResult::Numeral(7)),
-        Ok(Event::Key(KeyEvent{code: KeyCode::Char('8'),..})) => Some(InputResult::Numeral(8)),
-        Ok(Event::Key(KeyEvent{code: KeyCode::Char('9'),..})) => Some(InputResult::Numeral(9)),
-        Ok(Event::Key(KeyEvent{code: KeyCode::Char('0'),..})) => Some(InputResult::Numeral(0)),
-        _ => None,
-    }
-}
-
-pub fn readinput() -> Option<InputResult> {
+pub fn readinput(menu: &Menu) -> Option<InputResult> {
     match event::read() {
         Ok(Event::Key(event)) if event.kind == KeyEventKind::Release => None,
         Ok(Event::Key(event)) if event.code == KeyCode::Esc => Some(InputResult::Exit),
-        Ok(Event::Key(event)) => event_to_act(event),
+        Ok(Event::Key(event)) => Some(menu.decode(event)),
         Ok(Event::Resize(_, _)) => Some(InputResult::Redraw),
         _ => None,
     }
 }
 
-
+pub fn normal_menu() -> Menu {
+    Menu {
+        options: vec![
+            MenuOption::new(
+                KeyCode::Left,
+                KeyModifiers::NONE,
+                "move",
+                InputResult::Act(Action {
+                    direction: Absolute(W),
+                    action: SubAction::Move,
+                }),
+            ),
+            MenuOption::new(
+                KeyCode::Right,
+                KeyModifiers::NONE,
+                "move",
+                InputResult::Act(Action {
+                    direction: Absolute(E),
+                    action: SubAction::Move,
+                }),
+            ),
+            MenuOption::new(
+                KeyCode::Up,
+                KeyModifiers::NONE,
+                "move",
+                InputResult::Act(Action {
+                    direction: Absolute(N),
+                    action: SubAction::Move,
+                }),
+            ),
+            MenuOption::new(
+                KeyCode::Down,
+                KeyModifiers::NONE,
+                "move",
+                InputResult::Act(Action {
+                    direction: Absolute(S),
+                    action: SubAction::Move,
+                }),
+            ),
+            MenuOption::new(
+                KeyCode::Char('t'),
+                KeyModifiers::NONE,
+                "take",
+                InputResult::Act(Action {
+                    direction: Relative(F),
+                    action: SubAction::Take,
+                })
+            ),
+            MenuOption::new(
+                KeyCode::Char('1'),
+                KeyModifiers::NONE,
+                "Use Item 1",
+                InputResult::Act(Action {
+                    direction: Relative(F),
+                    action: SubAction::Use(0),
+                })
+            ),
+            MenuOption::new(
+                KeyCode::Char('2'),
+                KeyModifiers::NONE,
+                "Use Item 2",
+                InputResult::Act(Action {
+                    direction: Relative(F),
+                    action: SubAction::Use(1),
+                })
+            ),
+            MenuOption::new(
+                KeyCode::Char('3'),
+                KeyModifiers::NONE,
+                "Use Item 3",
+                InputResult::Act(Action {
+                    direction: Relative(F),
+                    action: SubAction::Use(2),
+                })
+            ),
+            MenuOption::new(
+                KeyCode::Char('4'),
+                KeyModifiers::NONE,
+                "Use Item 4",
+                InputResult::Act(Action {
+                    direction: Relative(F),
+                    action: SubAction::Use(3),
+                })
+            ),
+            MenuOption::new(
+                KeyCode::Char('5'),
+                KeyModifiers::NONE,
+                "Use Item 5",
+                InputResult::Act(Action {
+                    direction: Relative(F),
+                    action: SubAction::Use(4),
+                })
+            ),
+            MenuOption::new(
+                KeyCode::Char('r'),
+                KeyModifiers::NONE,
+                "Record",
+                InputResult::Record
+            ),
+        ],
+    }
+}
 
 pub struct MenuOption {
     pub key: KeyEvent,
     pub description: &'static str,
-    pub outcome: InputResult
+    pub outcome: InputResult,
 }
 
+impl MenuOption {
+    fn new(
+        code: KeyCode,
+        modifiers: KeyModifiers,
+        description: &'static str,
+        outcome: InputResult,
+    ) -> MenuOption {
+        MenuOption {
+            key: KeyEvent::new(code, modifiers),
+            description,
+            outcome,
+        }
+    }
+}
 
 pub struct Menu {
-    pub options: Vec<MenuOption>
+    pub options: Vec<MenuOption>,
 }
 
-impl Menu{
+impl Menu {
     fn decode(&self, event: KeyEvent) -> InputResult {
         for option in &self.options {
             if option.key == event {
-                return option.outcome
+                return option.outcome;
             }
         }
         InputResult::Pass
