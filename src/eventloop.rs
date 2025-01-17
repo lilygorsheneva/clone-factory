@@ -4,6 +4,7 @@ use crate::engine::update::Updatable;
 use crate::game_state::game::Game;
 use crate::interface;
 use crate::interface::input;
+use crate::interface::input::InputResult;
 use crate::interface::render;
 use crate::inventory::Item;
 use crate::static_data::StaticData;
@@ -56,26 +57,29 @@ const ENTER: KeyEvent = KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE);
 
 impl Application {
     pub fn main_menu(&mut self) {
+        let menu = input::main_menu();
+
         loop {
 
         let _ = &self
         .terminal
         .draw(|frame| render::draw_main_menu(frame));
 
-            let event = event::read().expect("Error getting input");
-            if event == Event::Key(ESC) {
-                return;
-            }
-            if event == Event::Key(ENTER) {
-                if self.game.is_none() {
-                    self.start_game();
-                }
-                self.game_loop();
-            }
+        match input::readinput(&menu) {
+            InputResult::Exit => break,
+            InputResult::Menu(fun) => {fun(self);}
+            _ => {}
         }
     }
+}
+    pub fn start_or_continue(&mut self)-> InputResult {
+        if self.game.is_none() {
+            self.start_game();
+        }
+        self.game_loop()
+    }
 
-    fn game_loop(&mut self) {
+    pub fn game_loop(&mut self) -> InputResult {
         let game = self
             .game
             .as_mut()
@@ -102,5 +106,6 @@ impl Application {
                 _ => {}
             };
         }
+        InputResult::Exit
     }
 }

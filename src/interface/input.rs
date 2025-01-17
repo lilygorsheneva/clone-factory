@@ -6,12 +6,17 @@ use crate::direction::{
     Direction::{Absolute, Relative},
     RelativeDirection::F,
 };
+use crate::eventloop::Application;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::widgets::{List, ListItem};
+
+pub type ApplicationFn = fn(&mut Application) -> InputResult;
+
 
 #[derive(Clone, Copy)]
 pub enum InputResult {
     Act(Action),
+    Menu(ApplicationFn),
     Exit,
     Record,
     None,
@@ -24,6 +29,26 @@ pub fn readinput(menu: &Menu) -> InputResult {
         _ => InputResult::None,
     }
 }
+
+pub fn main_menu() -> Menu {
+    Menu {
+        options: vec![
+            MenuOption::new(
+                KeyCode::Esc,
+                KeyModifiers::NONE,
+                "quit",
+                InputResult::Exit
+            ),
+            MenuOption::new(
+                KeyCode::Enter,
+                KeyModifiers::NONE,
+                "start",
+                InputResult::Menu(Application::start_or_continue)
+            ),
+        ]
+        }
+    }
+
 
 pub fn normal_menu() -> Menu {
     Menu {
