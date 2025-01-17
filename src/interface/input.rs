@@ -7,7 +7,9 @@ use crate::direction::{
     RelativeDirection::F,
 };
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use ratatui::widgets::{List, ListItem};
 
+#[derive(Clone, Copy)]
 pub enum InputResult {
     Act(Action),
     Craft,
@@ -15,6 +17,7 @@ pub enum InputResult {
     Exit,
     Record,
     Numeral(u8),
+    Pass,
 }
 
 fn event_to_act(event: KeyEvent) -> Option<InputResult> {
@@ -88,6 +91,30 @@ pub fn readinput() -> Option<InputResult> {
         Ok(Event::Key(event)) => event_to_act(event),
         Ok(Event::Resize(_, _)) => Some(InputResult::Redraw),
         _ => None,
+    }
+}
+
+
+
+pub struct MenuOption {
+    pub key: KeyEvent,
+    pub description: &'static str,
+    pub outcome: InputResult
+}
+
+
+pub struct Menu {
+    pub options: Vec<MenuOption>
+}
+
+impl Menu{
+    fn decode(&self, event: KeyEvent) -> InputResult {
+        for option in &self.options {
+            if option.key == event {
+                return option.outcome
+            }
+        }
+        InputResult::Pass
     }
 }
 

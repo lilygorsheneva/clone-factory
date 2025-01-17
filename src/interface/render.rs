@@ -8,13 +8,16 @@ use crate::game_state::game::Game;
 use crate::game_state::world::{World, WorldCell};
 use crate::inventory::{BasicInventory, Item};
 use crate::static_data::{ItemDefiniton, StaticData};
+use crossterm::event::KeyModifiers;
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Buffer;
-use ratatui::style::{Color, Style};
+use ratatui::style::{Color, Style, Stylize};
 use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
+
+use super::input::Menu;
 
 impl<'a> WorldCell<'a> {
     fn draw(&'a self, data: &StaticData, cell: &mut Cell) {
@@ -210,7 +213,7 @@ pub fn generate_main_layout(area: Rect) -> (Rect, Rect, Rect, Rect) {
     (main, side, bottom, corner)
 }
 
-pub fn draw(game: &Game, frame: &mut Frame) {
+pub fn draw(game: &Game, frame: &mut Frame, menu: Menu) {
     let window = WorldWindowWidget::new(game);
     let item_widget = ItemBar::new(&game);
 
@@ -218,8 +221,39 @@ pub fn draw(game: &Game, frame: &mut Frame) {
 
     frame.render_widget(item_widget, bottom);
     frame.render_widget(window, main);
-    render_recipes(&game.data, side, frame);
+    frame.render_widget(menu, side);
 }
+
+const NORMAL_ROW_BG: Color = Color::LightBlue;
+const ALT_ROW_BG_COLOR: Color = Color::LightMagenta;
+impl Widget for Menu {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let mut idx = 0;
+        let mut items = Vec::new();
+        for option in self.options {
+            let text;
+            if option.key.modifiers != KeyModifiers::NONE {
+                text = format!(
+                    "{}+{} : {}",
+                    option.key.modifiers, option.key.code, option.text
+                );
+            } else {
+                text = format!("{} : {}", option.key.code, option.text);
+            }
+            let color = if idx % 2 == 0 {
+                NORMAL_ROW_BG
+            } else {
+                ALT_ROW_BG_COLOR
+            };
+            idx += 1;
+            let item = ListItem::new(text).bg(color);
+            items.push(item);
+        }
+        let list = List::new(items);
+        list.render(area, buf);
+    }
+}
+
 // pub fn actionprompt
 // pub fn crafting_menu
 // pub fn exit_prompt
