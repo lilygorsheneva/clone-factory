@@ -54,7 +54,7 @@ impl PartialEq for ItemDefiniton {
 }
 
 // A crafting recipe.
-#[derive(Clone, Deserialize)]
+#[derive(PartialEq, Eq, Clone,Debug,  Deserialize)]
 pub struct RecipeDefiniton {
     pub ingredients: Vec<String>,
     pub ingredient_counts: Vec<i64>,

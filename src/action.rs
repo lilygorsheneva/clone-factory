@@ -14,7 +14,7 @@ use std::collections::HashMap;
 
 pub type ItemUseFn = fn(usize, Coordinate, AbsoluteDirection, &Game) -> Result<GameUpdate>;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone,  Copy, Debug, PartialEq)]
 pub struct Action {
     pub direction: Direction,
     pub action: SubAction,
@@ -26,8 +26,7 @@ pub enum SubAction {
     Take,
     // Drop,
     Use(usize),
-    // Craft(String),
-    // Record,
+    Craft(&'static RecipeDefiniton),
 }
 
 pub fn execute_action(actor_ref: ActorRef, action: Action, game: &Game) -> Result<GameUpdate> {
@@ -37,7 +36,7 @@ pub fn execute_action(actor_ref: ActorRef, action: Action, game: &Game) -> Resul
         SubAction::Move => execute_move(actor_ref.location, orientation, game),
         SubAction::Take => execute_take(actor_ref.location, orientation, game),
         SubAction::Use(i) => execute_use_item(i, actor_ref.location, orientation, game),
-        // SubAction::Record => execute_recording(actor_ref.location, orientation, game),
+        SubAction::Craft(recipe) => execute_craft(recipe, actor_ref.location, orientation, game)
         // _ => world,
     }
 }

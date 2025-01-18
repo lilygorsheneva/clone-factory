@@ -13,7 +13,7 @@ use crate::direction::{
     RelativeDirection::F,
 };
 
-use super::{GameFn, MenuTrait};
+use super::{craftingmenu::CraftingMenu, GameFn, MenuTrait};
 
 pub struct GameMenu<'a> {
     game: &'a mut Game,
@@ -107,7 +107,7 @@ impl MenuTrait for GameMenu<'_> {
                     action: SubAction::Take,
                 })
             }))),
-
+            KeyCode::Char('c') => Some(Craft),
             KeyCode::Esc => Some(Exit),
             _ => None,
         }
@@ -120,7 +120,10 @@ impl MenuTrait for GameMenu<'_> {
             match self.read() {
                 None => {}
                 Some(GameFn(fun)) => fun(self.game).unwrap(),
-                Some(Craft) => {}
+                Some(Craft) => {
+                    let mut  cmenu = CraftingMenu::new(self.game);
+                    cmenu.call(term);
+                }
                 Some(Exit) => break,
             }
         }

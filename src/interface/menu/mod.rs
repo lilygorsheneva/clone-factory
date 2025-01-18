@@ -5,6 +5,7 @@ use crate::error::Result;
 
 pub mod mainmenu;
 pub mod gamemenu;
+pub mod craftingmenu;
 
 pub type GameFn = dyn Fn(&mut Game) -> Result<()>;
 
