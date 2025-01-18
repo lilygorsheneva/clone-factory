@@ -1,6 +1,6 @@
 use std::vec;
 
-use hashbrown::HashMap;
+use std::collections::HashMap;
 
 use super::update::{Update, Updatable};
 use crate::datatypes::Coordinate;

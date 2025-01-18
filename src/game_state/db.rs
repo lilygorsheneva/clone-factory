@@ -1,5 +1,5 @@
 //! Containers for non-spatial data.
-use hashbrown::HashMap;
+use std::collections::HashMap;
 
 use crate::actor::ActorRef;
 use crate::datatypes::Recording;
@@ -104,13 +104,6 @@ impl ActorDb {
             update.map.insert(*id, self.get_actor(*id));
             update.map.get_mut(id)
         }
-    }
-
-    pub fn read_actors<'a, const N: usize>(&self, update: &'a mut ActorDbUpdate, ids: [&ActorId;N]) ->[Option<&'a mut ActorRef>;N] {
-        for id in ids {
-            self.read_actor(update, &id);
-        }
-        update.map.get_many_mut(ids)
     }
 
     pub fn new_update(&self) -> ActorDbUpdate {

@@ -214,6 +214,12 @@ impl Game {
         }
     }
 
+    pub fn player_action_and_turn(&mut self, action: action::Action) -> Result<()> {
+        self.player_action(action)?;
+        self.do_npc_turns()?;
+        Ok(())
+    }
+
     pub fn new_update(&self) -> GameUpdate {
         GameUpdate {
             world: WorldUpdate::new(),

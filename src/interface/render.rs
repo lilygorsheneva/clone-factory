@@ -17,8 +17,6 @@ use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
-use super::input::Menu;
-
 impl<'a> WorldCell<'a> {
     fn draw(&'a self, data: &StaticData, cell: &mut Cell) {
         let generic_style = Style::default().fg(Color::White).bg(Color::Black);
@@ -218,7 +216,7 @@ pub fn draw_main_menu( frame: &mut Frame) {
     frame.render_widget(text, frame.area());
 }
 
-pub fn draw_game_window(game: &Game,menu: &Menu, frame: &mut Frame) {
+pub fn draw_game_window(game: &Game, frame: &mut Frame) {
     let window = WorldWindowWidget::new(game);
     let item_widget = ItemBar::new(&game);
 
@@ -226,39 +224,4 @@ pub fn draw_game_window(game: &Game,menu: &Menu, frame: &mut Frame) {
 
     frame.render_widget(item_widget, bottom);
     frame.render_widget(window, main);
-    frame.render_widget(menu, side);
 }
-
-const NORMAL_ROW_BG: Color = Color::LightBlue;
-const ALT_ROW_BG_COLOR: Color = Color::LightMagenta;
-impl Widget for &Menu {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let mut idx = 0;
-        let mut items = Vec::new();
-        for option in &self.options {
-            let text;
-            if option.key.modifiers != KeyModifiers::NONE {
-                text = format!(
-                    "{}+{} : {}",
-                    option.key.modifiers, option.key.code, option.description
-                );
-            } else {
-                text = format!("{} : {}", option.key.code, option.description);
-            }
-            let color = if idx % 2 == 0 {
-                NORMAL_ROW_BG
-            } else {
-                ALT_ROW_BG_COLOR
-            };
-            idx += 1;
-            let item = ListItem::new(text).bg(color);
-            items.push(item);
-        }
-        let list = List::new(items);
-        list.render(area, buf);
-    }
-}
-
-// pub fn actionprompt
-// pub fn crafting_menu
-// pub fn exit_prompt
