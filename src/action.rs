@@ -319,7 +319,7 @@ mod tests {
             },
         ];
 
-        let sample_recording_id = game.recordings.register_recording(&Recording {
+        let sample_recording_id = game.recordings.recordings.register_recording(&Recording {
             command_list: actions,
             inventory: Default::default(),
         });

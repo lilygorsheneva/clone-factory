@@ -3,6 +3,7 @@
 use crate::{action::Action, actor::Actor, inventory::BasicInventory};
 
 pub mod db;
+pub mod interface;
 
 #[derive(Clone)]
 pub struct Recording {

@@ -1,6 +1,7 @@
 //! Game state container, combining world state with other data containers.
 
 use crate::engine::update::Updatable;
+use crate::recording::interface::RecordingModule;
 use crate::{action, devtools};
 use crate::actor::{Actor, ActorRef};
 use crate::static_data::StaticData;
@@ -92,9 +93,8 @@ impl WorldActors {
 pub struct Game {
     pub world: World,
     pub actors: WorldActors,
-    pub recordings: RecordingDb,
-    pub current_recording: Option<Recording>,
-
+    pub recordings: RecordingModule,
+    
     pub data: &'static  StaticData,
 }
 
@@ -112,8 +112,7 @@ impl Game {
         Game {
             world: World::new(dimensions),
             actors: WorldActors::new(),
-            recordings: RecordingDb::new(),
-            current_recording: None,
+            recordings: RecordingModule::new(),
             data: data,
         }
     }
@@ -171,42 +170,11 @@ impl Game {
         Ok(())
     }
 
-    // Start recording. 
-    pub fn init_record(&mut self) -> Result<()> {
-        match self.current_recording {
-            Some(_) => Err(Error("Attempted to initialize recording twice")),
-            None => {
-                let actor = self.get_player_actor()?;
-                self.current_recording = Some(Recording::from_creator(actor));
-                Ok(())
-            }
-        }
-    }
-
-    // End recording and spawn a recording item.
-    // TODO Currently bugged; items will stack.
-    pub fn end_record(&mut self) -> Result<()> {
-        match &self.current_recording {
-            None => Err(Error("Attempted to initialize recording twice")),
-            Some(rec) => {
-                let id = self.recordings.register_recording(rec);
-                let cloner_def = self.data.items.get(&"basic_cloner".to_string()).ok_or(Error("unable to get basic cloner definition"))?;
-                let new_cloner = Item::new_cloner(cloner_def, id);
-                self.current_recording = None;
-                let actor_ref = self.actors.get_player()?;
-                let update = devtools::grant_item(new_cloner, actor_ref.location, self)?;
-                self.apply_update(update)
-            }
-        }
-    }
-
     // Process a player's actions.
     pub fn player_action(&mut self, action: action::Action) -> Result<()> {
         let actor_ref = self.actors.get_player()?;
 
-        if let Some(rec) = self.current_recording.as_mut() {
-            rec.append(action);
-        }
+        self.recordings.append(action);
 
         match action::execute_action(actor_ref, action, self) {
             Ok(update) => self.apply_update(update),
@@ -251,7 +219,7 @@ mod tests {
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
 
-        game.init_record().unwrap();
+        RecordingModule::init_record(&mut game).unwrap();
 
         let actions = [
             Action {
@@ -267,7 +235,7 @@ mod tests {
         game.player_action(actions[0]).unwrap();
         game.player_action(actions[1]).unwrap();
 
-        game.end_record().unwrap();
+        RecordingModule::init_record(&mut game).unwrap();
 
         // This is really ugly. Perhaps recording needs a nicer API.
         let actor = game
@@ -297,7 +265,7 @@ mod tests {
         ];
 
         let sample_recording_id = game
-        .recordings
+        .recordings.recordings
         .register_recording(&Recording{command_list: actions, inventory: Default::default()});
         let cloner_def = data.items.get(&"basic_cloner".to_string()).unwrap();
         let new_cloner = Item::new_cloner(cloner_def, sample_recording_id);

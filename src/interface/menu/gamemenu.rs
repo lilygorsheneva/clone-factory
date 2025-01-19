@@ -6,7 +6,7 @@ use ratatui::{DefaultTerminal, Frame};
 use crate::{
     action::{Action, SubAction},
     game_state::game::Game,
-    interface::render::{generate_main_layout, ItemBar, WorldWindowWidget},
+    interface::render::{generate_main_layout, ItemBar, WorldWindowWidget}, recording::interface::RecordingMenu,
 };
 
 use crate::direction::{
@@ -25,6 +25,7 @@ pub enum GameMenuOptions {
     Exit,
     GameFn(Box<GameFn>),
     Craft,
+    Record,
 }
 use GameMenuOptions::*;
 
@@ -74,12 +75,8 @@ impl MenuTrait for GameMenu {
                     action: SubAction::Move,
                 })
             }))),
-            KeyCode::Char('r') => Some(GameFn(Box::new(|game: &mut Game| {
-                match game.current_recording {
-                    Some(_) => game.end_record(),
-                    None => game.init_record(),
-                }
-            }))),
+            KeyCode::Char('r') => 
+                 Some(Record),
             KeyCode::Char('1') => Some(GameFn(Box::new(|game: &mut Game| {
                 game.player_action_and_turn(Action {
                     direction: Relative(F),
@@ -133,6 +130,11 @@ impl MenuTrait for GameMenu {
                     let mut cmenu = CraftingMenu::new(self, self.game.clone());
                     cmenu.call(term);
                 }
+                Some(Record) => {
+                    let mut rmenu = RecordingMenu::new(self, self.game.clone());
+                    rmenu.call(term);
+                }
+
                 Some(Exit) => break,
             }
         }
