@@ -4,7 +4,7 @@ use ratatui::{DefaultTerminal, Frame};
 use crate::{
     action::{Action, SubAction},
     game_state::game::Game,
-    interface::render,
+    interface::render::{self, generate_main_layout, ItemBar, WorldWindowWidget},
 };
 
 use crate::direction::{
@@ -36,7 +36,13 @@ impl MenuTrait for GameMenu<'_> {
     type MenuOptions = GameMenuOptions;
 
     fn draw(&self, frame: &mut Frame) {
-        render::draw_game_window(self.game, frame);
+        let window = WorldWindowWidget::new(self.game);
+        let item_widget = ItemBar::new(self.game);
+
+        let (main, side, bottom, _corner) = generate_main_layout(frame.area());
+
+        frame.render_widget(item_widget, bottom);
+        frame.render_widget(window, main);
     }
 
     fn parsekey(&self, key: KeyEvent) -> Option<Self::MenuOptions> {
@@ -121,7 +127,7 @@ impl MenuTrait for GameMenu<'_> {
                 None => {}
                 Some(GameFn(fun)) => fun(self.game).unwrap(),
                 Some(Craft) => {
-                    let mut  cmenu = CraftingMenu::new(self.game);
+                    let mut cmenu = CraftingMenu::new(self.game);
                     cmenu.call(term);
                 }
                 Some(Exit) => break,

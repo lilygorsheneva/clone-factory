@@ -8,14 +8,13 @@ use crate::game_state::game::Game;
 use crate::game_state::world::{World, WorldCell};
 use crate::inventory::{BasicInventory, Item};
 use crate::static_data::{ItemDefiniton, StaticData};
-use crossterm::event::KeyModifiers;
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::prelude::Buffer;
-use ratatui::style::{Color, Style, Stylize};
+use ratatui::style::{Color, Style};
 use ratatui::text::Line;
-use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Widget};
-use ratatui::{self, DefaultTerminal, Frame};
+use ratatui::widgets::{Block, Borders,  Paragraph, Widget};
+use ratatui::{self, DefaultTerminal};
 
 impl<'a> WorldCell<'a> {
     fn draw(&'a self, data: &StaticData, cell: &mut Cell) {
@@ -77,7 +76,7 @@ pub struct WorldWindowWidget<'a> {
 }
 
 impl<'a> WorldWindowWidget<'a> {
-    fn new(game: &'a Game) -> WorldWindowWidget<'a> {
+    pub fn new(game: &'a Game) -> WorldWindowWidget<'a> {
         WorldWindowWidget {
             world: &game.world,
             center: game
@@ -143,12 +142,12 @@ impl Widget for ItemWidget {
     }
 }
 
-struct ItemBar {
+pub struct ItemBar {
     items: BasicInventory,
 }
 
 impl ItemBar {
-    fn new(game: &Game) -> ItemBar {
+    pub fn new(game: &Game) -> ItemBar {
         if let Ok(actor) = game.get_player_actor() {
             ItemBar {
                 items: actor.inventory,
@@ -179,19 +178,6 @@ impl Widget for ItemBar {
     }
 }
 
-fn render_recipes(data: &StaticData, area: Rect, frame: &mut Frame) {
-    // TODO filter by unlocks
-    // TODO cache
-    // TODO show requirements
-    let items: Vec<ListItem> = data
-        .recipes
-        .iter()
-        .map(|(_, def)| ListItem::new(def.name.clone()))
-        .collect();
-    let list = List::new(items);
-    frame.render_widget(list, area);
-}
-
 pub fn generate_main_layout(area: Rect) -> (Rect, Rect, Rect, Rect) {
     let [tmp_main, tmp_side] = Layout::default()
         .direction(Direction::Horizontal)
@@ -211,17 +197,3 @@ pub fn generate_main_layout(area: Rect) -> (Rect, Rect, Rect, Rect) {
     (main, side, bottom, corner)
 }
 
-pub fn draw_main_menu( frame: &mut Frame) {
-    let text = Paragraph::new("Enter: start/continue.\n Esc: Quit" );
-    frame.render_widget(text, frame.area());
-}
-
-pub fn draw_game_window(game: &Game, frame: &mut Frame) {
-    let window = WorldWindowWidget::new(game);
-    let item_widget = ItemBar::new(&game);
-
-    let (main, side, bottom, _corner) = generate_main_layout(frame.area());
-
-    frame.render_widget(item_widget, bottom);
-    frame.render_widget(window, main);
-}
