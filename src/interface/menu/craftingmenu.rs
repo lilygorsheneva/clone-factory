@@ -1,8 +1,8 @@
 use crate::{
     action::{Action, SubAction},
     direction::{Direction, RelativeDirection},
-    game_state::game::{self, Game},
-    inventory::{self, BasicInventory},
+    game_state::game::Game,
+    inventory::BasicInventory,
     static_data::{RecipeDefiniton, StaticData},
 };
 

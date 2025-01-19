@@ -2,7 +2,6 @@
 use std::collections::HashMap;
 
 use crate::actor::ActorRef;
-use crate::recording::Recording;
 use crate::error::{Result, Status::StateUpdateError};
 use std::collections::HashSet;
 use std::usize;

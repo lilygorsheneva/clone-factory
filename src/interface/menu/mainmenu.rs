@@ -1,5 +1,5 @@
 use crate::{
-    datatypes::Coordinate, engine::update::Updatable, game_state::game::Game, interface::render,
+    datatypes::Coordinate, engine::update::Updatable, game_state::game::Game,
     inventory::Item, static_data::StaticData,
 };
 use crossterm::event::KeyCode;

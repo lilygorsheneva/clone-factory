@@ -4,7 +4,7 @@ use ratatui::{DefaultTerminal, Frame};
 use crate::{
     action::{Action, SubAction},
     game_state::game::Game,
-    interface::render::{self, generate_main_layout, ItemBar, WorldWindowWidget},
+    interface::render::{generate_main_layout, ItemBar, WorldWindowWidget},
 };
 
 use crate::direction::{
