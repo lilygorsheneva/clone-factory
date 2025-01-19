@@ -1,6 +1,7 @@
 //! A player or npc.
-use crate::datatypes::{Recording, Coordinate};
-use crate::game_state::db::{ActorId, RecordingId};
+use crate::recording::{Recording, db::RecordingId};
+use crate::datatypes::Coordinate;
+use crate::game_state::db::ActorId;
 use crate::direction::AbsoluteDirection;
 use crate::inventory::BasicInventory;
 

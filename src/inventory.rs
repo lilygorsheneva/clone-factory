@@ -1,6 +1,6 @@
 //! Item and Inventory datatype definitions.
 
-use crate::game_state::db::RecordingId;
+use crate::recording::db::RecordingId;
 use crate::error::{Result, Status};
 use crate::static_data::ItemDefiniton;
 

@@ -2,44 +2,12 @@
 use std::collections::HashMap;
 
 use crate::actor::ActorRef;
-use crate::datatypes::Recording;
+use crate::recording::Recording;
 use crate::error::{Result, Status::StateUpdateError};
 use std::collections::HashSet;
 use std::usize;
 
-pub struct RecordingDb {
-    recordings: Vec<Recording>,
-}
 
-#[derive(PartialEq, Debug, Copy, Clone)]
-pub struct RecordingId {
-    idx: usize,
-}
-
-impl RecordingId {
-    pub const DEFAULT: RecordingId = RecordingId { idx: 0 };
-}
-
-impl RecordingDb {
-    pub fn register_recording(&mut self, recording: &Recording) -> RecordingId {
-        self.recordings.push(recording.clone());
-        RecordingId {
-            idx: self.recordings.len() - 1,
-        }
-    }
-
-    pub fn new() -> RecordingDb {
-        let mut db = RecordingDb {
-            recordings: Vec::new(),
-        };
-        db.recordings.push(Recording::blank());
-        db
-    }
-
-    pub fn get(&self, id: RecordingId) -> &Recording {
-        &self.recordings[id.idx]
-    }
-}
 
 pub struct ActorDb {
     actors: Vec<ActorRef>,

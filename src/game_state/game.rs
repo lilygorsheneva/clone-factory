@@ -5,8 +5,9 @@ use crate::{action, devtools};
 use crate::actor::{Actor, ActorRef};
 use crate::static_data::StaticData;
 use crate::inventory::Item;
-use crate::datatypes::Recording;
-use crate::game_state::db::{ActorDb, ActorDbUpdate, ActorId, RecordingDb};
+use crate::recording::{Recording, db::RecordingDb};
+
+use crate::game_state::db::{ActorDb, ActorDbUpdate, ActorId};
 use crate::error::{
     Result,
     Status::{ActionFail, Error},
@@ -157,7 +158,7 @@ impl Game {
 
     pub fn do_npc_turns(&mut self) -> Result<()> {
         while let Some(actor) = self.actors.get_next_actor() {
-            let recording: &crate::datatypes::Recording = self.recordings.get(actor.recording);
+            let recording: &Recording = self.recordings.get(actor.recording);
             let action = recording.at(actor.command_idx);
             actor.command_idx += 1;
             let res = action::execute_action(*actor, action, self);

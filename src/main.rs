@@ -13,6 +13,8 @@ mod interface;
 mod inventory;
 mod static_data;
 
+mod recording;
+
 fn main() {
     let mut terminal = interface::render::init_render();
 

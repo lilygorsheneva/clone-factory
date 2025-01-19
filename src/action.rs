@@ -250,7 +250,7 @@ pub fn get_use_fn_table() -> HashMap<String, Box<ItemUseFn>> {
 
 #[cfg(test)]
 mod tests {
-    use crate::datatypes::Recording;
+    use crate::recording::Recording;
     use crate::devtools;
     use crate::direction::Direction::Absolute;
     use crate::static_data::StaticData;

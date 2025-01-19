@@ -1,5 +1,6 @@
 use crate::action::{Action, SubAction};
-use crate::datatypes::{Coordinate, Recording};
+use crate::datatypes::Coordinate;
+use crate::recording::Recording;
 use crate::direction::RelativeDirection;
 use crate::engine::update::Update;
 use crate::game_state::game::{Game, GameUpdate};

@@ -1,5 +1,9 @@
 use crate::error::Result;
 
+// TODO: split into the Updatable and UpdatableContainer traits.
+// A container stores specific things and needs a getter/setter as well as new/apply.
+// A generic updatable just needs new/apply.
+
 pub trait Updatable {
     type CoordinateType;
     type DataType: Clone;
