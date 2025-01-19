@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{DefaultTerminal, Frame};
 
@@ -15,8 +17,8 @@ use crate::direction::{
 
 use super::{craftingmenu::CraftingMenu, GameFn, MenuTrait};
 
-pub struct GameMenu<'a> {
-    game: &'a mut Game,
+pub struct GameMenu {
+    game: Rc<RefCell<Game>>,
 }
 
 pub enum GameMenuOptions {
@@ -26,18 +28,19 @@ pub enum GameMenuOptions {
 }
 use GameMenuOptions::*;
 
-impl GameMenu<'_> {
-    pub fn new(game: &mut Game) -> GameMenu {
+impl GameMenu {
+    pub fn new(game:Rc<RefCell<Game>>) -> GameMenu {
         GameMenu { game }
     }
 }
 
-impl MenuTrait for GameMenu<'_> {
+impl MenuTrait for GameMenu {
     type MenuOptions = GameMenuOptions;
 
     fn draw(&self, frame: &mut Frame) {
-        let window = WorldWindowWidget::new(self.game);
-        let item_widget = ItemBar::new(self.game);
+        let game = self.game.borrow();
+        let window = WorldWindowWidget::new(&game);
+        let item_widget = ItemBar::new(&game);
 
         let (main, side, bottom, _corner) = generate_main_layout(frame.area());
 
@@ -125,9 +128,9 @@ impl MenuTrait for GameMenu<'_> {
 
             match self.read() {
                 None => {}
-                Some(GameFn(fun)) => fun(self.game).unwrap(),
+                Some(GameFn(fun)) => fun(&mut self.game.borrow_mut()).unwrap(),
                 Some(Craft) => {
-                    let mut cmenu = CraftingMenu::new(self.game);
+                    let mut cmenu = CraftingMenu::new(self, self.game.clone());
                     cmenu.call(term);
                 }
                 Some(Exit) => break,

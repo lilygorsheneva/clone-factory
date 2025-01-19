@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{
     action::{Action, SubAction},
     direction::{Direction, RelativeDirection},
@@ -6,24 +8,29 @@ use crate::{
     static_data::{RecipeDefiniton, StaticData},
 };
 
-use super::MenuTrait;
+use super::{gamemenu::GameMenu, MenuTrait};
 
 pub struct CraftingMenu<'a> {
+    parent: &'a GameMenu,
     inventory: BasicInventory,
     recipes: Vec<CraftingMenuEntry>,
-    game: &'a mut Game,
+    game: Rc<RefCell<Game>>,
 }
 
 pub struct CraftingMenuEntry {
     definition: &'static RecipeDefiniton,
 }
 
-impl CraftingMenu<'_> {
-    pub fn new(game: &mut Game) -> CraftingMenu {
+impl<'a> CraftingMenu<'a> {
+    pub fn new(parent: &'a GameMenu, game: Rc<RefCell<Game>>) -> CraftingMenu<'a> {
+        let gameref =  game.borrow(); 
+        let inventory =  gameref.get_player_actor().unwrap().inventory;
+        let recipes = Self::get_all_recipes(gameref.data); 
         CraftingMenu {
-            inventory: game.get_player_actor().unwrap().inventory,
-            recipes: Self::get_all_recipes(game.data),
-            game,
+            parent: parent,
+            inventory,
+            recipes,
+            game: game.clone(),
         }
     }
 
@@ -40,17 +47,18 @@ pub enum CraftingMenuOptions {
     Exit,
 }
 use crossterm::event::KeyCode;
-use ratatui::widgets::{List, ListItem};
+use ratatui::{style::{Color, Stylize}, widgets::{List, ListItem}};
 use CraftingMenuOptions::*;
 
 impl MenuTrait for CraftingMenu<'_> {
     type MenuOptions = CraftingMenuOptions;
 
     fn draw(&self, frame: &mut ratatui::Frame) {
+        self.parent.draw(frame);
         let items = self
             .recipes
             .iter()
-            .map(|i| ListItem::new(i.definition.name.clone()));
+            .map(|i| ListItem::new(i.definition.name.clone().bg(Color::Black)));
         let list = List::new(items);
         frame.render_widget(list, frame.area());
     }
@@ -64,7 +72,7 @@ impl MenuTrait for CraftingMenu<'_> {
                 Some(Exit) => break,
                 Some(Craft(idx)) => {
                     if let Some(entry) = self.recipes.get(idx) {
-                        self.game
+                        self.game.borrow_mut()
                             .player_action(Action {
                                 direction: Direction::Relative(RelativeDirection::F),
                                 action: SubAction::Craft(entry.definition),

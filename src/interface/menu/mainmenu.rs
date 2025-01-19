@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{
     datatypes::Coordinate, engine::update::Updatable, game_state::game::Game,
     inventory::Item, static_data::StaticData,
@@ -8,7 +10,7 @@ use ratatui::{widgets::Paragraph, DefaultTerminal, Frame};
 use super::{gamemenu::GameMenu, MenuTrait};
 
 pub struct MainMenu {
-    pub game: Option<Game>,
+    pub game: Option<Rc<RefCell<Game>>>,
     pub data: &'static StaticData,
 }
 
@@ -33,7 +35,7 @@ impl MainMenu {
             .mut_set(&Coordinate { x: 10, y: 5 }, &[Some(foo)])
             .unwrap();
 
-        self.game = Some(game);
+        self.game = Some(Rc::new(RefCell::new(game)));
     }
 
     pub fn start_or_continue(&mut self) {
@@ -71,7 +73,7 @@ impl MenuTrait for MainMenu {
                 Some(Start) => {
                     self.start_or_continue();
                     let mut game_ui =
-                        GameMenu::new(self.game.as_mut().expect("Game Object Missing"));
+                        GameMenu::new(self.game.as_mut().expect("Game Object Missing").clone());
                     game_ui.call(terminal);
                 }
                 None => {}
