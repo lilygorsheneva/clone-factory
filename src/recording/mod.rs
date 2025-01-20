@@ -9,6 +9,7 @@ pub mod interface;
 pub struct Recording {
     pub command_list: Vec<Action>,
     pub inventory: BasicInventory,
+    pub should_loop: bool
 }
 
 impl Recording {
@@ -16,6 +17,7 @@ impl Recording {
         Recording {
             command_list: Vec::new(),
             inventory: Default::default(),
+            should_loop: false,
         }
     }
 
@@ -23,6 +25,7 @@ impl Recording {
         Recording {
             command_list: Vec::new(),
             inventory: actor.inventory,
+            should_loop: false
         }
     }
 

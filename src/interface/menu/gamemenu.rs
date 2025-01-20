@@ -119,20 +119,20 @@ impl MenuTrait for GameMenu {
         }
     }
 
-    fn call(&mut self, term: &mut DefaultTerminal) {
+    fn call(&mut self, terminal: &mut DefaultTerminal) {
         loop {
-            term.draw(|frame| self.draw(frame)).unwrap();
+            terminal.draw(|frame| self.draw(frame)).unwrap();
 
             match self.read() {
                 None => {}
                 Some(GameFn(fun)) => fun(&mut self.game.borrow_mut()).unwrap(),
                 Some(Craft) => {
                     let mut cmenu = CraftingMenu::new(self, self.game.clone());
-                    cmenu.call(term);
+                    cmenu.call(terminal);
                 }
                 Some(Record) => {
                     let mut rmenu = RecordingMenu::new(self, self.game.clone());
-                    rmenu.call(term);
+                    rmenu.call(terminal);
                 }
 
                 Some(Exit) => break,

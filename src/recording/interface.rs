@@ -12,7 +12,10 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crossterm::event::KeyCode;
-use ratatui::widgets::Paragraph;
+use ratatui::{
+    layout::{self, Constraint, Layout},
+    widgets::{Block, Paragraph},
+};
 
 use super::{
     db::{RecordingDb, RecordingId},
@@ -25,6 +28,7 @@ use crate::{
         Result,
         Status::{ActionFail, Error},
     },
+    inventory,
     static_data::StaticData,
 };
 use crate::{
@@ -62,19 +66,30 @@ impl RecordingModule {
     }
 
     // Start recording.
-    pub fn init_record(game: &mut Game) -> Result<()> {
-        match game.recordings.current_recording {
-            Some(_) => Err(Error("Attempted to initialize recording twice")),
-            None => {
-                let actor = game.get_player_actor()?;
-                game.recordings.current_recording = Some(Recording::from_creator(actor));
-                Ok(())
-            }
+    pub fn init_record(game: &mut Game, idx: usize) -> Result<GameUpdate> {
+        if game.recordings.current_recording.is_some() {
+            return Err(Error("Attempted to initialize recording twice"));
         }
+
+        let player = game.get_player_actor()?;
+        let coords = game.get_player_coords()?;
+
+        let mut item = player.inventory.get_items()[idx].ok_or(ActionFail("No item"))?;
+        // TODO clean up this check.
+        if item.definition.name != "Empty Recorder" {
+            return Err(ActionFail("Item is not an emtpy recorder"));
+        }
+        item.quantity = 1;
+
+        let ret = devtools::remove_item(item, coords, game);
+        if ret.is_ok() {
+            game.recordings.current_recording = Some(Recording::from_creator(player));
+        }
+        ret
     }
 
     // End recording.
-    pub fn end_record(game: &mut Game) -> Result<()> {
+    pub fn end_record(game: &mut Game, should_loop: bool) -> Result<()> {
         let recording = game
             .recordings
             .current_recording
@@ -85,6 +100,8 @@ impl RecordingModule {
             .items
             .get(&"basic_cloner".to_string())
             .ok_or(Error("unable to get basic cloner definition"))?;
+        let mut recording = recording.clone();
+        recording.should_loop = should_loop;
 
         let id = game.recordings.recordings.register_recording(recording);
         let new_cloner = Item::new_cloner(cloner_def, id);
@@ -123,14 +140,46 @@ pub enum RecordingMenuOptions {
     Loop,
     Die,
     Take,
+    Use(usize),
 }
 
 impl MenuTrait for RecordingMenu<'_> {
     type MenuOptions = RecordingMenuOptions;
 
     fn draw(&self, frame: &mut ratatui::Frame) {
-        let widget = Paragraph::new("L: loop recording.\n D: do not loop recording.");
-        frame.render_widget(widget, frame.area());
+        let mut entries = Vec::new();
+        let recording_module = &self.game.borrow().recordings;
+
+        entries.push(
+            Paragraph::new("Welcome to the record-o-matic recording system.")
+                .block(Block::bordered()),
+        );
+        if recording_module.current_recording.is_some() {
+            entries.push(
+                Paragraph::new("L: loop recording.\n D: do not loop recording.")
+                    .block(Block::bordered()),
+            );
+        } else {
+            entries.push(
+                Paragraph::new("1-5: start a recording using this empty recorder.")
+                    .block(Block::bordered()),
+            );
+        }
+
+        if recording_module.temp_item.is_some() {
+            entries.push(
+                Paragraph::new("T: add latest recording to inventory.").block(Block::bordered()),
+            );
+        }
+
+        let layout = Layout::default()
+            .direction(layout::Direction::Vertical)
+            .constraints(vec![Constraint::Min(1); entries.len()])
+            .split(frame.area());
+
+        for i in 0..entries.len() {
+            frame.render_widget(&entries[i], layout[i]);
+        }
     }
 
     fn parsekey(&self, key: crossterm::event::KeyEvent) -> Option<Self::MenuOptions> {
@@ -138,24 +187,53 @@ impl MenuTrait for RecordingMenu<'_> {
             KeyCode::Esc => Some(Exit),
             KeyCode::Char('l') => Some(Loop),
             KeyCode::Char('d') => Some(Die),
+            KeyCode::Char('t') => Some(Take),
+            KeyCode::Char('1') => Some(Use(0)),
+            KeyCode::Char('2') => Some(Use(1)),
+            KeyCode::Char('3') => Some(Use(2)),
+            KeyCode::Char('4') => Some(Use(3)),
+            KeyCode::Char('5') => Some(Use(4)),
             _ => None,
         }
     }
 
     fn call(&mut self, terminal: &mut ratatui::DefaultTerminal) {
-        let mut game = self.game.borrow_mut();
-        let recorder = &game.recordings;
-        match recorder.current_recording {
-            None => RecordingModule::init_record(&mut game),
-            Some(_) => {
-                RecordingModule::end_record(&mut game).unwrap();
-                if let Ok(update) = RecordingModule::take_item(&mut game) {
-                    game.apply_update(update)
-                } else {
-                    Ok(())
+        loop {
+            terminal.draw(|frame| self.draw(frame)).unwrap();
+            let mut game = self.game.borrow_mut();
+            let recording_module = &game.recordings;
+
+            match self.read() {
+                Some(Exit) => break,
+                Some(Use(i)) if recording_module.current_recording.is_none() => {
+                    let update = RecordingModule::init_record(&mut game, i).unwrap();
+                    game.apply_update(update);
+                    break;
                 }
+                Some(Loop) if recording_module.current_recording.is_some() => {
+                    RecordingModule::end_record(&mut game, true).unwrap();
+                }
+                Some(Die) if recording_module.current_recording.is_some() => {
+                    RecordingModule::end_record(&mut game, false).unwrap();
+                }
+                Some(Take) if recording_module.temp_item.is_some() => {
+                    let update = RecordingModule::take_item(&mut game).unwrap();
+                    game.apply_update(update);
+                    break;
+                }
+                _ => {}
             }
-        }.unwrap();
+        }
+        // match recorder.current_recording {
+        //     None => game.apply_update(RecordingModule::init_record(&mut game)),
+        //     Some(_) => {
+        //         RecordingModule::end_record(&mut game, true).unwrap();
+        //         if let Ok(update) = RecordingModule::take_item(&mut game) {
+        //             game.apply_update(update)
+        //         } else {
+        //             Ok(())
+        //         }
+        //     }
+        // }.unwrap();
     }
 }
-

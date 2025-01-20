@@ -158,6 +158,7 @@ impl Game {
     pub fn do_npc_turns(&mut self) -> Result<()> {
         while let Some(actor) = self.actors.get_next_actor() {
             let recording: &Recording = self.recordings.get(actor.recording);
+            // handle looping here.
             let action = recording.at(actor.command_idx);
             actor.command_idx += 1;
             let res = action::execute_action(*actor, action, self);
@@ -266,7 +267,7 @@ mod tests {
 
         let sample_recording_id = game
         .recordings.recordings
-        .register_recording(&Recording{command_list: actions, inventory: Default::default()});
+        .register_recording(Recording{command_list: actions, inventory: Default::default(), should_loop:true});
         let cloner_def = data.items.get(&"basic_cloner".to_string()).unwrap();
         let new_cloner = Item::new_cloner(cloner_def, sample_recording_id);
         let update = devtools::grant_item(new_cloner, game.get_player_coords().unwrap(), &game).unwrap();

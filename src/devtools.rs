@@ -32,7 +32,8 @@ pub fn make_sample_recording() -> Recording {
                 action: SubAction::Move,
             },
         ],
-        inventory: Default::default()
+        inventory: Default::default(),
+        should_loop: true
     }
 }
 
@@ -51,6 +52,27 @@ pub fn grant_item(
         ) => {
             let mut actor = actor.clone();
             actor.inventory.insert(item)?;
+
+            update.world.actor_updates.set(&location, &Some(actor))?;
+            Ok(update)
+        }
+    }
+}
+
+pub fn remove_item(
+    item: Item,
+    location: Coordinate,
+    game: &Game,
+) -> Result<GameUpdate> {
+    let mut update: GameUpdate = game.new_update();
+    let actor  = update.world.actor_updates.get(&game.world.actors, &location)?;
+
+    match actor{
+        None => Err(Error("actor Missing")),
+        Some(actor 
+        ) => {
+            let mut actor = actor.clone();
+            actor.inventory.remove(item)?;
 
             update.world.actor_updates.set(&location, &Some(actor))?;
             Ok(update)

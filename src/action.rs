@@ -319,9 +319,10 @@ mod tests {
             },
         ];
 
-        let sample_recording_id = game.recordings.recordings.register_recording(&Recording {
+        let sample_recording_id = game.recordings.recordings.register_recording(Recording {
             command_list: actions,
             inventory: Default::default(),
+            should_loop: true
         });
         let cloner_def = data.items.get(&"basic_cloner".to_string()).unwrap();
         let new_cloner = Item::new_cloner(cloner_def, sample_recording_id);

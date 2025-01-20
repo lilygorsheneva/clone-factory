@@ -20,8 +20,8 @@ impl RecordingId {
 }
 
 impl RecordingDb {
-    pub fn register_recording(&mut self, recording: &Recording) -> RecordingId {
-        self.recordings.push(recording.clone());
+    pub fn register_recording(&mut self, recording: Recording) -> RecordingId {
+        self.recordings.push(recording);
         RecordingId {
             idx: self.recordings.len() - 1,
         }

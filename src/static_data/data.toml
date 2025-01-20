@@ -57,9 +57,9 @@
     product_count = 1
     name = "Echo Crystal"
 
-[recipes.basic_cloner]
+[recipes.recorder]
     ingredients = ["echo_crystal"]
     ingredient_counts = [1]
-    product = "basic_cloner"
+    product = "recorder"
     product_count = 1
-    name = "Basic Cloner"
+    name = "Empty Recorder"
