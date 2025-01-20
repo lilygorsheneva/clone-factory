@@ -75,7 +75,7 @@ impl MenuTrait for CraftingMenu<'_> {
                     if let Some(entry) = self.recipes.get(idx) {
                         self.game
                             .borrow_mut()
-                            .player_action(Action {
+                            .player_action_and_turn(Action {
                                 direction: Direction::Relative(RelativeDirection::F),
                                 action: SubAction::Craft(entry.definition),
                             })

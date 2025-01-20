@@ -199,10 +199,8 @@ impl Game {
     pub fn player_action(&mut self, action: action::Action) -> Result<()> {
         let actor_ref = self.actors.get_player()?;
 
-        self.recordings.append(action);
-
         match action::execute_action(actor_ref, action, self) {
-            Ok(update) => self.apply_update(update),
+            Ok(update) => {self.recordings.append(action); self.apply_update(update)},
             Err(ActionFail(_)) => Ok(()), // Call fallback action.
             Err(res) => Err(res),
         }
