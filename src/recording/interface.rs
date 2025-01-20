@@ -23,13 +23,10 @@ use super::{
 };
 use crate::{
     action::{self, Action},
-    engine::update,
     error::{
-        Result,
-        Status::{ActionFail, Error},
-    },
-    inventory,
-    static_data::StaticData,
+         OkOrPopup, Result, Status::{ActionFail, Error}
+    }, game_state::game::ApplyOrPopup,
+
 };
 use crate::{
     devtools,
@@ -206,34 +203,21 @@ impl MenuTrait for RecordingMenu<'_> {
             match self.read() {
                 Some(Exit) => break,
                 Some(Use(i)) if recording_module.current_recording.is_none() => {
-                    let update = RecordingModule::init_record(&mut game, i).unwrap();
-                    game.apply_update(update);
+                    RecordingModule::init_record(&mut game, i).apply_or_popup(&mut game, terminal);
                     break;
                 }
                 Some(Loop) if recording_module.current_recording.is_some() => {
-                    RecordingModule::end_record(&mut game, true).unwrap();
+                    RecordingModule::end_record(&mut game, true).ok_or_popup(terminal);
                 }
                 Some(Die) if recording_module.current_recording.is_some() => {
-                    RecordingModule::end_record(&mut game, false).unwrap();
+                    RecordingModule::end_record(&mut game, false).ok_or_popup(terminal);
                 }
                 Some(Take) if recording_module.temp_item.is_some() => {
-                    let update = RecordingModule::take_item(&mut game).unwrap();
-                    game.apply_update(update);
+                    RecordingModule::take_item(&mut game).apply_or_popup(&mut game, terminal);
                     break;
                 }
                 _ => {}
             }
         }
-        // match recorder.current_recording {
-        //     None => game.apply_update(RecordingModule::init_record(&mut game)),
-        //     Some(_) => {
-        //         RecordingModule::end_record(&mut game, true).unwrap();
-        //         if let Ok(update) = RecordingModule::take_item(&mut game) {
-        //             game.apply_update(update)
-        //         } else {
-        //             Ok(())
-        //         }
-        //     }
-        // }.unwrap();
     }
 }

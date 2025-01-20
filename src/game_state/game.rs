@@ -1,6 +1,10 @@
 //! Game state container, combining world state with other data containers.
 
+use ratatui::DefaultTerminal;
+
 use crate::engine::update::Updatable;
+use crate::error::Status;
+use crate::interface::menu::MenuTrait;
 use crate::recording::interface::RecordingModule;
 use crate::{action, devtools};
 use crate::actor::{Actor, ActorRef};
@@ -102,9 +106,35 @@ pub struct Game {
 // Most operations on the game can be performed with an immutable game and a mutable update.
 // Muate game state with game.apply_update(update).
 #[derive(Debug)]
+#[must_use = "Valid game update objects must be used."]
 pub struct GameUpdate {
     pub world: WorldUpdate,
     pub actors: ActorDbUpdate,
+}
+
+impl GameUpdate {
+    pub fn apply_update(self, game: &mut Game) -> Result<()> {
+        game.apply_update(self)
+    }
+}
+pub trait ApplyOrPopup {
+    fn apply_or_popup(self, game: &mut Game, terminal: &mut DefaultTerminal);
+}
+
+impl ApplyOrPopup for Result<GameUpdate> {
+    fn apply_or_popup(self, game: &mut Game, terminal: &mut DefaultTerminal) {
+        match self {
+            Ok(update) => {
+                let new_result = game.apply_update(update);
+                if let Err(err) = new_result {
+                    err.clone().call(terminal);
+                    panic!("Error applying game update.")
+                }
+            },
+            Err(ActionFail(msg)) => ActionFail(msg).call(terminal),
+            Err(status) => { status.clone().call(terminal); panic!("Uncaught error when generating game update.")}
+        };
+    }
 }
 
 impl Game {
@@ -209,7 +239,7 @@ impl Game {
 mod tests {
     use action::{Action, SubAction};
 
-    use crate::direction::{AbsoluteDirection, Direction::Absolute};
+    use crate::{direction::{AbsoluteDirection, Direction::Absolute}, recording};
 
     use super::*;
 
@@ -220,7 +250,15 @@ mod tests {
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
 
-        RecordingModule::init_record(&mut game).unwrap();
+        let recorder_def = data.items.get(&"recorder".to_string()).unwrap();
+        let item = Item::new(recorder_def, 1);
+        let update = devtools::grant_item(item, game.get_player_coords().unwrap(), &game).unwrap();
+        game.apply_update(update).unwrap();
+
+
+        let update = RecordingModule::init_record(&mut game, 0).unwrap();
+        game.apply_update(update).unwrap();
+
 
         let actions = [
             Action {
@@ -236,7 +274,10 @@ mod tests {
         game.player_action(actions[0]).unwrap();
         game.player_action(actions[1]).unwrap();
 
-        RecordingModule::init_record(&mut game).unwrap();
+        RecordingModule::end_record(&mut game, false).unwrap();
+        let update = RecordingModule::take_item(&mut game).unwrap();
+        game.apply_update(update).unwrap();
+
 
         // This is really ugly. Perhaps recording needs a nicer API.
         let actor = game

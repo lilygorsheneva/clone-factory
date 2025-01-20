@@ -16,9 +16,9 @@ mod static_data;
 mod recording;
 
 fn main() {
-    let mut terminal = interface::render::init_render();
+    let mut terminal = interface::widgets::init_render();
 
     let mut menu = interface::menu::mainmenu::MainMenu::new();
     menu.call(&mut terminal);
-    interface::render::deinit_render();
+    interface::widgets::deinit_render();
 }

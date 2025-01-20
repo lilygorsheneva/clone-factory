@@ -6,7 +6,7 @@ use ratatui::{DefaultTerminal, Frame};
 use crate::{
     action::{Action, SubAction},
     game_state::game::Game,
-    interface::render::{generate_main_layout, ItemBar, WorldWindowWidget}, recording::interface::RecordingMenu,
+    interface::widgets::{generate_main_layout, ItemBar, WorldWindowWidget}, recording::interface::RecordingMenu,
 };
 
 use crate::direction::{

@@ -1,7 +1,7 @@
 //! Functions for loading external game data.
 
 use crate::action::{ItemUseFn, get_use_fn_table};
-use crate::interface::render::get_color_map;
+use crate::interface::widgets::get_color_map;
 use map::StaticDataMap;
 use ratatui::style::Color;
 use serde_derive::Deserialize;
