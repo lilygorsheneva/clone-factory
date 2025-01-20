@@ -24,9 +24,14 @@ use super::{
 use crate::{
     action::Action,
     error::{
-         OkOrPopup, Result, Status::{ActionFail, Error}
-    }, game_state::game::ApplyOrPopup, interface::{menu::UILayer, widgets::{generate_main_layout, generate_popup_layout}},
-
+        OkOrPopup, Result,
+        Status::{ActionFail, Error},
+    },
+    game_state::game::ApplyOrPopup,
+    interface::{
+        menu::UILayer,
+        widgets::{generate_popup_layout},
+    },
 };
 use crate::{
     devtools,
@@ -37,6 +42,7 @@ use crate::{
 
 use RecordingMenuOptions::*;
 
+// TODO: implement update struct so that functions operating on this don't need a refcell, maybe?
 pub struct RecordingModule {
     pub recordings: RecordingDb,
     pub current_recording: Option<Recording>,
@@ -63,7 +69,8 @@ impl RecordingModule {
     }
 
     // Start recording.
-    pub fn init_record(game: &mut Game, idx: usize) -> Result<GameUpdate> {
+    pub fn init_record(game: &RefCell<Game>, idx: usize) -> Result<GameUpdate> {
+        let mut game = game.borrow_mut();
         if game.recordings.current_recording.is_some() {
             return Err(Error("Attempted to initialize recording twice"));
         }
@@ -78,7 +85,7 @@ impl RecordingModule {
         }
         item.quantity = 1;
 
-        let ret = devtools::remove_item(item, coords, game);
+        let ret = devtools::remove_item(item, coords, &game);
         if ret.is_ok() {
             game.recordings.current_recording = Some(Recording::from_creator(player));
         }
@@ -86,7 +93,9 @@ impl RecordingModule {
     }
 
     // End recording.
-    pub fn end_record(game: &mut Game, should_loop: bool) -> Result<()> {
+    pub fn end_record(game:&RefCell<Game>,  should_loop: bool) -> Result<()> {
+        let mut game = game.borrow_mut();
+
         let recording = game
             .recordings
             .current_recording
@@ -108,13 +117,15 @@ impl RecordingModule {
     }
 
     // TODO Currently bugged; items will stack.
-    pub fn take_item(game: &mut Game) -> Result<GameUpdate> {
+    pub fn take_item(game:&RefCell<Game>,) -> Result<GameUpdate> {
+        let mut game = game.borrow_mut();
+
         let item = game
             .recordings
             .temp_item
             .ok_or(ActionFail("no cloner to take"))?;
         let location = game.get_player_coords()?;
-        devtools::grant_item(item, location, game)
+        devtools::grant_item(item, location, &game)
     }
 }
 
@@ -183,7 +194,6 @@ impl UILayer for RecordingMenu<'_> {
 
 impl MenuTrait for RecordingMenu<'_> {
     type MenuOptions = RecordingMenuOptions;
-   
 
     fn parsekey(&self, key: crossterm::event::KeyEvent) -> Option<Self::MenuOptions> {
         match key.code {
@@ -203,23 +213,32 @@ impl MenuTrait for RecordingMenu<'_> {
     fn enter_menu(&mut self, terminal: &mut ratatui::DefaultTerminal) {
         loop {
             terminal.draw(|frame| self.draw(frame)).unwrap();
-            let mut game = self.game.borrow_mut();
-            let recording_module = &game.recordings;
+            let current_rec;
+            let temp_item;
+            {
+                let recording_module = &self.game.borrow().recordings;
+                current_rec = recording_module.current_recording.is_some();
+                temp_item = recording_module.temp_item.is_some();
+            }
 
             match self.read() {
                 Some(Exit) => break,
-                Some(Use(i)) if recording_module.current_recording.is_none() => {
-                    RecordingModule::init_record(&mut game, i).apply_or_popup(&mut game, self, terminal);
+                Some(Use(i)) if !current_rec => {
+                    RecordingModule::init_record(&self.game, i)
+                        .apply_or_popup(&self.game, self, terminal);
                     break;
                 }
-                Some(Loop) if recording_module.current_recording.is_some() => {
-                    RecordingModule::end_record(&mut game, true).ok_or_popup(self, terminal);
+                Some(Loop) if current_rec => {
+                    RecordingModule::end_record(&self.game, true)
+                        .ok_or_popup(self, terminal);
                 }
-                Some(Die) if recording_module.current_recording.is_some() => {
-                    RecordingModule::end_record(&mut game, false).ok_or_popup(self, terminal);
+                Some(Die) if current_rec => {
+                    RecordingModule::end_record(&self.game, false)
+                        .ok_or_popup(self, terminal);
                 }
-                Some(Take) if recording_module.temp_item.is_some() => {
-                    RecordingModule::take_item(&mut game).apply_or_popup(&mut game, self, terminal);
+                Some(Take) if temp_item => {
+                    RecordingModule::take_item(&self.game)
+                        .apply_or_popup(&self.game, self, terminal);
                     break;
                 }
                 _ => {}

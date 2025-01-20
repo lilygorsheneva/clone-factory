@@ -20,6 +20,7 @@ use crate::{
     datatypes::Coordinate,
     game_state::world::{World, WorldUpdate},
 };
+use std::cell::RefCell;
 use std::collections::VecDeque;
 
 // Move the WorldActors struct out to a dedicated module.
@@ -112,13 +113,13 @@ pub struct GameUpdate {
 }
 
 pub trait ApplyOrPopup {
-    fn apply_or_popup(self, game: &mut Game, parent: &dyn UILayer,  terminal: &mut DefaultTerminal);    }
+    fn apply_or_popup(self, game: &RefCell<Game>, parent: &dyn UILayer,  terminal: &mut DefaultTerminal);    }
 
 impl ApplyOrPopup for Result<GameUpdate> {
-    fn apply_or_popup(self, game: &mut Game, parent: &dyn UILayer,  terminal: &mut DefaultTerminal) {
+    fn apply_or_popup(self, game: &RefCell<Game>, parent: &dyn UILayer,  terminal: &mut DefaultTerminal) {
         match self {
             Ok(update) => {
-                let new_result = game.apply_update(update);
+                let new_result = game.borrow_mut().apply_update(update);
                 if let Err(err) = new_result {
                     StatusMenu::new(err, parent).enter_menu(terminal);
                     panic!("Error applying game update.")
