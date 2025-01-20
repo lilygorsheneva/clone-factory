@@ -1,14 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    action::{Action, SubAction},
-    direction::{Direction, RelativeDirection},
-    game_state::game::Game,
-    inventory::BasicInventory,
-    static_data::{RecipeDefiniton, StaticData},
+    action::{Action, SubAction}, direction::{Direction, RelativeDirection}, game_state::game::Game, interface::widgets::generate_popup_layout, inventory::BasicInventory, static_data::{RecipeDefiniton, StaticData}
 };
 
-use super::{gamemenu::GameMenu, MenuTrait};
+use super::{gamemenu::GameMenu, MenuTrait, UILayer};
 
 pub struct CraftingMenu<'a> {
     parent: &'a GameMenu,
@@ -23,9 +19,9 @@ pub struct CraftingMenuEntry {
 
 impl<'a> CraftingMenu<'a> {
     pub fn new(parent: &'a GameMenu, game: Rc<RefCell<Game>>) -> CraftingMenu<'a> {
-        let gameref =  game.borrow(); 
-        let inventory =  gameref.get_player_actor().unwrap().inventory;
-        let recipes = Self::get_all_recipes(gameref.data); 
+        let gameref = game.borrow();
+        let inventory = gameref.get_player_actor().unwrap().inventory;
+        let recipes = Self::get_all_recipes(gameref.data);
         CraftingMenu {
             parent: parent,
             inventory,
@@ -47,12 +43,13 @@ pub enum CraftingMenuOptions {
     Exit,
 }
 use crossterm::event::KeyCode;
-use ratatui::{style::{Color, Stylize}, widgets::{List, ListItem}};
+use ratatui::{
+    style::{Color, Stylize},
+    widgets::{List, ListItem},
+};
 use CraftingMenuOptions::*;
 
-impl MenuTrait for CraftingMenu<'_> {
-    type MenuOptions = CraftingMenuOptions;
-
+impl UILayer for CraftingMenu<'_> {
     fn draw(&self, frame: &mut ratatui::Frame) {
         self.parent.draw(frame);
         let items = self
@@ -60,10 +57,14 @@ impl MenuTrait for CraftingMenu<'_> {
             .iter()
             .map(|i| ListItem::new(i.definition.name.clone().bg(Color::Black)));
         let list = List::new(items);
-        frame.render_widget(list, frame.area());
+        frame.render_widget(list, generate_popup_layout(frame));
     }
+}
 
-    fn call(&mut self, terminal: &mut ratatui::DefaultTerminal) {
+impl MenuTrait for CraftingMenu<'_> {
+    type MenuOptions = CraftingMenuOptions;
+
+    fn enter_menu(&mut self, terminal: &mut ratatui::DefaultTerminal) {
         loop {
             terminal.draw(|frame| self.draw(frame)).unwrap();
 
@@ -72,7 +73,8 @@ impl MenuTrait for CraftingMenu<'_> {
                 Some(Exit) => break,
                 Some(Craft(idx)) => {
                     if let Some(entry) = self.recipes.get(idx) {
-                        self.game.borrow_mut()
+                        self.game
+                            .borrow_mut()
                             .player_action(Action {
                                 direction: Direction::Relative(RelativeDirection::F),
                                 action: SubAction::Craft(entry.definition),

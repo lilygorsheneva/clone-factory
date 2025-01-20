@@ -15,7 +15,7 @@ use crate::direction::{
     RelativeDirection::F,
 };
 
-use super::{craftingmenu::CraftingMenu, GameFn, MenuTrait};
+use super::{craftingmenu::CraftingMenu, GameFn, MenuTrait, UILayer};
 
 pub struct GameMenu {
     game: Rc<RefCell<Game>>,
@@ -35,19 +35,21 @@ impl GameMenu {
     }
 }
 
-impl MenuTrait for GameMenu {
-    type MenuOptions = GameMenuOptions;
-
+impl UILayer for GameMenu {
     fn draw(&self, frame: &mut Frame) {
         let game = self.game.borrow();
         let window = WorldWindowWidget::new(&game);
         let item_widget = ItemBar::new(&game);
 
-        let (main, side, bottom, _corner) = generate_main_layout(frame.area());
+        let (main, _side, bottom, _corner) = generate_main_layout(frame);
 
         frame.render_widget(item_widget, bottom);
         frame.render_widget(window, main);
     }
+}
+
+impl MenuTrait for GameMenu {
+    type MenuOptions = GameMenuOptions;
 
     fn parsekey(&self, key: KeyEvent) -> Option<Self::MenuOptions> {
         match key.code {
@@ -119,7 +121,7 @@ impl MenuTrait for GameMenu {
         }
     }
 
-    fn call(&mut self, terminal: &mut DefaultTerminal) {
+    fn enter_menu(&mut self, terminal: &mut DefaultTerminal) {
         loop {
             terminal.draw(|frame| self.draw(frame)).unwrap();
 
@@ -128,11 +130,11 @@ impl MenuTrait for GameMenu {
                 Some(GameFn(fun)) => fun(&mut self.game.borrow_mut()).unwrap(),
                 Some(Craft) => {
                     let mut cmenu = CraftingMenu::new(self, self.game.clone());
-                    cmenu.call(terminal);
+                    cmenu.enter_menu(terminal);
                 }
                 Some(Record) => {
                     let mut rmenu = RecordingMenu::new(self, self.game.clone());
-                    rmenu.call(terminal);
+                    rmenu.enter_menu(terminal);
                 }
 
                 Some(Exit) => break,

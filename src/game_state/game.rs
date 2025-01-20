@@ -3,14 +3,13 @@
 use ratatui::DefaultTerminal;
 
 use crate::engine::update::Updatable;
-use crate::error::Status;
-use crate::interface::menu::MenuTrait;
+use crate::error::StatusMenu;
+use crate::interface::menu::{MenuTrait, UILayer};
 use crate::recording::interface::RecordingModule;
-use crate::{action, devtools};
+use crate::action;
 use crate::actor::{Actor, ActorRef};
 use crate::static_data::StaticData;
-use crate::inventory::Item;
-use crate::recording::{Recording, db::RecordingDb};
+use crate::recording::{Recording};
 
 use crate::game_state::db::{ActorDb, ActorDbUpdate, ActorId};
 use crate::error::{
@@ -112,27 +111,21 @@ pub struct GameUpdate {
     pub actors: ActorDbUpdate,
 }
 
-impl GameUpdate {
-    pub fn apply_update(self, game: &mut Game) -> Result<()> {
-        game.apply_update(self)
-    }
-}
 pub trait ApplyOrPopup {
-    fn apply_or_popup(self, game: &mut Game, terminal: &mut DefaultTerminal);
-}
+    fn apply_or_popup(self, game: &mut Game, parent: &dyn UILayer,  terminal: &mut DefaultTerminal);    }
 
 impl ApplyOrPopup for Result<GameUpdate> {
-    fn apply_or_popup(self, game: &mut Game, terminal: &mut DefaultTerminal) {
+    fn apply_or_popup(self, game: &mut Game, parent: &dyn UILayer,  terminal: &mut DefaultTerminal) {
         match self {
             Ok(update) => {
                 let new_result = game.apply_update(update);
                 if let Err(err) = new_result {
-                    err.clone().call(terminal);
+                    StatusMenu::new(err, parent).enter_menu(terminal);
                     panic!("Error applying game update.")
                 }
             },
-            Err(ActionFail(msg)) => ActionFail(msg).call(terminal),
-            Err(status) => { status.clone().call(terminal); panic!("Uncaught error when generating game update.")}
+            Err(ActionFail(msg)) => StatusMenu::new(ActionFail(msg), parent).enter_menu(terminal),
+            Err(status) => {StatusMenu::new(status, parent).enter_menu(terminal); panic!("Uncaught error when generating game update.")}
         };
     }
 }
@@ -239,7 +232,7 @@ impl Game {
 mod tests {
     use action::{Action, SubAction};
 
-    use crate::{direction::{AbsoluteDirection, Direction::Absolute}, recording};
+    use crate::{devtools, direction::{AbsoluteDirection, Direction::Absolute}, inventory::Item};
 
     use super::*;
 

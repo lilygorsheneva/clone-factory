@@ -19,6 +19,6 @@ fn main() {
     let mut terminal = interface::widgets::init_render();
 
     let mut menu = interface::menu::mainmenu::MainMenu::new();
-    menu.call(&mut terminal);
+    menu.enter_menu(&mut terminal);
     interface::widgets::deinit_render();
 }

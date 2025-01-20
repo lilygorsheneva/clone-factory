@@ -9,12 +9,14 @@ pub mod craftingmenu;
 
 pub type GameFn = dyn Fn(&mut Game) -> Result<()>;
 
+pub trait UILayer {
+    fn draw(&self, frame: &mut Frame);
+}
 
-pub trait MenuTrait {
+pub trait MenuTrait: UILayer {
     type MenuOptions;
 
-    fn draw(&self, frame: &mut Frame);
-    fn call(&mut self, terminal: &mut DefaultTerminal);
+    fn enter_menu(&mut self, terminal: &mut DefaultTerminal);
 
     fn parsekey(&self, key: KeyEvent) ->  Option<Self::MenuOptions> ;
 

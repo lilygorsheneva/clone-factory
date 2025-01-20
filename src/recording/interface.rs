@@ -22,16 +22,16 @@ use super::{
     Recording,
 };
 use crate::{
-    action::{self, Action},
+    action::Action,
     error::{
          OkOrPopup, Result, Status::{ActionFail, Error}
-    }, game_state::game::ApplyOrPopup,
+    }, game_state::game::ApplyOrPopup, interface::{menu::UILayer, widgets::{generate_main_layout, generate_popup_layout}},
 
 };
 use crate::{
     devtools,
     game_state::game::{Game, GameUpdate},
-    interface::menu::{gamemenu::GameMenu, MenuTrait},
+    interface::menu::MenuTrait,
     inventory::Item,
 };
 
@@ -119,12 +119,12 @@ impl RecordingModule {
 }
 
 pub struct RecordingMenu<'a> {
-    parent: &'a GameMenu,
+    parent: &'a dyn UILayer,
     game: Rc<RefCell<Game>>,
 }
 
 impl<'a> RecordingMenu<'a> {
-    pub fn new(parent: &'a GameMenu, game: Rc<RefCell<Game>>) -> RecordingMenu<'a> {
+    pub fn new(parent: &'a dyn UILayer, game: Rc<RefCell<Game>>) -> RecordingMenu<'a> {
         RecordingMenu {
             parent: parent,
             game: game.clone(),
@@ -140,10 +140,10 @@ pub enum RecordingMenuOptions {
     Use(usize),
 }
 
-impl MenuTrait for RecordingMenu<'_> {
-    type MenuOptions = RecordingMenuOptions;
-
+impl UILayer for RecordingMenu<'_> {
     fn draw(&self, frame: &mut ratatui::Frame) {
+        self.parent.draw(frame);
+
         let mut entries = Vec::new();
         let recording_module = &self.game.borrow().recordings;
 
@@ -169,15 +169,21 @@ impl MenuTrait for RecordingMenu<'_> {
             );
         }
 
+        let area = generate_popup_layout(frame);
         let layout = Layout::default()
             .direction(layout::Direction::Vertical)
             .constraints(vec![Constraint::Min(1); entries.len()])
-            .split(frame.area());
+            .split(area);
 
         for i in 0..entries.len() {
             frame.render_widget(&entries[i], layout[i]);
         }
     }
+}
+
+impl MenuTrait for RecordingMenu<'_> {
+    type MenuOptions = RecordingMenuOptions;
+   
 
     fn parsekey(&self, key: crossterm::event::KeyEvent) -> Option<Self::MenuOptions> {
         match key.code {
@@ -194,7 +200,7 @@ impl MenuTrait for RecordingMenu<'_> {
         }
     }
 
-    fn call(&mut self, terminal: &mut ratatui::DefaultTerminal) {
+    fn enter_menu(&mut self, terminal: &mut ratatui::DefaultTerminal) {
         loop {
             terminal.draw(|frame| self.draw(frame)).unwrap();
             let mut game = self.game.borrow_mut();
@@ -203,17 +209,17 @@ impl MenuTrait for RecordingMenu<'_> {
             match self.read() {
                 Some(Exit) => break,
                 Some(Use(i)) if recording_module.current_recording.is_none() => {
-                    RecordingModule::init_record(&mut game, i).apply_or_popup(&mut game, terminal);
+                    RecordingModule::init_record(&mut game, i).apply_or_popup(&mut game, self, terminal);
                     break;
                 }
                 Some(Loop) if recording_module.current_recording.is_some() => {
-                    RecordingModule::end_record(&mut game, true).ok_or_popup(terminal);
+                    RecordingModule::end_record(&mut game, true).ok_or_popup(self, terminal);
                 }
                 Some(Die) if recording_module.current_recording.is_some() => {
-                    RecordingModule::end_record(&mut game, false).ok_or_popup(terminal);
+                    RecordingModule::end_record(&mut game, false).ok_or_popup(self, terminal);
                 }
                 Some(Take) if recording_module.temp_item.is_some() => {
-                    RecordingModule::take_item(&mut game).apply_or_popup(&mut game, terminal);
+                    RecordingModule::take_item(&mut game).apply_or_popup(&mut game, self, terminal);
                     break;
                 }
                 _ => {}

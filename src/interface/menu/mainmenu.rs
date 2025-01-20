@@ -7,7 +7,7 @@ use crate::{
 use crossterm::event::KeyCode;
 use ratatui::{widgets::Paragraph, DefaultTerminal, Frame};
 
-use super::{gamemenu::GameMenu, MenuTrait};
+use super::{gamemenu::GameMenu, MenuTrait, UILayer};
 
 pub struct MainMenu {
     pub game: Option<Rc<RefCell<Game>>>,
@@ -53,9 +53,7 @@ pub enum MainMenuOptions {
 
 use MainMenuOptions::*;
 
-impl MenuTrait for MainMenu {
-    type MenuOptions = MainMenuOptions;
-
+impl UILayer for MainMenu {
     fn draw(&self, frame: &mut Frame) {
         let text = match self.game {
             None => Paragraph::new("Enter: start/continue.\n Esc: Quit"),
@@ -63,7 +61,13 @@ impl MenuTrait for MainMenu {
         };
         frame.render_widget(text, frame.area());
     }
-    fn call(&mut self, terminal: &mut DefaultTerminal) {
+}
+
+impl MenuTrait for MainMenu {
+    type MenuOptions = MainMenuOptions;
+
+
+    fn enter_menu(&mut self, terminal: &mut DefaultTerminal) {
         loop {
             terminal.draw(|frame| self.draw(frame)).unwrap();
 
@@ -74,7 +78,7 @@ impl MenuTrait for MainMenu {
                     self.start_or_continue();
                     let mut game_ui =
                         GameMenu::new(self.game.as_mut().expect("Game Object Missing").clone());
-                    game_ui.call(terminal);
+                    game_ui.enter_menu(terminal);
                 }
                 None => {}
             }

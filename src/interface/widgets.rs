@@ -9,12 +9,12 @@ use crate::game_state::world::{World, WorldCell};
 use crate::inventory::{BasicInventory, Item};
 use crate::static_data::{ItemDefiniton, StaticData};
 use ratatui::buffer::Cell;
-use ratatui::layout::{Constraint, Direction, Layout, Rect};
+use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
 use ratatui::prelude::Buffer;
 use ratatui::style::{Color, Style};
 use ratatui::text::Line;
-use ratatui::widgets::{Block, Borders,  Paragraph, Widget};
-use ratatui::{self, DefaultTerminal};
+use ratatui::widgets::{Block, Borders, Paragraph, Widget};
+use ratatui::{self, DefaultTerminal, Frame};
 
 impl<'a> WorldCell<'a> {
     fn draw(&'a self, data: &StaticData, cell: &mut Cell) {
@@ -178,22 +178,25 @@ impl Widget for ItemBar {
     }
 }
 
-pub fn generate_main_layout(area: Rect) -> (Rect, Rect, Rect, Rect) {
-    let [tmp_main, tmp_side] = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Fill(1), Constraint::Length(20)])
+pub fn generate_popup_layout(frame: &Frame) -> Rect {
+    let [area] = Layout::horizontal([Constraint::Percentage(50)])
+        .flex(Flex::Center)
+        .areas(frame.area());
+    let [area] = Layout::vertical([Constraint::Percentage(50)])
+        .flex(Flex::Center)
         .areas(area);
+    area
+}
 
-    let [main, bottom] = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Fill(1), Constraint::Length(3)])
-        .areas(tmp_main);
+pub fn generate_main_layout(frame: &Frame) -> (Rect, Rect, Rect, Rect) {
+    let [tmp_main, tmp_side] =
+        Layout::horizontal([Constraint::Fill(1), Constraint::Length(20)]).areas(frame.area());
 
-    let [side, corner] = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Fill(1), Constraint::Length(3)])
-        .areas(tmp_side);
+    let [main, bottom] =
+        Layout::vertical([Constraint::Fill(1), Constraint::Length(3)]).areas(tmp_main);
+
+    let [side, corner] =
+        Layout::vertical([Constraint::Fill(1), Constraint::Length(3)]).areas(tmp_side);
 
     (main, side, bottom, corner)
 }
-
