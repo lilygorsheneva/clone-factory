@@ -200,6 +200,7 @@ impl Game {
         let actor_ref = self.actors.get_player()?;
 
         match action::execute_action(actor_ref, action, self) {
+            // TODO: shove in an apply or popup here.
             Ok(update) => {self.recordings.append(action); self.apply_update(update)},
             Err(ActionFail(_)) => Ok(()), // Call fallback action.
             Err(res) => Err(res),
