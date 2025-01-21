@@ -249,8 +249,7 @@ mod tests {
         game.apply_update(update).unwrap();
 
 
-        let update = RecordingModule::init_record(&mut game, 0).unwrap();
-        game.apply_update(update).unwrap();
+        RecordingModule::init_record(&mut game, 0).unwrap();
 
 
         let actions = [

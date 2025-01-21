@@ -66,8 +66,7 @@ impl RecordingModule {
     }
 
     // Start recording.
-    pub fn init_record(game: &RefCell<Game>, idx: usize) -> Result<()> {
-        let mut game = game.borrow_mut();
+    pub fn init_record(game:&mut Game, idx: usize) -> Result<()> {
         if game.recordings.current_recording.is_some() {
             return Err(Error("Attempted to initialize recording twice"));
         }
@@ -88,8 +87,7 @@ impl RecordingModule {
     }
 
     // End recording.
-    pub fn end_record(game:&RefCell<Game>,  should_loop: bool) -> Result<()> {
-        let mut game = game.borrow_mut();
+    pub fn end_record(game:&mut Game,  should_loop: bool) -> Result<()> {
 
         let recording = game
             .recordings
@@ -112,8 +110,7 @@ impl RecordingModule {
     }
 
     // TODO Currently bugged; items will stack.
-    pub fn take_item(game:&RefCell<Game>) -> Result<GameUpdate> {
-        let mut game = game.borrow_mut();
+    pub fn take_item(game:&mut Game) -> Result<GameUpdate> {
 
         let item = game
             .recordings
@@ -219,21 +216,21 @@ impl MenuTrait for RecordingMenu<'_> {
             match self.read() {
                 Some(Exit) => break,
                 Some(Use(i)) if !current_rec => {
-                    RecordingModule::init_record(&self.game, i)
-                        .ok_or_popup(self, terminal);
+                    let res = RecordingModule::init_record(&mut self.game.borrow_mut(), i);
+                    res.ok_or_popup(self, terminal);
                     break;
                 }
                 Some(Loop) if current_rec => {
-                    RecordingModule::end_record(&self.game, true)
-                        .ok_or_popup(self, terminal);
+                    let res = RecordingModule::end_record(&mut self.game.borrow_mut(), true);
+                       res.ok_or_popup(self, terminal);
                 }
                 Some(Die) if current_rec => {
-                    RecordingModule::end_record(&self.game, false)
-                        .ok_or_popup(self, terminal);
+                    let res =  RecordingModule::end_record(&mut self.game.borrow_mut(), false);
+                    res.ok_or_popup(self, terminal);
                 }
                 Some(Take) if temp_item => {
-                    RecordingModule::take_item(&self.game)
-                        .apply_or_popup(&self.game, self, terminal);
+                    let res =  RecordingModule::take_item(&mut self.game.borrow_mut());
+                    res.apply_or_popup(&self.game, self, terminal);
                     break;
                 }
                 _ => {}
