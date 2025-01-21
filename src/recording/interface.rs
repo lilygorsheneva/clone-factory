@@ -22,16 +22,13 @@ use super::{
     Recording,
 };
 use crate::{
-    action::Action,
-    error::{
+    action::Action, engine::update::Updatable, error::{
         OkOrPopup, Result,
         Status::{ActionFail, Error},
-    },
-    game_state::game::ApplyOrPopup,
-    interface::{
+    }, game_state::game::ApplyOrPopup, interface::{
         menu::UILayer,
-        widgets::{generate_popup_layout},
-    },
+        widgets::generate_popup_layout,
+    }
 };
 use crate::{
     devtools,
@@ -69,27 +66,25 @@ impl RecordingModule {
     }
 
     // Start recording.
-    pub fn init_record(game: &RefCell<Game>, idx: usize) -> Result<GameUpdate> {
+    pub fn init_record(game: &RefCell<Game>, idx: usize) -> Result<()> {
         let mut game = game.borrow_mut();
         if game.recordings.current_recording.is_some() {
             return Err(Error("Attempted to initialize recording twice"));
         }
 
-        let player = game.get_player_actor()?;
+        let mut player = game.get_player_actor().cloned()?;
         let coords = game.get_player_coords()?;
 
-        let mut item = player.inventory.get_items()[idx].ok_or(ActionFail("No item"))?;
+        let item = player.inventory.remove_idx(idx).ok_or(ActionFail("No item in slot"))?;
         // TODO clean up this check.
         if item.definition.name != "Empty Recorder" {
             return Err(ActionFail("Item is not an emtpy recorder"));
         }
-        item.quantity = 1;
+        
 
-        let ret = devtools::remove_item(item, coords, &game);
-        if ret.is_ok() {
-            game.recordings.current_recording = Some(Recording::from_creator(player));
-        }
-        ret
+        game.world.actors.mut_set(&coords,&Some(player))?;
+        game.recordings.current_recording = Some(Recording::from_creator(&player));
+        Ok(())
     }
 
     // End recording.
@@ -117,7 +112,7 @@ impl RecordingModule {
     }
 
     // TODO Currently bugged; items will stack.
-    pub fn take_item(game:&RefCell<Game>,) -> Result<GameUpdate> {
+    pub fn take_item(game:&RefCell<Game>) -> Result<GameUpdate> {
         let mut game = game.borrow_mut();
 
         let item = game
@@ -225,7 +220,7 @@ impl MenuTrait for RecordingMenu<'_> {
                 Some(Exit) => break,
                 Some(Use(i)) if !current_rec => {
                     RecordingModule::init_record(&self.game, i)
-                        .apply_or_popup(&self.game, self, terminal);
+                        .ok_or_popup(self, terminal);
                     break;
                 }
                 Some(Loop) if current_rec => {

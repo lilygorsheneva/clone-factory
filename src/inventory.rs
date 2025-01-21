@@ -61,6 +61,14 @@ impl BasicInventory {
         Err(Status::ActionFail("no space in inventory"))
     }
 
+    pub fn remove_idx(&mut self, idx: usize) -> Option<Item> {
+        if idx > self.items.len() {return  None;}
+        let ret = self.items[idx];
+        self.items[idx] = None;
+        ret
+    }
+
+
     pub fn remove(&mut self, target_item: Item) -> Result<()> {
         for i in &mut self.items {
             if let Some(existing_item) = i {

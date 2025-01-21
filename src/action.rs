@@ -116,6 +116,37 @@ fn execute_take(
     }
 }
 
+fn execute_drop(
+    idx: usize,
+    location: Coordinate,
+    orientation: AbsoluteDirection,
+    game: &Game,
+) -> Result<GameUpdate> {
+    let mut update: GameUpdate = game.new_update();
+
+    let actor_cell = update
+        .world
+        .actor_updates
+        .get(&game.world.actors, &location)?;
+    let floor_cell = update
+        .world
+        .item_updates
+        .get(&game.world.items, &location)?;
+
+    match (actor_cell, floor_cell) {
+        (None, _) => Err(Error("actor Missing")),
+        (Some(_), [Some(_)]) => Err(ActionFail("destination full")),
+        (Some(actor), [None]) => {
+            let mut actor = actor.clone();
+            actor.facing = orientation;
+            let item = actor.inventory.remove_idx(idx).ok_or(ActionFail("No item in slot"))?;
+            update.world.actor_updates.set(&location, &Some(actor))?;
+            update.world.item_updates.set(&location, &[Some(item)])?;
+            Ok(update)
+        }
+    }
+}
+
 fn execute_use_item(
     idx: usize,
     location: Coordinate,
