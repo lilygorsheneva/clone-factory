@@ -14,6 +14,7 @@ mod inventory;
 mod static_data;
 
 mod recording;
+mod eventqueue;
 
 fn main() {
     let mut terminal = interface::widgets::init_render();

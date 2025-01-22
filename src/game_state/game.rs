@@ -21,13 +21,11 @@ use crate::{
     game_state::world::{World, WorldUpdate},
 };
 use std::cell::RefCell;
-use std::collections::VecDeque;
+use crate::eventqueue::{EventQueue, EventQueueUpdate};
 
 // Move the WorldActors struct out to a dedicated module.
 pub struct WorldActors {
     pub player: Option<PlayerRef>,
-    turnqueue: VecDeque<ActorId>,
-    nextturn: VecDeque<ActorId>,
     pub db: ActorDb,
 }
 
@@ -39,8 +37,6 @@ impl WorldActors {
     pub fn new() -> WorldActors {
         WorldActors {
             player: None,
-            turnqueue: VecDeque::new(),
-            nextturn: VecDeque::new(),
             db: ActorDb::new(),
         }
     }
@@ -68,29 +64,9 @@ impl WorldActors {
 
     pub fn mut_register_actor(&mut self, new_actor_ref: ActorRef) -> ActorId {
         let id = self.db.mut_register_actor(new_actor_ref);
-        if !new_actor_ref.isplayer {
-            self.turnqueue.push_front(id);
-        }
         id
     }
 
-    pub fn queue_new_actors(&mut self, update: &ActorDbUpdate) {
-        for id in update.peek_new_actors() {
-            self.turnqueue.push_front(*id);
-        }
-    }
-
-    pub fn get_next_actor(&mut self) -> Option<&mut ActorRef> {
-        while let Some(id) = self.turnqueue.pop_front() {
-            let actor = self.db.get_actor(id);
-            if actor.live & !actor.isplayer {
-                self.nextturn.push_back(id);
-                return Some(self.db.get_mut_actor(id));
-            }
-        }
-        std::mem::swap(&mut self.turnqueue, &mut self.nextturn);
-        None
-    }
 }
 
 // Game state container.
@@ -98,7 +74,7 @@ pub struct Game {
     pub world: World,
     pub actors: WorldActors,
     pub recordings: RecordingModule,
-    
+    pub event_queue: EventQueue, 
     pub data: &'static  StaticData,
 }
 
@@ -110,6 +86,7 @@ pub struct Game {
 pub struct GameUpdate {
     pub world: WorldUpdate,
     pub actors: ActorDbUpdate,
+    pub eventqueue: EventQueueUpdate,
 }
 
 pub trait ApplyOrPopup {
@@ -137,6 +114,7 @@ impl Game {
             world: World::new(dimensions),
             actors: WorldActors::new(),
             recordings: RecordingModule::new(),
+            event_queue: EventQueue::new(),
             data: data,
         }
     }
@@ -180,12 +158,14 @@ impl Game {
     }
 
     pub fn do_npc_turns(&mut self) -> Result<()> {
-        while let Some(actor) = self.actors.get_next_actor() {
+        while let Some(evt) = self.event_queue.get_next_event() {
+            let actor = self.actors.db.get_mut_actor(evt.actor);
             let recording: &Recording = self.recordings.get(actor.recording);
             // handle looping here.
             let action = recording.at(actor.command_idx);
             actor.command_idx += 1;
             let res = action::execute_action(*actor, action, self);
+            self.event_queue.next_turn.push_back(evt);
             match res {
                 Ok(update) => self.apply_update(update)?,
                 Err(ActionFail(_)) => (), // call fallback action
@@ -210,6 +190,7 @@ impl Game {
     pub fn player_action_and_turn(&mut self, action: action::Action) -> Result<()> {
         self.player_action(action)?;
         self.do_npc_turns()?;
+        self.event_queue.advance_turn()?;
         Ok(())
     }
 
@@ -217,13 +198,14 @@ impl Game {
         GameUpdate {
             world: WorldUpdate::new(),
             actors: self.actors.db.new_update(),
+            eventqueue: EventQueueUpdate::new()
         }
     }
 
     pub fn apply_update(&mut self, update: GameUpdate) -> Result<()> {
         update.world.apply(&mut self.world)?;
         self.actors.db.apply_update(&update.actors)?;
-        self.actors.queue_new_actors(&update.actors);
+        update.eventqueue.apply(&mut self.event_queue)?;
         Ok(())
     }
 }
