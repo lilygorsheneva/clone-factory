@@ -2,7 +2,7 @@ use crate::action::{Action, SubAction};
 use crate::datatypes::Coordinate;
 use crate::recording::Recording;
 use crate::direction::RelativeDirection;
-use crate::engine::update::Update;
+use crate::engine::update::UpdatableContainerDelta;
 use crate::game_state::game::{Game, GameUpdate};
 use crate::inventory::Item;
 use crate::error::{Result,Status::Error};

@@ -2,7 +2,7 @@
 use crate::actor::{Actor, ActorRef};
 use crate::datatypes::Coordinate;
 use crate::direction::{AbsoluteDirection, Direction};
-use crate::engine::update::{Updatable, Update};
+use crate::engine::update::{Updatable, Delta, UpdatableContainer, UpdatableContainerDelta};
 use crate::error::{
     Result,
     Status::{ActionFail, Error, OutOfBounds},

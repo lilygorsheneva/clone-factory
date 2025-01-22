@@ -1,7 +1,7 @@
 //! Datastructures to represent spatial data (e.g. a map of the world).
 
-use crate::engine::update::{Updatable, Update};
-use crate::engine::worldlayer::{WorldLayer, WorldLayerUpdate};
+use crate::engine::update::{Updatable, Delta, UpdatableContainer, UpdatableContainerDelta};
+use crate::engine::worldlayer::{WorldLayer, WorldLayerDelta};
 use crate::error::Result;
 use crate::inventory::Item;
 use crate::{
@@ -49,17 +49,17 @@ impl World {
 
 #[derive(Debug)]
 pub struct WorldUpdate {
-    pub actor_updates: WorldLayerUpdate<Option<Actor>>,
-    pub building_updates: WorldLayerUpdate<Option<Building>>,
-    pub item_updates: WorldLayerUpdate<FloorInventory>,
+    pub actor_updates: WorldLayerDelta<Option<Actor>>,
+    pub building_updates: WorldLayerDelta<Option<Building>>,
+    pub item_updates: WorldLayerDelta<FloorInventory>,
 }
 
 impl WorldUpdate {
     pub fn new() -> WorldUpdate {
         WorldUpdate {
-            actor_updates: WorldLayerUpdate::new(),
-            building_updates: WorldLayerUpdate::new(),
-            item_updates: WorldLayerUpdate::new(),
+            actor_updates: WorldLayerDelta::new(),
+            building_updates: WorldLayerDelta::new(),
+            item_updates: WorldLayerDelta::new(),
         }
     }
 

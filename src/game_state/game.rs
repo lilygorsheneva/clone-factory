@@ -2,14 +2,14 @@
 
 use ratatui::DefaultTerminal;
 
-use crate::engine::update::Updatable;
+use crate::engine::update::UpdatableContainer;
 use crate::error::StatusMenu;
 use crate::interface::menu::{MenuTrait, UILayer};
 use crate::recording::interface::RecordingModule;
 use crate::action;
 use crate::actor::{Actor, ActorRef};
 use crate::static_data::StaticData;
-use crate::recording::{Recording};
+use crate::recording::Recording;
 
 use crate::game_state::db::{ActorDb, ActorDbUpdate, ActorId};
 use crate::error::{

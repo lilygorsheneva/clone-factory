@@ -1,7 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
+use crate::engine::update::{Updatable, Delta, UpdatableContainer, UpdatableContainerDelta};
 
 use crate::{
-    datatypes::Coordinate, engine::update::Updatable, game_state::game::Game,
+    datatypes::Coordinate, game_state::game::Game,
     inventory::Item, static_data::StaticData,
 };
 use crossterm::event::KeyCode;
