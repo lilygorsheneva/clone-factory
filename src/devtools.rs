@@ -1,5 +1,6 @@
 use crate::action::{Action, SubAction};
 use crate::datatypes::Coordinate;
+use crate::engine::tracking_worldlayer::TrackableId;
 use crate::recording::Recording;
 use crate::direction::RelativeDirection;
 use crate::engine::update::{Delta, UpdatableContainerDelta};
@@ -80,11 +81,12 @@ pub fn remove_item(
     }
 }
 
-fn despawn_actor(
-    location: Coordinate,
+pub fn despawn_actor(
+    actor: TrackableId,
     game: &Game
 ) ->  Result<GameUpdate> {
-    let mut update: GameUpdate = game.new_update();
+    let mut update: GameUpdate = GameUpdate::new();
+    let location = game.world.actors.get_location(&actor)?;
     let actor  = update.world.actor_updates.get(&game.world.actors, &location)?;
     if actor.is_none() {return Err(Error("actor missing"))}
     update.world.actor_updates.set(&location, &None)?;

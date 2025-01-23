@@ -7,7 +7,7 @@ use crate::engine::update::{Delta, Updatable, UpdatableContainer};
 use crate::error::StatusMenu;
 use crate::interface::menu::{MenuTrait, UILayer};
 use crate::recording::interface::RecordingModule;
-use crate::action;
+use crate::{action, devtools};
 use crate::actor::{Actor, ActorRef};
 use crate::static_data::StaticData;
 use crate::recording::Recording;
@@ -157,14 +157,30 @@ impl Game {
             let recording: &Recording = self.recordings.get(evt.recording);
             // handle looping here.
             let action = recording.at(evt.recording_idx);
+
+            let action_result = action::execute_action(evt.actor, action, self);
+
+
+            let ret = match action_result {
+                Ok(update) => update.apply(self),
+                Err(ActionFail(_)) => Ok(()), // call fallback action
+                Err(res) => Err(res),
+            };
+
+            let recording: &Recording = self.recordings.get(evt.recording);
             evt.recording_idx += 1;
-            let res = action::execute_action(evt.actor, action, self);
-            self.event_queue.next_turn.push_back(evt);
-            match res {
-                Ok(update) => update.apply(self)?,
-                Err(ActionFail(_)) => (), // call fallback action
-                Err(res) => return Err(res),
+            if evt.recording_idx >= recording.len() {
+                if recording.should_loop {
+                    evt.recording_idx = evt.recording_idx % recording.len();
+                    self.event_queue.next_turn.push_back(evt);
+                } else {
+                    let update = devtools::despawn_actor(evt.actor, &self)?;
+                    update.apply(self);
+                }
+            } else {
+                self.event_queue.next_turn.push_back(evt);
             }
+            
         }
         Ok(())
     }

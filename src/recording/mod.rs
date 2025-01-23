@@ -36,5 +36,9 @@ impl Recording {
     pub fn append(&mut self, action: Action) {
         self.command_list.push(action);
     }
+
+    pub fn len(&self) -> usize {
+        self.command_list.len()
+    }
 }
 
