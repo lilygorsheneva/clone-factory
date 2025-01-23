@@ -1,4 +1,6 @@
 use std::collections::{HashMap, HashSet};
+use std::default;
+use std::time::Instant;
 
 use crate::error::Result;
 use crate::{datatypes::Coordinate, error::Status};
@@ -7,9 +9,9 @@ use super::update::{Delta, Updatable, UpdatableContainer, UpdatableContainerDelt
 use super::worldlayer::{WorldLayer, WorldLayerDelta};
 
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
-struct TrackableId(usize);
+pub struct TrackableId(pub usize);
 
-trait Trackable {
+pub trait Trackable {
     fn get_id(&self) -> Option<TrackableId>;
 }
 
@@ -28,6 +30,13 @@ struct Index {
 }
 
 impl Index {
+    fn new() -> Index {
+        Index {
+            data: HashMap::new(),
+            recycle: HashSet::new(),
+        }
+    }
+
     fn get_next_id(&self) -> TrackableId {
         TrackableId(self.data.len() + self.recycle.len())
     }
@@ -54,6 +63,7 @@ impl UpdatableContainer for Index {
     }
 }
 
+#[derive(Debug)]
 struct IndexDelta {
     mutates: HashMap<TrackableId, Coordinate>,
     inserts: Vec<TrackableId>,
@@ -109,9 +119,22 @@ impl UpdatableContainerDelta for IndexDelta {
     }
 }
 
-struct TrackableWorldLayer<DataType: Clone + Trackable> {
+pub struct TrackableWorldLayer<DataType: Clone + Trackable> {
     layer: WorldLayer<DataType>,
     index: Index,
+}
+
+impl<T: Clone + Trackable> TrackableWorldLayer<T> {
+    pub fn new(dimensions: Coordinate, default: T) -> TrackableWorldLayer<T> {
+        TrackableWorldLayer {
+            layer: WorldLayer::new(dimensions, default),
+            index: Index::new(),
+        }
+    }
+
+    pub fn in_bounds(&self, location: &Coordinate) -> bool {
+        self.layer.in_bounds(location)
+    }
 }
 
 impl<T: Clone + Trackable> Updatable for TrackableWorldLayer<T> {}
@@ -136,19 +159,21 @@ impl<T: Clone + Trackable> UpdatableContainer for TrackableWorldLayer<T> {
     }
 }
 
-struct TrackableWorldLayerDelta<DataType: Clone + Trackable> {
+#[derive(Debug)]
+pub struct TrackableWorldLayerDelta<DataType: Clone + Trackable> {
     layer: WorldLayerDelta<DataType>,
     index: IndexDelta,
 }
 
-impl<T: Clone+Trackable> TrackableWorldLayerDelta<T> {
-    fn get_next_id(&mut self, source: &TrackableWorldLayer<T>) -> TrackableId {
+impl<T: Clone + Trackable> TrackableWorldLayerDelta<T> {
+    pub fn get_next_id(&mut self, source: &TrackableWorldLayer<T>) -> TrackableId {
         self.index.get_next_id(&source.index)
     }
 
-    fn remove(&mut self, key: TrackableId) {
+    pub fn remove(&mut self, key: TrackableId) {
         self.index.remove(key);
-    }}
+    }
+}
 
 impl<T: Clone + Trackable> Delta for TrackableWorldLayerDelta<T> {
     type Target = TrackableWorldLayer<T>;
@@ -183,4 +208,3 @@ impl<T: Clone + Trackable> UpdatableContainerDelta for TrackableWorldLayerDelta<
         Ok(())
     }
 }
-

@@ -35,7 +35,7 @@ impl ActorDbUpdate {
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub struct ActorId {
-    idx: usize,
+    pub idx: usize,
 }
 
 impl ActorId {

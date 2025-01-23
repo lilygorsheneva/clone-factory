@@ -1,5 +1,6 @@
 //! Datastructures to represent spatial data (e.g. a map of the world).
 
+use crate::engine::tracking_worldlayer::{TrackableWorldLayer, TrackableWorldLayerDelta};
 use crate::engine::update::{Updatable, Delta, UpdatableContainer, UpdatableContainerDelta};
 use crate::engine::worldlayer::{WorldLayer, WorldLayerDelta};
 use crate::error::Result;
@@ -20,7 +21,7 @@ pub struct WorldCell<'a> {
 
 pub struct World {
     dimensions: Coordinate,
-    pub actors: WorldLayer<Option<Actor>>,
+    pub actors: TrackableWorldLayer<Option<Actor>>,
     pub buildings: WorldLayer<Option<Building>>,
     pub items: WorldLayer<FloorInventory>,
 }
@@ -29,7 +30,7 @@ impl World {
     pub fn new(dimensions: Coordinate) -> World {
         World {
             dimensions: dimensions,
-            actors: WorldLayer::new(dimensions, None),
+            actors: TrackableWorldLayer::new(dimensions, None),
             buildings: WorldLayer::new(dimensions, None),
             items: WorldLayer::new(dimensions, [None]),
         }
@@ -51,7 +52,7 @@ impl Updatable for World{}
 
 #[derive(Debug)]
 pub struct WorldUpdate {
-    pub actor_updates: WorldLayerDelta<Option<Actor>>,
+    pub actor_updates: TrackableWorldLayerDelta<Option<Actor>>,
     pub building_updates: WorldLayerDelta<Option<Building>>,
     pub item_updates: WorldLayerDelta<FloorInventory>,
 }
@@ -60,7 +61,7 @@ impl Delta for WorldUpdate {
     type Target = World;
     fn new() -> WorldUpdate {
         WorldUpdate {
-            actor_updates: WorldLayerDelta::new(),
+            actor_updates: TrackableWorldLayerDelta::new(),
             building_updates: WorldLayerDelta::new(),
             item_updates: WorldLayerDelta::new(),
         }

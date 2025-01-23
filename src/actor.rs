@@ -1,4 +1,5 @@
 //! A player or npc.
+use crate::engine::tracking_worldlayer::{Trackable, TrackableId};
 use crate::recording::{Recording, db::RecordingId};
 use crate::datatypes::Coordinate;
 use crate::game_state::db::ActorId;
@@ -77,5 +78,11 @@ impl Actor {
         let mut actor = Actor::new();
         actor.isplayer = true;
         actor
+    }
+}
+
+impl Trackable for Actor {
+    fn get_id(&self) -> Option<crate::engine::tracking_worldlayer::TrackableId> {
+        Some(TrackableId(self.actor_id.idx))
     }
 }
