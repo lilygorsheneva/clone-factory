@@ -2,11 +2,11 @@ use std::vec;
 
 use std::collections::HashMap;
 
-use super::update::{Update, Updatable};
+use super::update::{Delta, Updatable, UpdatableContainer, UpdatableContainerDelta};
 use crate::datatypes::Coordinate;
 use crate::error::Result;
 
-#[derive( Debug)]
+#[derive(Debug)]
 pub struct WorldLayer<DataType: Clone> {
     dimensions: Coordinate,
     pub data: Vec<DataType>,
@@ -35,7 +35,9 @@ impl<DataType: Clone> WorldLayer<DataType> {
     }
 }
 
-impl<DataType: Clone> Updatable for WorldLayer<DataType> {
+impl<DataType: Clone> Updatable for WorldLayer<DataType> {}
+
+impl<DataType: Clone> UpdatableContainer for WorldLayer<DataType> {
     type CoordinateType = Coordinate;
     type DataType = DataType;
     fn get(&self, key: &Self::CoordinateType) -> Result<&DataType> {
@@ -49,21 +51,31 @@ impl<DataType: Clone> Updatable for WorldLayer<DataType> {
     }
 }
 
-#[derive( Debug)]
-pub struct WorldLayerUpdate<DataType:Clone> {
+#[derive(Debug)]
+pub struct WorldLayerDelta<DataType: Clone> {
     writes: HashMap<Coordinate, DataType>,
 }
 
-impl<DataType:Clone> Update for WorldLayerUpdate<DataType> {
-    type CoordinateType = Coordinate;
-    type DataType = DataType;
-    type UpdateTarget = WorldLayer<DataType>;
-
+impl<DataType: Clone> Delta for WorldLayerDelta<DataType> {
+    type Target = WorldLayer<DataType>;
     fn new() -> Self {
         Self {
-            writes: HashMap::new()
+            writes: HashMap::new(),
         }
     }
+
+    fn apply(&self, target: &mut WorldLayer<DataType>) -> Result<()> {
+        for (k, v) in &self.writes {
+            target.mut_set(k, v)?
+        }
+        Ok(())
+    }
+}
+
+impl<DataType: Clone> UpdatableContainerDelta for WorldLayerDelta<DataType> {
+    type CoordinateType = Coordinate;
+    type DataType = DataType;
+    type Target = WorldLayer<DataType>;
 
     fn set(&mut self, key: &Self::CoordinateType, value: &Self::DataType) -> Result<()> {
         self.writes.insert(key.clone(), value.clone());
@@ -73,12 +85,4 @@ impl<DataType:Clone> Update for WorldLayerUpdate<DataType> {
     fn get_cached(&self, key: &Self::CoordinateType) -> Result<Option<&Self::DataType>> {
         Ok(self.writes.get(key))
     }
-
-    // Call mut_set in a loop. Needs some sort of Iterator that I don't know how to define yet.
-    fn apply(&self, target: &mut WorldLayer<DataType>) -> Result<()> {
-        for (k, v) in &self.writes {
-            target.mut_set(k, v)?
-        }
-        Ok(())
-    }
-} 
+}

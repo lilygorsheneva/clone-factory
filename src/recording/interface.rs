@@ -21,8 +21,11 @@ use super::{
     db::{RecordingDb, RecordingId},
     Recording,
 };
+
+use crate::engine::update::{Updatable, Delta, UpdatableContainer, UpdatableContainerDelta};
+
 use crate::{
-    action::Action, engine::update::Updatable, error::{
+    action::Action, error::{
         OkOrPopup, Result,
         Status::{ActionFail, Error},
     }, game_state::game::ApplyOrPopup, interface::{
