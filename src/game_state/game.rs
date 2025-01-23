@@ -2,6 +2,7 @@
 
 use ratatui::DefaultTerminal;
 
+use crate::engine::tracking_worldlayer::TrackableId;
 use crate::engine::update::{Delta, Updatable, UpdatableContainer};
 use crate::error::StatusMenu;
 use crate::interface::menu::{MenuTrait, UILayer};
@@ -26,47 +27,25 @@ use crate::eventqueue::{EventQueue, EventQueueUpdate};
 // Move the WorldActors struct out to a dedicated module.
 pub struct WorldActors {
     pub player: Option<PlayerRef>,
-    pub db: ActorDb,
 }
 
 pub struct PlayerRef {
-    pub actor_id: ActorId,
+    pub actor_id: TrackableId,
 }
 
 impl WorldActors {
     pub fn new() -> WorldActors {
         WorldActors {
             player: None,
-            db: ActorDb::new(),
         }
     }
 
-    pub fn get_player(&self) -> Result<ActorRef> {
+    pub fn get_player(&self) -> Result<TrackableId> {
         match &self.player {
             None => Err(Error("Player uninitialized")),
-            Some(r) => Ok(self.get_actor(r.actor_id)),
+            Some(r) => Ok(r.actor_id),
         }
     }
-
-    pub fn get_mut_player(&mut self) -> Result<&mut ActorRef> {
-        match &self.player {
-            None => Err(Error("Player uninitialized")),
-            Some(r) => Ok(self.get_mut_actor(r.actor_id)),
-        }
-    }
-
-    pub fn get_actor(&self, id: ActorId) -> ActorRef {
-        self.db.get_actor(id)
-    }
-    pub fn get_mut_actor(&mut self, id: ActorId) -> &mut ActorRef {
-        self.db.get_mut_actor(id)
-    }
-
-    pub fn mut_register_actor(&mut self, new_actor_ref: ActorRef) -> ActorId {
-        let id = self.db.mut_register_actor(new_actor_ref);
-        id
-    }
-
 }
 
 // Game state container.
@@ -103,7 +82,6 @@ impl Delta for GameUpdate {
 
     fn apply(&self, target: &mut Self::Target) -> Result<()> {
         self.world.apply(&mut target.world)?;
-        target.actors.db.apply_update(&self.actors)?;
         self.eventqueue.apply(&mut target.event_queue)?;
         Ok(())
     }
@@ -149,9 +127,9 @@ impl Game {
          }
     }
 
-    pub fn get_player_coords(&self) -> Result<Coordinate> {
-        let actor = self.actors.get_player()?;
-        Ok(actor.location)
+    pub fn get_player_coords(&self) -> Result<&Coordinate> {
+        let id = self.actors.get_player()?;
+        self.world.actors.get_location(&id)
     }
 
     pub fn spawn(&mut self, location: &Coordinate) -> Result<()> {
@@ -164,11 +142,9 @@ impl Game {
             return Err(Error("Destination Occupied"));
         }
         let mut new_actor = Actor::new_player();
-        let mut new_actor_ref =
-            ActorRef::new(*location, crate::direction::AbsoluteDirection::N);
-        new_actor_ref.isplayer = true;
-        let player_id = self.actors.mut_register_actor(new_actor_ref);
-        new_actor.actor_id = player_id;
+    
+        let player_id = self.world.actors.mut_get_next_id();
+        new_actor.actor_id = ActorId{idx: player_id.0};
 
         self.actors.player = Some(PlayerRef {
             actor_id: player_id,
@@ -177,13 +153,12 @@ impl Game {
     }
 
     pub fn do_npc_turns(&mut self) -> Result<()> {
-        while let Some(evt) = self.event_queue.get_next_event() {
-            let actor = self.actors.get_mut_actor(evt.actor);
-            let recording: &Recording = self.recordings.get(actor.recording);
+        while let Some(mut evt) = self.event_queue.get_next_event() {
+            let recording: &Recording = self.recordings.get(evt.recording);
             // handle looping here.
-            let action = recording.at(actor.command_idx);
-            actor.command_idx += 1;
-            let res = action::execute_action(*actor, action, self);
+            let action = recording.at(evt.recording_idx);
+            evt.recording_idx += 1;
+            let res = action::execute_action(evt.actor, action, self);
             self.event_queue.next_turn.push_back(evt);
             match res {
                 Ok(update) => update.apply(self)?,
@@ -231,7 +206,7 @@ mod tests {
 
         let recorder_def = data.items.get(&"recorder".to_string()).unwrap();
         let item = Item::new(recorder_def, 1);
-        let update = devtools::grant_item(item, game.get_player_coords().unwrap(), &game).unwrap();
+        let update = devtools::grant_item(item, *game.get_player_coords().unwrap(), &game).unwrap();
         
         update.apply(&mut game).unwrap();
 
@@ -289,7 +264,7 @@ mod tests {
         .register_recording(Recording{command_list: actions, inventory: Default::default(), should_loop:true});
         let cloner_def = data.items.get(&"basic_cloner".to_string()).unwrap();
         let new_cloner = Item::new_cloner(cloner_def, sample_recording_id);
-        let update = devtools::grant_item(new_cloner, game.get_player_coords().unwrap(), &game).unwrap();
+        let update = devtools::grant_item(new_cloner, *game.get_player_coords().unwrap(), &game).unwrap();
         update.apply(&mut game).unwrap();
 
         let update = action::execute_action(

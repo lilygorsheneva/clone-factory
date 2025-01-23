@@ -79,9 +79,9 @@ impl<'a> WorldWindowWidget<'a> {
     pub fn new(game: &'a Game) -> WorldWindowWidget<'a> {
         WorldWindowWidget {
             world: &game.world,
-            center: game
+            center: *game
                 .get_player_coords()
-                .unwrap_or(Coordinate { x: 0, y: 0 }),
+                .unwrap_or(&Coordinate { x: 0, y: 0 }),
             data: &game.data,
         }
     }

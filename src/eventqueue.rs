@@ -1,26 +1,28 @@
 use std::collections::VecDeque;
 
+use crate::engine::tracking_worldlayer::TrackableId;
 use crate::engine::update::{Delta, Updatable};
 use crate::{action::Action, game_state::db::ActorId, recording::db::RecordingId};
 use  crate::error::{Status, Result};
 
 #[derive(Debug, Clone, Copy)]
-pub struct Event{
-    pub actor: ActorId,
-
+pub struct ActorEvent{
+    pub actor: TrackableId,
+    pub recording: RecordingId,
+    pub recording_idx: usize
 }
 
 #[derive(Debug)]
 
 pub struct EventQueue{
-    pub this_turn: VecDeque<Event>,
-    pub next_turn: VecDeque<Event>
+    pub this_turn: VecDeque<ActorEvent>,
+    pub next_turn: VecDeque<ActorEvent>
 }
 
 #[derive(Debug)]
 pub struct EventQueueUpdate{
-    pub this_turn: VecDeque<Event>,
-    pub next_turn: VecDeque<Event>
+    pub this_turn: VecDeque<ActorEvent>,
+    pub next_turn: VecDeque<ActorEvent>
 }
 
 impl Updatable for EventQueue{}
@@ -51,7 +53,7 @@ impl EventQueue {
     }
 
 
-pub fn get_next_event(&mut self) -> Option<Event> {
+pub fn get_next_event(&mut self) -> Option<ActorEvent> {
     self.this_turn.pop_front()
 }
 

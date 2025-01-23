@@ -2,15 +2,18 @@
 use crate::actor::{Actor, ActorRef};
 use crate::datatypes::Coordinate;
 use crate::direction::{AbsoluteDirection, Direction};
+use crate::engine::tracking_worldlayer::TrackableId;
 use crate::engine::update::{Updatable, Delta, UpdatableContainer, UpdatableContainerDelta};
 use crate::error::{
     Result,
     Status::{ActionFail, Error, OutOfBounds},
 };
-use crate::eventqueue::Event;
+use crate::eventqueue::ActorEvent;
+use crate::game_state::db::ActorId;
 use crate::game_state::game::{Game, GameUpdate};
 use crate::inventory::Item;
 use crate::static_data::RecipeDefiniton;
+use std::cmp::Ordering;
 use std::collections::HashMap;
 
 pub type ItemUseFn = fn(usize, Coordinate, AbsoluteDirection, &Game) -> Result<GameUpdate>;
@@ -30,14 +33,18 @@ pub enum SubAction {
     Craft(&'static RecipeDefiniton),
 }
 
-pub fn execute_action(actor_ref: ActorRef, action: Action, game: &Game) -> Result<GameUpdate> {
-    let orientation = actor_ref.orientation.rotate(&action.direction);
+pub fn execute_action(actor: TrackableId, action: Action, game: &Game) -> Result<GameUpdate> {
+    let location = game.world.actors.get_location(&actor)?;
+    let maybe_actor = game.world.actors.get(location)?;
+    let actor = maybe_actor.as_ref().ok_or(Error("No actor at expected coordinates"))?;
+    
+    let orientation = actor.facing.rotate(&action.direction);
 
     match action.action {
-        SubAction::Move => execute_move(actor_ref.location, orientation, game),
-        SubAction::Take => execute_take(actor_ref.location, orientation, game),
-        SubAction::Use(i) => execute_use_item(i, actor_ref.location, orientation, game),
-        SubAction::Craft(recipe) => execute_craft(recipe, actor_ref.location, orientation, game), // _ => world,
+        SubAction::Move => execute_move(*location, orientation, game),
+        SubAction::Take => execute_take(*location, orientation, game),
+        SubAction::Use(i) => execute_use_item(i, *location, orientation, game),
+        SubAction::Craft(recipe) => execute_craft(recipe, *location, orientation, game), // _ => world,
     }
 }
 
@@ -72,14 +79,6 @@ fn execute_move(
 
             actor.facing = orientation;
             update.world.actor_updates.set(&dst_coord, &Some(actor))?;
-
-            let actor_ref: &mut ActorRef = game
-                .actors
-                .db
-                .read_actor(&mut update.actors, &actor.actor_id)
-                .unwrap();
-            actor_ref.location = dst_coord;
-            actor_ref.orientation = orientation;
 
             Ok(update)
         }
@@ -209,13 +208,12 @@ fn execute_use_cloner(
                 recording: recordingid,
                 command_idx: 0,
             };
-            let actor_id = game
-                .actors
-                .db
-                .register_actor(&mut update.actors, new_actor_ref);
+
+            let actor_id = update.world.actor_updates.get_next_id(&game.world.actors);
+ 
             let mut new_actor = Actor::from_recording(game.recordings.get(recordingid));
             new_actor.facing = orientation;
-            new_actor.actor_id = actor_id;
+            new_actor.actor_id = ActorId{idx: actor_id.0};
 
             update
                 .world
@@ -228,7 +226,7 @@ fn execute_use_cloner(
             update
                 .eventqueue
                 .this_turn
-                .push_front(Event { actor: actor_id });
+                .push_front(ActorEvent { actor: actor_id, recording: recordingid, recording_idx: 0 });
             Ok(update)
         }
     }

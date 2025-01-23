@@ -75,7 +75,7 @@ impl RecordingModule {
         }
 
         let mut player = game.get_player_actor().cloned()?;
-        let coords = game.get_player_coords()?;
+        let coords = *game.get_player_coords()?;
 
         let item = player.inventory.remove_idx(idx).ok_or(ActionFail("No item in slot"))?;
         // TODO clean up this check.
@@ -120,7 +120,7 @@ impl RecordingModule {
             .temp_item
             .ok_or(ActionFail("no cloner to take"))?;
         let location = game.get_player_coords()?;
-        devtools::grant_item(item, location, &game)
+        devtools::grant_item(item, *location, &game)
     }
 }
 

@@ -135,6 +135,14 @@ impl<T: Clone + Trackable> TrackableWorldLayer<T> {
     pub fn in_bounds(&self, location: &Coordinate) -> bool {
         self.layer.in_bounds(location)
     }
+
+    pub fn get_location<'a>(&'a self, key: &TrackableId) -> Result<&Coordinate> {
+        self.index.get(key)
+    }
+
+    pub fn mut_get_next_id(&mut self) ->TrackableId {
+        self.index.get_next_id()
+    }
 }
 
 impl<T: Clone + Trackable> Updatable for TrackableWorldLayer<T> {}
@@ -173,6 +181,10 @@ impl<T: Clone + Trackable> TrackableWorldLayerDelta<T> {
     pub fn remove(&mut self, key: TrackableId) {
         self.index.remove(key);
     }
+
+    pub fn get_location<'a>(&'a mut self, source: &'a TrackableWorldLayer<T>, key: &TrackableId) -> Result<&Coordinate> {
+        self.index.get(&source.index, key)
+    }
 }
 
 impl<T: Clone + Trackable> Delta for TrackableWorldLayerDelta<T> {
@@ -207,4 +219,5 @@ impl<T: Clone + Trackable> UpdatableContainerDelta for TrackableWorldLayerDelta<
         }
         Ok(())
     }
+
 }
