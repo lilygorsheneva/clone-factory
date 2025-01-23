@@ -79,3 +79,14 @@ pub fn remove_item(
         }
     }
 }
+
+fn despawn_actor(
+    location: Coordinate,
+    game: &Game
+) ->  Result<GameUpdate> {
+    let mut update: GameUpdate = game.new_update();
+    let actor  = update.world.actor_updates.get(&game.world.actors, &location)?;
+    if actor.is_none() {return Err(Error("actor missing"))}
+    update.world.actor_updates.set(&location, &None)?;
+    Ok(update)
+}
