@@ -19,6 +19,14 @@ pub struct ActorDbUpdate {
 }
 
 impl ActorDbUpdate {
+    pub fn new() -> ActorDbUpdate {
+        ActorDbUpdate {
+            changes: Vec::new(),
+            new_actors: Vec::new(),
+            map: HashMap::new(),
+        }
+    }
+    
     pub fn peek_new_actors(&self) -> &Vec<ActorId> {
         &self.new_actors
     }
@@ -70,14 +78,6 @@ impl ActorDb {
             update.changes.push(*id);
             update.map.insert(*id, self.get_actor(*id));
             update.map.get_mut(id)
-        }
-    }
-
-    pub fn new_update(&self) -> ActorDbUpdate {
-        ActorDbUpdate {
-            changes: Vec::new(),
-            new_actors: Vec::new(),
-            map: HashMap::new(),
         }
     }
 

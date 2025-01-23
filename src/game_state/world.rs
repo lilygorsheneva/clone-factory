@@ -47,6 +47,8 @@ impl World {
     }
 }
 
+impl Updatable for World{}
+
 #[derive(Debug)]
 pub struct WorldUpdate {
     pub actor_updates: WorldLayerDelta<Option<Actor>>,
@@ -54,8 +56,9 @@ pub struct WorldUpdate {
     pub item_updates: WorldLayerDelta<FloorInventory>,
 }
 
-impl WorldUpdate {
-    pub fn new() -> WorldUpdate {
+impl Delta for WorldUpdate {
+    type Target = World;
+    fn new() -> WorldUpdate {
         WorldUpdate {
             actor_updates: WorldLayerDelta::new(),
             building_updates: WorldLayerDelta::new(),
@@ -63,13 +66,14 @@ impl WorldUpdate {
         }
     }
 
-    pub fn apply(&self, target: &mut World) -> Result<()> {
+    fn apply(&self, target: &mut World) -> Result<()> {
         self.actor_updates.apply(&mut target.actors)?;
         self.building_updates.apply(&mut target.buildings)?;
         self.item_updates.apply(&mut target.items)?;
         Ok(())
     }
 }
+
 
 #[cfg(test)]
 mod tests {

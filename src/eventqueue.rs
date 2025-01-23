@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 
+use crate::engine::update::{Delta, Updatable};
 use crate::{action::Action, game_state::db::ActorId, recording::db::RecordingId};
 use  crate::error::{Status, Result};
 
-#[derive(Debug)]
-
+#[derive(Debug, Clone, Copy)]
 pub struct Event{
     pub actor: ActorId,
 
@@ -23,17 +23,20 @@ pub struct EventQueueUpdate{
     pub next_turn: VecDeque<Event>
 }
 
-impl EventQueueUpdate {
-    pub fn new() -> Self {
+impl Updatable for EventQueue{}
+
+impl Delta for EventQueueUpdate {
+    type Target = EventQueue;
+    fn new() -> Self {
         Self {
             this_turn: VecDeque::new(),
             next_turn: VecDeque::new()
         }
     }
 
-    pub fn apply(self, target: &mut EventQueue) -> Result<()> {
-        target.this_turn.extend(self.this_turn);
-        target.next_turn.extend(self.next_turn);
+    fn apply(&self, target: &mut EventQueue) -> Result<()> {
+        target.this_turn.extend(&self.this_turn);
+        target.next_turn.extend(&self.next_turn);
         Ok(())
     } 
 }

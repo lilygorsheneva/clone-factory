@@ -2,7 +2,7 @@
 
 use ratatui::DefaultTerminal;
 
-use crate::engine::update::UpdatableContainer;
+use crate::engine::update::{Delta, Updatable, UpdatableContainer};
 use crate::error::StatusMenu;
 use crate::interface::menu::{MenuTrait, UILayer};
 use crate::recording::interface::RecordingModule;
@@ -78,6 +78,8 @@ pub struct Game {
     pub data: &'static  StaticData,
 }
 
+impl Updatable for Game{}
+
 // A container that stores game updates.
 // Most operations on the game can be performed with an immutable game and a mutable update.
 // Muate game state with game.apply_update(update).
@@ -89,6 +91,24 @@ pub struct GameUpdate {
     pub eventqueue: EventQueueUpdate,
 }
 
+impl Delta for GameUpdate {
+    type Target = Game;
+    fn new() -> GameUpdate {
+        GameUpdate {
+            world: WorldUpdate::new(),
+            actors: ActorDbUpdate::new(),
+            eventqueue: EventQueueUpdate::new()
+        }
+    }
+
+    fn apply(&self, target: &mut Self::Target) -> Result<()> {
+        self.world.apply(&mut target.world)?;
+        target.actors.db.apply_update(&self.actors)?;
+        self.eventqueue.apply(&mut target.event_queue)?;
+        Ok(())
+    }
+}
+
 pub trait ApplyOrPopup {
     fn apply_or_popup(self, game: &RefCell<Game>, parent: &dyn UILayer,  terminal: &mut DefaultTerminal);    }
 
@@ -96,7 +116,7 @@ impl ApplyOrPopup for Result<GameUpdate> {
     fn apply_or_popup(self, game: &RefCell<Game>, parent: &dyn UILayer,  terminal: &mut DefaultTerminal) {
         match self {
             Ok(update) => {
-                let new_result = game.borrow_mut().apply_update(update);
+                let new_result = update.apply(&mut game.borrow_mut());
                 if let Err(err) = new_result {
                     StatusMenu::new(err, parent).enter_menu(terminal);
                     panic!("Error applying game update.")
@@ -118,7 +138,6 @@ impl Game {
             data: data,
         }
     }
-
 
     pub fn get_player_actor(&self) -> Result<&Actor> {
         let location = self.get_player_coords()?;
@@ -159,7 +178,7 @@ impl Game {
 
     pub fn do_npc_turns(&mut self) -> Result<()> {
         while let Some(evt) = self.event_queue.get_next_event() {
-            let actor = self.actors.db.get_mut_actor(evt.actor);
+            let actor = self.actors.get_mut_actor(evt.actor);
             let recording: &Recording = self.recordings.get(actor.recording);
             // handle looping here.
             let action = recording.at(actor.command_idx);
@@ -167,7 +186,7 @@ impl Game {
             let res = action::execute_action(*actor, action, self);
             self.event_queue.next_turn.push_back(evt);
             match res {
-                Ok(update) => self.apply_update(update)?,
+                Ok(update) => update.apply(self)?,
                 Err(ActionFail(_)) => (), // call fallback action
                 Err(res) => return Err(res),
             }
@@ -181,7 +200,7 @@ impl Game {
 
         match action::execute_action(actor_ref, action, self) {
             // TODO: shove in an apply or popup here.
-            Ok(update) => {self.recordings.append(action); self.apply_update(update)},
+            Ok(update) => {self.recordings.append(action);  update.apply(self)},
             Err(ActionFail(_)) => Ok(()), // Call fallback action.
             Err(res) => Err(res),
         }
@@ -191,21 +210,6 @@ impl Game {
         self.player_action(action)?;
         self.do_npc_turns()?;
         self.event_queue.advance_turn()?;
-        Ok(())
-    }
-
-    pub fn new_update(&self) -> GameUpdate {
-        GameUpdate {
-            world: WorldUpdate::new(),
-            actors: self.actors.db.new_update(),
-            eventqueue: EventQueueUpdate::new()
-        }
-    }
-
-    pub fn apply_update(&mut self, update: GameUpdate) -> Result<()> {
-        update.world.apply(&mut self.world)?;
-        self.actors.db.apply_update(&update.actors)?;
-        update.eventqueue.apply(&mut self.event_queue)?;
         Ok(())
     }
 }
@@ -228,8 +232,8 @@ mod tests {
         let recorder_def = data.items.get(&"recorder".to_string()).unwrap();
         let item = Item::new(recorder_def, 1);
         let update = devtools::grant_item(item, game.get_player_coords().unwrap(), &game).unwrap();
-        game.apply_update(update).unwrap();
-
+        
+        update.apply(&mut game).unwrap();
 
         RecordingModule::init_record(&mut game, 0).unwrap();
 
@@ -250,7 +254,7 @@ mod tests {
 
         RecordingModule::end_record(&mut game, false).unwrap();
         let update = RecordingModule::take_item(&mut game).unwrap();
-        game.apply_update(update).unwrap();
+        update.apply(&mut game).unwrap();
 
 
         // This is really ugly. Perhaps recording needs a nicer API.
@@ -286,7 +290,7 @@ mod tests {
         let cloner_def = data.items.get(&"basic_cloner".to_string()).unwrap();
         let new_cloner = Item::new_cloner(cloner_def, sample_recording_id);
         let update = devtools::grant_item(new_cloner, game.get_player_coords().unwrap(), &game).unwrap();
-        game.apply_update(update).unwrap();
+        update.apply(&mut game).unwrap();
 
         let update = action::execute_action(
             game.actors.get_player().unwrap(),
@@ -297,7 +301,7 @@ mod tests {
             &mut game,
         )
         .unwrap();
-        game.apply_update(update).unwrap();
+    update.apply(&mut game).unwrap();
 
         let dest = game.world.actors.get(&Coordinate{x:0, y:2}).unwrap();
         assert!(dest.is_none());

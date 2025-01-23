@@ -2,7 +2,7 @@ use crate::action::{Action, SubAction};
 use crate::datatypes::Coordinate;
 use crate::recording::Recording;
 use crate::direction::RelativeDirection;
-use crate::engine::update::UpdatableContainerDelta;
+use crate::engine::update::{Delta, UpdatableContainerDelta};
 use crate::game_state::game::{Game, GameUpdate};
 use crate::inventory::Item;
 use crate::error::{Result,Status::Error};
@@ -43,7 +43,7 @@ pub fn grant_item(
     location: Coordinate,
     game: &Game,
 ) -> Result<GameUpdate> {
-    let mut update: GameUpdate = game.new_update();
+    let mut update: GameUpdate = GameUpdate::new();
     let actor  = update.world.actor_updates.get(&game.world.actors, &location)?;
 
     match actor{
@@ -64,7 +64,7 @@ pub fn remove_item(
     location: Coordinate,
     game: &Game,
 ) -> Result<GameUpdate> {
-    let mut update: GameUpdate = game.new_update();
+    let mut update: GameUpdate = GameUpdate::new();
     let actor  = update.world.actor_updates.get(&game.world.actors, &location)?;
 
     match actor{
