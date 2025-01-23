@@ -11,6 +11,7 @@ use std::usize;
 pub struct ActorDb {
     actors: Vec<ActorRef>,
 }
+
 #[derive(Debug)]
 pub struct ActorDbUpdate {
     changes: Vec<ActorId>,
