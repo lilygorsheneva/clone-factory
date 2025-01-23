@@ -24,15 +24,15 @@ impl<T: Trackable> Trackable for Option<T> {
 
 struct Index {
     data: HashMap<TrackableId, Coordinate>,
-    recycle: HashSet<TrackableId>
+    recycle: HashSet<TrackableId>,
 }
 
 impl Index {
-    fn get_next_id(&self ) -> TrackableId {
+    fn get_next_id(&self) -> TrackableId {
         TrackableId(self.data.len() + self.recycle.len())
     }
 
-    fn remove(&mut self, key: TrackableId) -> Result<()>{
+    fn remove(&mut self, key: TrackableId) -> Result<()> {
         self.data.remove(&key).ok_or(Status::OutOfBounds)?;
         self.recycle.insert(key);
         Ok(())
@@ -55,22 +55,40 @@ impl UpdatableContainer for Index {
 }
 
 struct IndexDelta {
-    data: HashMap<TrackableId, Coordinate>,
-    recycle: Vec<TrackableId>
+    mutates: HashMap<TrackableId, Coordinate>,
+    inserts: Vec<TrackableId>,
+    deletes: Vec<TrackableId>,
+}
+
+impl IndexDelta {
+    fn get_next_id(&mut self, source: &Index) -> TrackableId {
+        let ret = TrackableId(source.data.len() + source.recycle.len() + self.inserts.len());
+        self.inserts.push(ret);
+        ret
+    }
+    fn remove(&mut self, key: TrackableId) {
+        self.deletes.push(key);
+    }
 }
 
 impl Delta for IndexDelta {
     type Target = Index;
     fn new() -> Self {
         Self {
-            data: HashMap::new(),
-            recycle: Vec::new()
+            mutates: HashMap::new(),
+            inserts: Vec::new(),
+            deletes: Vec::new(),
         }
     }
 
     fn apply(&self, target: &mut Self::Target) -> Result<()> {
-        for (k, v) in self.data.iter() {
+        // TODO: validate. inserts and deletes do not intersect.
+
+        for (k, v) in self.mutates.iter() {
             target.data.insert(*k, *v);
+        }
+        for k in &self.deletes {
+            target.recycle.insert(*k);
         }
         Ok(())
     }
@@ -82,11 +100,11 @@ impl UpdatableContainerDelta for IndexDelta {
     type Target = Index;
 
     fn get_cached(&self, key: &Self::CoordinateType) -> Result<Option<&Self::DataType>> {
-        Ok(self.data.get(key))
+        Ok(self.mutates.get(key))
     }
 
     fn set(&mut self, key: &Self::CoordinateType, value: &Self::DataType) -> Result<()> {
-        self.data.insert(*key, *value);
+        self.mutates.insert(*key, *value);
         Ok(())
     }
 }
@@ -123,6 +141,15 @@ struct TrackableWorldLayerDelta<DataType: Clone + Trackable> {
     index: IndexDelta,
 }
 
+impl<T: Clone+Trackable> TrackableWorldLayerDelta<T> {
+    fn get_next_id(&mut self, source: &TrackableWorldLayer<T>) -> TrackableId {
+        self.index.get_next_id(&source.index)
+    }
+
+    fn remove(&mut self, key: TrackableId) {
+        self.index.remove(key);
+    }}
+
 impl<T: Clone + Trackable> Delta for TrackableWorldLayerDelta<T> {
     type Target = TrackableWorldLayer<T>;
     fn new() -> Self {
@@ -156,3 +183,4 @@ impl<T: Clone + Trackable> UpdatableContainerDelta for TrackableWorldLayerDelta<
         Ok(())
     }
 }
+
