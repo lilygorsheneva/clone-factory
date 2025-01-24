@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use ratatui::buffer;
 
 use crate::actor;
@@ -19,7 +21,7 @@ pub struct Building {
 
 
 
-fn execute_use_building(
+pub fn execute_use_building(
     location: Coordinate,
     game: &Game,
 ) -> Result<GameUpdate> {
@@ -71,4 +73,19 @@ fn use_matter_digitizer(
             Ok(update)
         }
     }
+}
+
+pub fn get_building_fn_table() -> HashMap<String, BuildingUseFn> {
+    let mut map: HashMap<String, BuildingUseFn> = HashMap::new();
+
+    map.insert(
+        "building_mine".to_string(),
+        use_ore_deposit,
+    );
+    map.insert(
+        "building_digitize".to_string(),
+        use_matter_digitizer,
+    );
+
+    map
 }

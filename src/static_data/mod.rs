@@ -1,7 +1,7 @@
 //! Functions for loading external game data.
 
 use crate::action::{ItemUseFn, get_use_fn_table};
-use crate::buildings::BuildingUseFn;
+use crate::buildings::{get_building_fn_table, BuildingUseFn};
 use crate::interface::widgets::get_color_map;
 use map::StaticDataMap;
 use ratatui::style::Color;
@@ -47,7 +47,7 @@ pub struct ItemDefiniton {
 
     pub on_use: Option<String>,
     #[serde(skip_deserializing)]
-    pub on_use_fn: Option<Box<ItemUseFn>>
+    pub on_use_fn: Option<ItemUseFn>
 }
 
 // An item.
@@ -64,7 +64,7 @@ pub struct BuildingDefinition {
     pub on_interact: Option<String>,
 
     #[serde(skip_deserializing)]
-    pub on_interact_fn: Option<Box<BuildingUseFn>>
+    pub on_interact_fn: Option<BuildingUseFn>
 }
 
 
@@ -162,7 +162,14 @@ impl Data {
         let functions = get_use_fn_table();
         for (_, itemdef) in self.items.iter_mut() {
             if let Some(function ) =  functions.get(itemdef.on_use.as_ref().unwrap_or(&"default".to_string())) {
-                itemdef.on_use_fn =  Some(Box::new(*function.clone()));
+                itemdef.on_use_fn =  Some(*function);
+            }
+        }
+
+        let building_functions = get_building_fn_table();
+        for (_, buildingdef) in self.buildings.iter_mut() {
+            if let Some(function ) =  building_functions.get(buildingdef.on_interact.as_ref().unwrap_or(&"default".to_string())) {
+                buildingdef.on_interact_fn =  Some(*function);
             }
         }
     }

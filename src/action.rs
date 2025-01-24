@@ -1,5 +1,6 @@
 //! Definitons for Actions performed by players or npcs.
 use crate::actor::{Actor, ActorRef};
+use crate::buildings::execute_use_building;
 use crate::datatypes::Coordinate;
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::engine::tracking_worldlayer::TrackableId;
@@ -30,6 +31,7 @@ pub enum SubAction {
     Take,
     Drop(usize),
     Use(usize),
+    ActivateBuilding,
     Craft(&'static RecipeDefiniton),
 }
 
@@ -46,6 +48,7 @@ pub fn execute_action(actor: TrackableId, action: Action, game: &Game) -> Result
         SubAction::Use(idx) => execute_use_item(idx, *location, orientation, game),
         SubAction::Drop(idx) => execute_drop(idx, *location, orientation, game),
         SubAction::Craft(recipe) => execute_craft(recipe, *location, orientation, game), // _ => world,
+        SubAction::ActivateBuilding => execute_use_building(*location, game)
     }
 }
 
@@ -279,12 +282,12 @@ fn execute_craft(
     }
 }
 
-pub fn get_use_fn_table() -> HashMap<String, Box<ItemUseFn>> {
-    let mut map: HashMap<String, Box<ItemUseFn>> = HashMap::new();
+pub fn get_use_fn_table() -> HashMap<String, ItemUseFn> {
+    let mut map: HashMap<String, ItemUseFn> = HashMap::new();
 
     map.insert(
         "action_use_cloner".to_string(),
-        Box::new(execute_use_cloner),
+        execute_use_cloner,
     );
 
     map

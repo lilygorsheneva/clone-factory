@@ -166,6 +166,12 @@ impl MenuTrait for GameMenu {
                     action: SubAction::Take,
                 })
             }))),
+            KeyCode::Char('u') => Some(GameFn(Box::new(|game: &mut Game| {
+                game.player_action_and_turn(Action {
+                    direction: Relative(F),
+                    action: SubAction::ActivateBuilding,
+                })
+            }))),
             KeyCode::Char('c') => Some(Craft),
             KeyCode::Esc => Some(Exit),
             _ => None,
