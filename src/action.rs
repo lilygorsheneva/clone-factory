@@ -28,7 +28,7 @@ pub struct Action {
 pub enum SubAction {
     Move,
     Take,
-    // Drop,
+    Drop(usize),
     Use(usize),
     Craft(&'static RecipeDefiniton),
 }
@@ -43,7 +43,8 @@ pub fn execute_action(actor: TrackableId, action: Action, game: &Game) -> Result
     match action.action {
         SubAction::Move => execute_move(*location, orientation, game),
         SubAction::Take => execute_take(*location, orientation, game),
-        SubAction::Use(i) => execute_use_item(i, *location, orientation, game),
+        SubAction::Use(idx) => execute_use_item(idx, *location, orientation, game),
+        SubAction::Drop(idx) => execute_drop(idx, *location, orientation, game),
         SubAction::Craft(recipe) => execute_craft(recipe, *location, orientation, game), // _ => world,
     }
 }

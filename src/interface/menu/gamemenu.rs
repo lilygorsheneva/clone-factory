@@ -1,12 +1,14 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
 
 use crate::{
     action::{Action, SubAction},
+    error::OkOrPopup,
     game_state::game::Game,
-    interface::widgets::{generate_main_layout, ItemBar, WorldWindowWidget}, recording::interface::RecordingMenu,
+    interface::widgets::{generate_main_layout, ItemBar, WorldWindowWidget},
+    recording::interface::RecordingMenu,
 };
 
 use crate::direction::{
@@ -30,7 +32,7 @@ pub enum GameMenuOptions {
 use GameMenuOptions::*;
 
 impl GameMenu {
-    pub fn new(game:Rc<RefCell<Game>>) -> GameMenu {
+    pub fn new(game: Rc<RefCell<Game>>) -> GameMenu {
         GameMenu { game }
     }
 }
@@ -77,38 +79,87 @@ impl MenuTrait for GameMenu {
                     action: SubAction::Move,
                 })
             }))),
-            KeyCode::Char('r') => 
-                 Some(Record),
-            KeyCode::Char('1') => Some(GameFn(Box::new(|game: &mut Game| {
-                game.player_action_and_turn(Action {
-                    direction: Relative(F),
-                    action: SubAction::Use(0),
-                })
-            }))),
-            KeyCode::Char('2') => Some(GameFn(Box::new(|game: &mut Game| {
-                game.player_action_and_turn(Action {
-                    direction: Relative(F),
-                    action: SubAction::Use(1),
-                })
-            }))),
-            KeyCode::Char('3') => Some(GameFn(Box::new(|game: &mut Game| {
-                game.player_action_and_turn(Action {
-                    direction: Relative(F),
-                    action: SubAction::Use(2),
-                })
-            }))),
-            KeyCode::Char('4') => Some(GameFn(Box::new(|game: &mut Game| {
-                game.player_action_and_turn(Action {
-                    direction: Relative(F),
-                    action: SubAction::Use(3),
-                })
-            }))),
-            KeyCode::Char('5') => Some(GameFn(Box::new(|game: &mut Game| {
-                game.player_action_and_turn(Action {
-                    direction: Relative(F),
-                    action: SubAction::Use(4),
-                })
-            }))),
+            KeyCode::Char('r') => Some(Record),
+            KeyCode::Char('1') if key.modifiers == KeyModifiers::NONE => {
+                Some(GameFn(Box::new(|game: &mut Game| {
+                    game.player_action_and_turn(Action {
+                        direction: Relative(F),
+                        action: SubAction::Use(0),
+                    })
+                })))
+            }
+            KeyCode::Char('1') if key.modifiers.contains(KeyModifiers::ALT) => {
+                Some(GameFn(Box::new(|game: &mut Game| {
+                    game.player_action_and_turn(Action {
+                        direction: Relative(F),
+                        action: SubAction::Drop(0),
+                    })
+                })))
+            }
+            KeyCode::Char('2') if key.modifiers == KeyModifiers::NONE => {
+                Some(GameFn(Box::new(|game: &mut Game| {
+                    game.player_action_and_turn(Action {
+                        direction: Relative(F),
+                        action: SubAction::Use(1),
+                    })
+                })))
+            }
+            KeyCode::Char('2') if key.modifiers.contains(KeyModifiers::ALT) => {
+                Some(GameFn(Box::new(|game: &mut Game| {
+                    game.player_action_and_turn(Action {
+                        direction: Relative(F),
+                        action: SubAction::Drop(1),
+                    })
+                })))
+            }
+            KeyCode::Char('3') if key.modifiers == KeyModifiers::NONE => {
+                Some(GameFn(Box::new(|game: &mut Game| {
+                    game.player_action_and_turn(Action {
+                        direction: Relative(F),
+                        action: SubAction::Use(2),
+                    })
+                })))
+            }
+            KeyCode::Char('3') if key.modifiers.contains(KeyModifiers::ALT) => {
+                Some(GameFn(Box::new(|game: &mut Game| {
+                    game.player_action_and_turn(Action {
+                        direction: Relative(F),
+                        action: SubAction::Drop(2),
+                    })
+                })))
+            }
+            KeyCode::Char('4') if key.modifiers == KeyModifiers::NONE => {
+                Some(GameFn(Box::new(|game: &mut Game| {
+                    game.player_action_and_turn(Action {
+                        direction: Relative(F),
+                        action: SubAction::Use(3),
+                    })
+                })))
+            }
+            KeyCode::Char('4') if key.modifiers.contains(KeyModifiers::ALT) => {
+                Some(GameFn(Box::new(|game: &mut Game| {
+                    game.player_action_and_turn(Action {
+                        direction: Relative(F),
+                        action: SubAction::Drop(3),
+                    })
+                })))
+            }
+            KeyCode::Char('5') if key.modifiers == KeyModifiers::NONE => {
+                Some(GameFn(Box::new(|game: &mut Game| {
+                    game.player_action_and_turn(Action {
+                        direction: Relative(F),
+                        action: SubAction::Use(4),
+                    })
+                })))
+            }
+            KeyCode::Char('5') if key.modifiers.contains(KeyModifiers::ALT) => {
+                Some(GameFn(Box::new(|game: &mut Game| {
+                    game.player_action_and_turn(Action {
+                        direction: Relative(F),
+                        action: SubAction::Drop(4),
+                    })
+                })))
+            }
             KeyCode::Char('t') => Some(GameFn(Box::new(|game: &mut Game| {
                 game.player_action_and_turn(Action {
                     direction: Relative(F),
@@ -127,7 +178,10 @@ impl MenuTrait for GameMenu {
 
             match self.read() {
                 None => {}
-                Some(GameFn(fun)) => fun(&mut self.game.borrow_mut()).unwrap(),
+                Some(GameFn(fun)) => {
+                    let res = fun(&mut self.game.borrow_mut());
+                    res.ok_or_popup(self, terminal);
+                }
                 Some(Craft) => {
                     let mut cmenu = CraftingMenu::new(self, self.game.clone());
                     cmenu.enter_menu(terminal);
