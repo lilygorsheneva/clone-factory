@@ -1,7 +1,13 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    action::{Action, SubAction}, direction::{Direction, RelativeDirection}, game_state::game::Game, interface::widgets::generate_popup_layout, inventory::BasicInventory, static_data::{RecipeDefiniton, StaticData}
+    action::{Action, SubAction},
+    direction::{Direction, RelativeDirection},
+    error::OkOrPopup,
+    game_state::game::Game,
+    interface::widgets::generate_popup_layout,
+    inventory::BasicInventory,
+    static_data::{RecipeDefiniton, StaticData},
 };
 
 use super::{gamemenu::GameMenu, MenuTrait, UILayer};
@@ -73,13 +79,11 @@ impl MenuTrait for CraftingMenu<'_> {
                 Some(Exit) => break,
                 Some(Craft(idx)) => {
                     if let Some(entry) = self.recipes.get(idx) {
-                        self.game
-                            .borrow_mut()
-                            .player_action_and_turn(Action {
-                                direction: Direction::Relative(RelativeDirection::F),
-                                action: SubAction::Craft(entry.definition),
-                            })
-                            .unwrap();
+                        let res = self.game.borrow_mut().player_action_and_turn(Action {
+                            direction: Direction::Relative(RelativeDirection::F),
+                            action: SubAction::Craft(entry.definition),
+                        });
+                        res.ok_or_popup(self, terminal);
                     }
                 }
             }

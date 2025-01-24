@@ -42,11 +42,13 @@ impl UILayer for GameMenu {
         let game = self.game.borrow();
         let window = WorldWindowWidget::new(&game);
         let item_widget = ItemBar::new(&game);
+        let score =&game.score;
 
-        let (main, _side, bottom, _corner) = generate_main_layout(frame);
+        let (main, _side, bottom, corner) = generate_main_layout(frame);
 
         frame.render_widget(item_widget, bottom);
         frame.render_widget(window, main);
+        frame.render_widget(score, corner);
     }
 }
 

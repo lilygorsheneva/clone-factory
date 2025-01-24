@@ -62,6 +62,7 @@
     description = "TODO"
     glyph = "*"
     color = "grey"
+    score_value = 1
 
 [recipes]
 [recipes.echo_crystal]

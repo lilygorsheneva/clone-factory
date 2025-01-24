@@ -7,6 +7,7 @@ use crate::direction::AbsoluteDirection;
 use crate::game_state::game::Game;
 use crate::game_state::world::{World, WorldCell};
 use crate::inventory::{BasicInventory, Item};
+use crate::score::Score;
 use crate::static_data::{ItemDefiniton, StaticData};
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
@@ -40,12 +41,16 @@ impl<'a> WorldCell<'a> {
                     .set_bg(Color::Black);
             }
             WorldCell {
-                building: Some(building), items:[maybe_item], ..
+                building: Some(building),
+                items: [maybe_item],
+                ..
             } => {
                 if maybe_item.is_some() {
-                    cell.set_symbol(&building.definition.glyph).set_style(generic_style.add_modifier(Modifier::UNDERLINED));
-                } else  {
-                    cell.set_symbol(&building.definition.glyph).set_style(generic_style);
+                    cell.set_symbol(&building.definition.glyph)
+                        .set_style(generic_style.add_modifier(Modifier::UNDERLINED));
+                } else {
+                    cell.set_symbol(&building.definition.glyph)
+                        .set_style(generic_style);
                 }
             }
             WorldCell { items, .. } if items[0].is_some() => {
@@ -179,6 +184,14 @@ impl Widget for ItemBar {
                     .render(slots[i], buf);
             }
         }
+    }
+}
+
+impl Widget for &Score {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        Paragraph::new(format!("{} points", self.0))
+            .block(Block::default())
+            .render(area, buf);
     }
 }
 
