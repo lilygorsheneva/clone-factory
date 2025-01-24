@@ -7,8 +7,9 @@ use crate::error::Result;
 use crate::inventory::Item;
 use crate::{
     actor::Actor,
-    datatypes::{Building, Coordinate},
+    datatypes::{Coordinate},
 };
+use crate::buildings::Building;
 
 pub type FloorInventory = [Option<Item>; 1];
 

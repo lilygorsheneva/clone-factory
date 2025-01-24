@@ -51,9 +51,3 @@ impl ops::Mul<AbsoluteDirection> for Coordinate {
         }
     }
 }
-
-#[derive(PartialEq, Debug, Clone)]
-pub struct Building {
-    name: String,
-    facing: AbsoluteDirection,
-}

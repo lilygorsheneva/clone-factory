@@ -1,6 +1,7 @@
 //! Functions for loading external game data.
 
 use crate::action::{ItemUseFn, get_use_fn_table};
+use crate::buildings::BuildingUseFn;
 use crate::interface::widgets::get_color_map;
 use map::StaticDataMap;
 use ratatui::style::Color;
@@ -41,17 +42,45 @@ pub struct ItemDefiniton {
     pub color_object: Color,
 
     pub description: String,
-    pub on_use: Option<String>,
 
+    pub score_value: Option<i64>,
+
+    pub on_use: Option<String>,
     #[serde(skip_deserializing)]
     pub on_use_fn: Option<Box<ItemUseFn>>
 }
+
+// An item.
+#[derive(Clone, Debug, Deserialize)]
+pub struct BuildingDefinition {
+    pub name: String,
+    pub glyph: String,
+    pub color: String,
+    // TODO: write a custom Deserialize for Color
+    #[serde(skip_deserializing)]
+    pub color_object: Color,
+
+    pub description: String,
+    pub on_interact: Option<String>,
+
+    #[serde(skip_deserializing)]
+    pub on_interact_fn: Option<Box<BuildingUseFn>>
+}
+
+
 
 impl PartialEq for ItemDefiniton {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
     }
 }
+
+impl PartialEq for BuildingDefinition {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
 
 // A crafting recipe.
 #[derive(PartialEq, Eq, Clone,Debug,  Deserialize)]
@@ -67,14 +96,14 @@ pub struct RecipeDefiniton {
 
 pub struct Data {
     actor_appearances: HashMap<String, AppearanceDefiniton>,
-    building_appearances: HashMap<String, AppearanceDefiniton>,
+    buildings: HashMap<String, BuildingDefinition>,
     items: HashMap<String, ItemDefiniton>,
     recipes: HashMap<String, RecipeDefiniton>,
 }
 
 pub struct StaticData {
     pub actor_appearances: StaticDataMap<String, AppearanceDefiniton>,
-    pub building_appearances: StaticDataMap<String, AppearanceDefiniton>,
+    pub buildings: StaticDataMap<String, BuildingDefinition>,
     pub items: StaticDataMap<String, ItemDefiniton>,
     pub recipes: StaticDataMap<String, RecipeDefiniton>,
 }
@@ -83,7 +112,7 @@ impl StaticData {
     pub fn from_data(data: &Data ) -> &'static StaticData {
         let tmp = StaticData {
             actor_appearances: StaticDataMap::from_map(&data.actor_appearances),
-            building_appearances: StaticDataMap::from_map(&data.building_appearances),
+            buildings: StaticDataMap::from_map(&data.buildings),
             items: StaticDataMap::from_map(&data.items),
             recipes: StaticDataMap::from_map(&data.recipes),
         };

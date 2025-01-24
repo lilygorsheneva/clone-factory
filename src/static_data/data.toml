@@ -16,7 +16,7 @@
     glyph_w =  "<"
     color = "white"
 
-[building_appearances]
+[buildings]
 
 [items]
 [items.recorder]

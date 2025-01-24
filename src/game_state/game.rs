@@ -7,6 +7,7 @@ use crate::engine::update::{Delta, Updatable, UpdatableContainer};
 use crate::error::StatusMenu;
 use crate::interface::menu::{MenuTrait, UILayer};
 use crate::recording::interface::RecordingModule;
+use crate::score::{Score, ScoreDelta};
 use crate::{action, devtools};
 use crate::actor::{Actor, ActorRef};
 use crate::static_data::StaticData;
@@ -55,6 +56,7 @@ pub struct Game {
     pub recordings: RecordingModule,
     pub event_queue: EventQueue, 
     pub data: &'static  StaticData,
+    pub score: Score
 }
 
 impl Updatable for Game{}
@@ -66,8 +68,8 @@ impl Updatable for Game{}
 #[must_use = "Valid game update objects must be used."]
 pub struct GameUpdate {
     pub world: WorldUpdate,
-    pub actors: ActorDbUpdate,
     pub eventqueue: EventQueueUpdate,
+    pub score: ScoreDelta,
 }
 
 impl Delta for GameUpdate {
@@ -75,14 +77,15 @@ impl Delta for GameUpdate {
     fn new() -> GameUpdate {
         GameUpdate {
             world: WorldUpdate::new(),
-            actors: ActorDbUpdate::new(),
-            eventqueue: EventQueueUpdate::new()
+            eventqueue: EventQueueUpdate::new(),
+            score: ScoreDelta(0)
         }
     }
 
     fn apply(&self, target: &mut Self::Target) -> Result<()> {
         self.world.apply(&mut target.world)?;
         self.eventqueue.apply(&mut target.event_queue)?;
+        self.score.apply(&mut target.score)?;
         Ok(())
     }
 }
@@ -114,6 +117,7 @@ impl Game {
             recordings: RecordingModule::new(),
             event_queue: EventQueue::new(),
             data: data,
+            score: Score(0)
         }
     }
 
@@ -165,7 +169,7 @@ impl Game {
                 Ok(update) => update.apply(self),
                 Err(ActionFail(_)) => Ok(()), // call fallback action
                 Err(res) => Err(res),
-            };
+            }?;
 
             let recording: &Recording = self.recordings.get(evt.recording);
             evt.recording_idx += 1;
@@ -180,7 +184,6 @@ impl Game {
             } else {
                 self.event_queue.next_turn.push_back(evt);
             }
-            
         }
         Ok(())
     }
@@ -292,7 +295,7 @@ mod tests {
             &mut game,
         )
         .unwrap();
-    update.apply(&mut game).unwrap();
+        update.apply(&mut game).unwrap();
 
         let dest = game.world.actors.get(&Coordinate{x:0, y:2}).unwrap();
         assert!(dest.is_none());

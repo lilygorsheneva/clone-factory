@@ -157,7 +157,7 @@ fn execute_use_item(
     game: &Game,
 ) -> Result<GameUpdate> {
     let cell = game.world.actors.get(&location)?;
-    let actor = cell.ok_or(Error("Actor missing"))?;
+    let actor = cell.as_ref().ok_or(Error("Actor missing"))?;
     let item = actor.inventory.get_items()[idx].ok_or(ActionFail("no item"))?;
     let definition = item.definition;
     let function = definition

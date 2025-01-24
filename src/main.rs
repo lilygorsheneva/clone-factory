@@ -15,6 +15,8 @@ mod static_data;
 
 mod recording;
 mod eventqueue;
+mod buildings;
+mod score;
 
 fn main() {
     let mut terminal = interface::widgets::init_render();
