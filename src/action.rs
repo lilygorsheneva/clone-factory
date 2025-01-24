@@ -1,10 +1,10 @@
 //! Definitons for Actions performed by players or npcs.
-use crate::actor::{Actor, ActorRef};
+use crate::actor::Actor;
 use crate::buildings::execute_use_building;
 use crate::datatypes::Coordinate;
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::engine::tracking_worldlayer::TrackableId;
-use crate::engine::update::{Updatable, Delta, UpdatableContainer, UpdatableContainerDelta};
+use crate::engine::update::{Delta, Updatable, UpdatableContainer, UpdatableContainerDelta};
 use crate::error::{
     Result,
     Status::{ActionFail, Error, OutOfBounds},
@@ -38,8 +38,10 @@ pub enum SubAction {
 pub fn execute_action(actor: TrackableId, action: Action, game: &Game) -> Result<GameUpdate> {
     let location = game.world.actors.get_location(&actor)?;
     let maybe_actor = game.world.actors.get(location)?;
-    let actor = maybe_actor.as_ref().ok_or(Error("No actor at expected coordinates"))?;
-    
+    let actor = maybe_actor
+        .as_ref()
+        .ok_or(Error("No actor at expected coordinates"))?;
+
     let orientation = actor.facing.rotate(&action.direction);
 
     match action.action {
@@ -48,7 +50,7 @@ pub fn execute_action(actor: TrackableId, action: Action, game: &Game) -> Result
         SubAction::Use(idx) => execute_use_item(idx, *location, orientation, game),
         SubAction::Drop(idx) => execute_drop(idx, *location, orientation, game),
         SubAction::Craft(recipe) => execute_craft(recipe, *location, orientation, game), // _ => world,
-        SubAction::ActivateBuilding => execute_use_building(*location, game)
+        SubAction::ActivateBuilding => execute_use_building(*location, game),
     }
 }
 
@@ -204,20 +206,11 @@ fn execute_use_cloner(
                 .recording
                 .ok_or(Error("called use cloner on a non-recorder item"))?;
 
-            let new_actor_ref = ActorRef {
-                location: dst_coord,
-                orientation: orientation,
-                live: true,
-                isplayer: false,
-                recording: recordingid,
-                command_idx: 0,
-            };
-
             let actor_id = update.world.actor_updates.get_next_id(&game.world.actors);
- 
+
             let mut new_actor = Actor::from_recording(game.recordings.get(recordingid));
             new_actor.facing = orientation;
-            new_actor.actor_id = ActorId{idx: actor_id.0};
+            new_actor.actor_id = ActorId { idx: actor_id.0 };
 
             update
                 .world
@@ -227,10 +220,11 @@ fn execute_use_cloner(
                 .world
                 .actor_updates
                 .set(&dst_coord, &Some(new_actor))?;
-            update
-                .eventqueue
-                .this_turn
-                .push_front(ActorEvent { actor: actor_id, recording: recordingid, recording_idx: 0 });
+            update.eventqueue.this_turn.push_front(ActorEvent {
+                actor: actor_id,
+                recording: recordingid,
+                recording_idx: 0,
+            });
             Ok(update)
         }
     }
@@ -285,10 +279,7 @@ fn execute_craft(
 pub fn get_use_fn_table() -> HashMap<String, ItemUseFn> {
     let mut map: HashMap<String, ItemUseFn> = HashMap::new();
 
-    map.insert(
-        "action_use_cloner".to_string(),
-        execute_use_cloner,
-    );
+    map.insert("action_use_cloner".to_string(), execute_use_cloner);
 
     map
 }

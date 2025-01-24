@@ -13,46 +13,7 @@ pub struct Actor {
     pub isplayer: bool,
     pub actor_id: ActorId,
     pub inventory: BasicInventory,
-}
-
-// A way to locate an actor within a world.
-// This could be done more cleanly with references,
-// but a planned time-travel mechanic would make 
-// normal references impossible to reason about.
-#[derive(Copy, Clone, Debug)]
-pub struct ActorRef {
-    pub location: Coordinate,
-    pub orientation: AbsoluteDirection,
-    pub isplayer: bool,
-    pub live: bool,
-    pub recording: RecordingId,
-    pub command_idx: usize,
-}
-
-impl ActorRef {
-    pub fn blank() -> ActorRef {
-        ActorRef {
-            location: Coordinate { x: 0, y: 0 },
-            orientation: AbsoluteDirection::N,
-            live: false,
-            isplayer: false,
-            recording: RecordingId::DEFAULT,
-            command_idx: 0,
-        }
-    }
-}
-
-impl ActorRef {
-    pub fn new(coordinate: Coordinate, orientation: AbsoluteDirection) -> ActorRef {
-        ActorRef {
-            location: coordinate,
-            orientation: orientation,
-            live: true,
-            isplayer: false,
-            recording: RecordingId::DEFAULT,
-            command_idx: 0,
-        }
-    }
+    pub paradox_level: f64
 }
 
 impl Actor {
@@ -62,6 +23,7 @@ impl Actor {
             isplayer: false,
             actor_id: ActorId::DEFAULT,
             inventory: Default::default(),
+            paradox_level: 0.0
         }
     }
 
@@ -71,6 +33,7 @@ impl Actor {
             isplayer: false,
             actor_id: ActorId::DEFAULT,
             inventory:recording.inventory,
+            paradox_level: 0.0
         }
     }
 

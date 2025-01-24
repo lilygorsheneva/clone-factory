@@ -9,11 +9,11 @@ use crate::interface::menu::{MenuTrait, UILayer};
 use crate::recording::interface::RecordingModule;
 use crate::score::{Score, ScoreDelta};
 use crate::{action, devtools};
-use crate::actor::{Actor, ActorRef};
+use crate::actor::{Actor};
 use crate::static_data::StaticData;
 use crate::recording::Recording;
 
-use crate::game_state::db::{ActorDb, ActorDbUpdate, ActorId};
+use crate::game_state::db::{ ActorId};
 use crate::error::{
     Result,
     Status::{ActionFail, Error},
