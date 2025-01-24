@@ -18,6 +18,20 @@
 
 [buildings]
 
+[buildings.crystal_deposit]
+    name = "Crystal deposit"
+    description = "All the crystal you could ever want"
+    on_interact = "building_mine"
+    glyph = "O"
+    color = "blue"
+
+[buildings.matter_digitizer]
+    name = "Matter Digitizer"
+    description = "Magically make items vanish"
+    on_interact = "building_digitize"
+    glyph = "Y"
+    color = "blue"
+
 [items]
 [items.recorder]
     name = "Empty Recorder"

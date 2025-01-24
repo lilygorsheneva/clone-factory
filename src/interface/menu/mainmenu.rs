@@ -1,9 +1,9 @@
+use crate::buildings::Building;
+use crate::engine::update::{Delta, Updatable, UpdatableContainer, UpdatableContainerDelta};
 use std::{cell::RefCell, rc::Rc};
-use crate::engine::update::{Updatable, Delta, UpdatableContainer, UpdatableContainerDelta};
 
 use crate::{
-    datatypes::Coordinate, game_state::game::Game,
-    inventory::Item, static_data::StaticData,
+    datatypes::Coordinate, game_state::game::Game, inventory::Item, static_data::StaticData,
 };
 use crossterm::event::KeyCode;
 use ratatui::{widgets::Paragraph, DefaultTerminal, Frame};
@@ -36,6 +36,35 @@ impl MainMenu {
             .mut_set(&Coordinate { x: 10, y: 5 }, &[Some(foo)])
             .unwrap();
 
+        let ore = self
+            .data
+            .buildings
+            .get(&"crystal_deposit".to_string())
+            .unwrap();
+        let digitizer = self
+            .data
+            .buildings
+            .get(&"matter_digitizer".to_string())
+            .unwrap();
+
+        game.world
+            .buildings
+            .mut_set(
+                &Coordinate { x: 5, y: 5 },
+                &Some(Building { definition: ore }),
+            )
+            .unwrap();
+
+
+            game.world
+            .buildings
+            .mut_set(
+                &Coordinate { x: 15, y: 5 },
+                &Some(Building { definition: digitizer }),
+            )
+            .unwrap();
+
+
         self.game = Some(Rc::new(RefCell::new(game)));
     }
 
@@ -58,7 +87,7 @@ impl UILayer for MainMenu {
     fn draw(&self, frame: &mut Frame) {
         let text = match self.game {
             None => Paragraph::new("Enter: start/continue.\n Esc: Quit"),
-            Some(_) => Paragraph::new("Enter: start/continue.\n Esc: Quit\n R: Delete Save")
+            Some(_) => Paragraph::new("Enter: start/continue.\n Esc: Quit\n R: Delete Save"),
         };
         frame.render_widget(text, frame.area());
     }
@@ -66,7 +95,6 @@ impl UILayer for MainMenu {
 
 impl MenuTrait for MainMenu {
     type MenuOptions = MainMenuOptions;
-
 
     fn enter_menu(&mut self, terminal: &mut DefaultTerminal) {
         loop {

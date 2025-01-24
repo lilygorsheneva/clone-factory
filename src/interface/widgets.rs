@@ -11,7 +11,7 @@ use crate::static_data::{ItemDefiniton, StaticData};
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
 use ratatui::prelude::Buffer;
-use ratatui::style::{Color, Style};
+use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
@@ -40,9 +40,13 @@ impl<'a> WorldCell<'a> {
                     .set_bg(Color::Black);
             }
             WorldCell {
-                building: Some(_), ..
+                building: Some(building), items:[maybe_item], ..
             } => {
-                cell.set_symbol("B").set_style(generic_style);
+                if maybe_item.is_some() {
+                    cell.set_symbol(&building.definition.glyph).set_style(generic_style.add_modifier(Modifier::UNDERLINED));
+                } else  {
+                    cell.set_symbol(&building.definition.glyph).set_style(generic_style);
+                }
             }
             WorldCell { items, .. } if items[0].is_some() => {
                 cell.set_symbol("i").set_style(generic_style);

@@ -15,8 +15,7 @@ pub type BuildingUseFn = fn(Coordinate, &Game) -> Result<GameUpdate>;
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct Building {
-    definition: &'static BuildingDefinition,
-    facing: AbsoluteDirection,
+    pub definition: &'static BuildingDefinition,
 }
 
 
@@ -26,7 +25,7 @@ pub fn execute_use_building(
     game: &Game,
 ) -> Result<GameUpdate> {
     let cell = game.world.buildings.get(&location)?;
-    let building = cell.as_ref().ok_or(Error("Actor missing"))?;
+    let building = cell.as_ref().ok_or(ActionFail("No building"))?;
     let definition = building.definition;
     let function = definition
         .on_interact_fn
