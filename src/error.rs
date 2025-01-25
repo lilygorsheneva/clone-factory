@@ -44,7 +44,8 @@ impl UILayer for StatusMenu<'_>  {
             Status::StateUpdateError => Paragraph::new("Error updating world state.").fg(Color::Black).bg(Color::Red),
             Status::Error(str) => Paragraph::new(str).fg(Color::Black).bg(Color::Red),
         };
-        frame.render_widget(widget, generate_popup_layout(frame));
+        let area = generate_popup_layout(frame);
+        frame.render_widget(widget, area);
     }
 }
 

@@ -14,7 +14,7 @@ use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
 use ratatui::prelude::Buffer;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::Line;
-use ratatui::widgets::{Block, Borders, Paragraph, Widget};
+use ratatui::widgets::{Block, Borders, Clear, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
 impl<'a> WorldCell<'a> {
@@ -201,13 +201,16 @@ impl Widget for &Score {
     }
 }
 
-pub fn generate_popup_layout(frame: &Frame) -> Rect {
+pub fn generate_popup_layout(frame: &mut Frame) -> Rect {
     let [area] = Layout::horizontal([Constraint::Percentage(50)])
         .flex(Flex::Center)
         .areas(frame.area());
     let [area] = Layout::vertical([Constraint::Percentage(50)])
         .flex(Flex::Center)
         .areas(area);
+
+    Clear.render(area, frame.buffer_mut());
+
     area
 }
 

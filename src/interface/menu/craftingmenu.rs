@@ -63,7 +63,8 @@ impl UILayer for CraftingMenu<'_> {
             .iter()
             .map(|i| ListItem::new(i.definition.name.clone().bg(Color::Black)));
         let list = List::new(items);
-        frame.render_widget(list, generate_popup_layout(frame));
+        let area = generate_popup_layout(frame);
+        frame.render_widget(list, area);
     }
 }
 
