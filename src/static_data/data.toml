@@ -64,6 +64,18 @@
     color = "grey"
     score_value = 1
 
+[items.matter_digitizer]
+    name = "matter_digitizer"
+    id = 1
+    description = "TODO"
+    glyph = "Y"
+    color = "grey"
+    score_value = 1
+    on_use = "action_construct"
+
+
+
+
 [recipes]
 [recipes.echo_crystal]
     ingredients = ["raw_crystal"]
@@ -78,3 +90,10 @@
     product = "recorder"
     product_count = 1
     name = "Empty Recorder"
+
+[recipes.matter_digitizer]
+    ingredients = ["echo_crystal"]
+    ingredient_counts = [5]
+    product = "matter_digitizer"
+    product_count = 1
+    name = "Matter Digitizer"

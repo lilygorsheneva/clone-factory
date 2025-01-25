@@ -1,6 +1,6 @@
 //! Definitons for Actions performed by players or npcs.
 use crate::actor::Actor;
-use crate::buildings::execute_use_building;
+use crate::buildings::{execute_use_building, Building};
 use crate::datatypes::Coordinate;
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::engine::tracking_worldlayer::TrackableId;
@@ -33,7 +33,7 @@ pub enum SubAction {
     Use(usize),
     ActivateBuilding,
     Craft(&'static RecipeDefiniton),
-    Wait
+    Wait,
 }
 
 pub fn execute_action(actor: TrackableId, action: Action, game: &Game) -> Result<GameUpdate> {
@@ -52,7 +52,7 @@ pub fn execute_action(actor: TrackableId, action: Action, game: &Game) -> Result
         SubAction::Drop(idx) => execute_drop(idx, *location, orientation, game),
         SubAction::Craft(recipe) => execute_craft(recipe, *location, orientation, game), // _ => world,
         SubAction::ActivateBuilding => execute_use_building(*location, game),
-        SubAction::Wait => Ok(GameUpdate::new())
+        SubAction::Wait => Ok(GameUpdate::new()),
     }
 }
 
@@ -232,6 +232,51 @@ fn execute_use_cloner(
     }
 }
 
+fn execute_construct(
+    idx: usize,
+    location: Coordinate,
+    orientation: AbsoluteDirection,
+    game: &Game,
+) -> Result<GameUpdate> {
+    let mut update: GameUpdate = GameUpdate::new();
+
+    let actor_cell = update
+        .world
+        .actor_updates
+        .get(&game.world.actors, &location)?;
+    let floor_cell = update
+        .world
+        .building_updates
+        .get(&game.world.buildings, &location)?
+        .as_ref();
+
+    match (actor_cell, floor_cell) {
+        (None, _) => Err(Error("actor Missing")),
+        (Some(_), Some(_)) => Err(ActionFail("destination full")),
+        (Some(actor), None) => {
+            let mut actor = actor.clone();
+            actor.facing = orientation;
+            let item = actor
+                .inventory
+                .remove_idx(idx)
+                .ok_or(ActionFail("No item in slot"))?;
+            let building_def = game
+                .data
+                .buildings
+                .get(&item.definition.name)
+                .ok_or(Error("called execute_construct on a non-building item"))?;
+            update.world.actor_updates.set(&location, &Some(actor))?;
+            update.world.building_updates.set(
+                &location,
+                &Some(Building {
+                    definition: building_def,
+                }),
+            )?;
+            Ok(update)
+        }
+    }
+}
+
 fn execute_craft(
     recipe: &RecipeDefiniton,
     location: Coordinate,
@@ -264,9 +309,11 @@ fn execute_craft(
                 .items
                 .get(&recipe.ingredients[idx])
                 .ok_or(Error("ingredient undefined"))?;
-            let ingedient: Item =
-                Item::new(ingredient_definiton, recipe.ingredient_counts[idx] as u16);
-            inventory.remove(ingedient)?;
+
+            let ingedient: Item = Item::new(ingredient_definiton, 1);
+            for i in 0..recipe.ingredient_counts[idx] as u16 {
+                inventory.remove(ingedient)?;
+            }
         }
 
         inventory.insert(product)?;
@@ -282,6 +329,7 @@ pub fn get_use_fn_table() -> HashMap<String, ItemUseFn> {
     let mut map: HashMap<String, ItemUseFn> = HashMap::new();
 
     map.insert("action_use_cloner".to_string(), execute_use_cloner);
+    map.insert("action_construct".to_string(), execute_construct);
 
     map
 }
