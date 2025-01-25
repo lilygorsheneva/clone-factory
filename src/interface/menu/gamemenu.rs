@@ -42,7 +42,7 @@ impl UILayer for GameMenu {
         let game = self.game.borrow();
         let window = WorldWindowWidget::new(&game);
         let item_widget = ItemBar::new(&game);
-        let score =&game.score;
+        let score = &game.score;
 
         let (main, _side, bottom, corner) = generate_main_layout(frame);
 
@@ -175,6 +175,12 @@ impl MenuTrait for GameMenu {
                 })
             }))),
             KeyCode::Char('c') => Some(Craft),
+            KeyCode::Char(' ') => Some(GameFn(Box::new(|game: &mut Game| {
+                game.player_action_and_turn(Action {
+                    direction: Relative(F),
+                    action: SubAction::Wait,
+                })
+            }))),
             KeyCode::Esc => Some(Exit),
             _ => None,
         }

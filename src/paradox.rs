@@ -57,15 +57,18 @@ pub fn diffuse_paradox(layer: &mut WorldLayer<Paradox>) {
     for x in 0..dimensions.x {
         for y in 0..dimensions.y {
             let mut tmp = 0.0;
+            let mut area = 0.0;
             for i in -1..2 {
                 for j in -1..2 {
                     let coord = Coordinate { x: x + i, y: y + j };
                     if layer.in_bounds(&coord) {
                         tmp += old_layer.get(&coord).unwrap().0;
+                        area += 1.0;
                     }
                 }
             } // end inner loop pair
-            tmp = tmp / 9.0;
+
+            tmp = tmp / area;
             if tmp < 0.0 {
                 tmp = 0.0
             }

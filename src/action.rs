@@ -33,6 +33,7 @@ pub enum SubAction {
     Use(usize),
     ActivateBuilding,
     Craft(&'static RecipeDefiniton),
+    Wait
 }
 
 pub fn execute_action(actor: TrackableId, action: Action, game: &Game) -> Result<GameUpdate> {
@@ -51,6 +52,7 @@ pub fn execute_action(actor: TrackableId, action: Action, game: &Game) -> Result
         SubAction::Drop(idx) => execute_drop(idx, *location, orientation, game),
         SubAction::Craft(recipe) => execute_craft(recipe, *location, orientation, game), // _ => world,
         SubAction::ActivateBuilding => execute_use_building(*location, game),
+        SubAction::Wait => Ok(GameUpdate::new())
     }
 }
 
