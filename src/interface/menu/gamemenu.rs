@@ -1,7 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use ratatui::{DefaultTerminal, Frame};
+use ratatui::{
+    widgets::{List, ListItem, Paragraph},
+    DefaultTerminal, Frame,
+};
 
 use crate::{
     action::{Action, SubAction},
@@ -44,12 +47,28 @@ impl UILayer for GameMenu {
         let item_widget = ItemBar::new(&game);
         let score = &game.score;
 
-        let (main, _side, bottom, corner) = generate_main_layout(frame);
+        let (main, side, bottom, corner) = generate_main_layout(frame);
+
+        frame.render_widget(get_guide(), side);
 
         frame.render_widget(item_widget, bottom);
         frame.render_widget(window, main);
         frame.render_widget(score, corner);
     }
+}
+
+fn get_guide() -> List<'static> {
+    List::new([
+        ListItem::new("arrow keys: move"),
+        ListItem::new("Num keys: use item"),
+        ListItem::new("Alt+Num keys: drop"),
+        ListItem::new("T: take"),
+        ListItem::new("U: interact with building"),
+        ListItem::new("C: crafting menu"),
+        ListItem::new("R: recording menu"),
+
+        ListItem::new("space: wait"),
+        ])
 }
 
 impl MenuTrait for GameMenu {
