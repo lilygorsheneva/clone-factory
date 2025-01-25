@@ -7,7 +7,7 @@ use crate::{
     game_state::game::Game,
     interface::widgets::generate_popup_layout,
     inventory::BasicInventory,
-    static_data::{RecipeDefiniton, Data},
+    static_data::{Data, RecipeDefiniton},
 };
 
 use super::{gamemenu::GameMenu, MenuTrait, UILayer};
@@ -21,6 +21,22 @@ pub struct CraftingMenu<'a> {
 
 pub struct CraftingMenuEntry {
     definition: &'static RecipeDefiniton,
+    string: String,
+}
+
+impl CraftingMenuEntry {
+    pub fn new(definition: &'static RecipeDefiniton) -> CraftingMenuEntry {
+        let mut stringpieces = Vec::new();
+        stringpieces.push(format!("{}", definition.name));
+        for i in 0..definition.ingredients.len() {
+            stringpieces.push(format!("{}x {}", definition.ingredient_counts[i], definition.ingredients[i]));
+        }
+
+        CraftingMenuEntry {
+            definition,
+            string: stringpieces.join(" ")
+        }
+    }
 }
 
 impl<'a> CraftingMenu<'a> {
@@ -39,7 +55,7 @@ impl<'a> CraftingMenu<'a> {
     fn get_all_recipes(data: &'static Data) -> Vec<CraftingMenuEntry> {
         data.recipes
             .iter()
-            .map(|(_, def)| CraftingMenuEntry { definition: def })
+            .map(|(_, def)| CraftingMenuEntry::new (def))
             .collect()
     }
 }
@@ -61,7 +77,7 @@ impl UILayer for CraftingMenu<'_> {
         let items = self
             .recipes
             .iter()
-            .map(|i| ListItem::new(i.definition.name.clone().bg(Color::Black)));
+            .map(|i| ListItem::new(i.string.clone().bg(Color::Black)));
         let list = List::new(items);
         let area = generate_popup_layout(frame);
         frame.render_widget(list, area);
