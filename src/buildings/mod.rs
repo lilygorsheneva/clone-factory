@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use ratatui::buffer;
 
-use crate::actor;
+use crate::paradox::Paradox;
+use crate::{actor, paradox};
 use crate::direction::AbsoluteDirection;
 use crate::engine::update::{self, Delta, UpdatableContainer, UpdatableContainerDelta};
 use crate::game_state::game::Game;
@@ -62,16 +63,22 @@ fn use_matter_digitizer(
     let mut update = GameUpdate::new();
 
     let floor = update.world.item_updates.get(&game.world.items, &location)?;
-    
+    let item = floor[0].ok_or(ActionFail("no item to digitize"))?;
+    let value = item.definition.score_value.unwrap_or(0);
 
-    match floor {
-        [None] => Err(ActionFail("no item to digitize")),
-        [Some(item)] => {
-            update.score.0 += item.definition.score_value.unwrap_or(0);
-            update.world.item_updates.set(&location, &[None])?;
-            Ok(update)
-        }
+            
+    update.score.0 += value;    
+    update.world.item_updates.set(&location, &[None])?;
+
+
+    let paradox = update.world.paradox_updates.get(&game.world.paradox, &location)?;
+    let mut new_paradox =  paradox.0 - value as f64;
+    if new_paradox < 0.0 {
+        new_paradox = 0.0;
     }
+    update.world.paradox_updates.set(&location, &Paradox(new_paradox))?;
+    Ok(update)
+        
 }
 
 pub fn get_building_fn_table() -> HashMap<String, BuildingUseFn> {

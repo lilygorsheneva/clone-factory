@@ -41,11 +41,6 @@ impl MainMenu {
             .buildings
             .get(&"crystal_deposit".to_string())
             .unwrap();
-        let digitizer = self
-            .data
-            .buildings
-            .get(&"matter_digitizer".to_string())
-            .unwrap();
 
         game.world
             .buildings
@@ -54,16 +49,6 @@ impl MainMenu {
                 &Some(Building { definition: ore }),
             )
             .unwrap();
-
-
-            game.world
-            .buildings
-            .mut_set(
-                &Coordinate { x: 15, y: 5 },
-                &Some(Building { definition: digitizer }),
-            )
-            .unwrap();
-
 
         self.game = Some(Rc::new(RefCell::new(game)));
     }
