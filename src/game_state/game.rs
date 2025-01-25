@@ -10,7 +10,7 @@ use crate::interface::menu::{MenuTrait, UILayer};
 use crate::recording::interface::RecordingModule;
 use crate::recording::Recording;
 use crate::score::{Score, ScoreDelta};
-use crate::static_data::StaticData;
+use crate::static_data::Data;
 use crate::{action, actor, devtools, paradox};
 
 use crate::error::{
@@ -53,7 +53,7 @@ pub struct Game {
     pub actors: WorldActors,
     pub recordings: RecordingModule,
     pub event_queue: EventQueue,
-    pub data: &'static StaticData,
+    pub data: &'static Data,
     pub score: Score,
 }
 
@@ -122,7 +122,7 @@ impl ApplyOrPopup for Result<GameUpdate> {
 }
 
 impl Game {
-    pub fn new(dimensions: Coordinate, data: &'static StaticData) -> Game {
+    pub fn new(dimensions: Coordinate, data: &'static Data) -> Game {
         Game {
             world: World::new(dimensions),
             actors: WorldActors::new(),
@@ -255,7 +255,7 @@ mod tests {
 
     #[test]
     fn record() {
-        let data = StaticData::get_test_config();
+        let data = Data::get_test_config();
         let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());
@@ -299,7 +299,7 @@ mod tests {
 
     #[test]
     fn clone() {
-        let data = StaticData::get_test_config();
+        let data = Data::get_test_config();
         let mut game = Game::new(Coordinate { x: 1, y: 3 }, &data);
 
         assert!(game.spawn(&Coordinate { x: 0, y: 0 }).is_ok());

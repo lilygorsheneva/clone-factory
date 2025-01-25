@@ -339,13 +339,13 @@ mod tests {
     use crate::devtools;
     use crate::direction::Direction::Absolute;
     use crate::recording::Recording;
-    use crate::static_data::StaticData;
+    use crate::static_data::Data;
 
     use super::*;
 
     #[test]
     fn move_action() {
-        let data = StaticData::get_test_config();
+        let data = Data::get_test_config();
         let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         let location = Coordinate { x: 0, y: 1 };
@@ -363,7 +363,7 @@ mod tests {
 
     #[test]
     fn take_action() {
-        let data = StaticData::get_test_config();
+        let data = Data::get_test_config();
         let mut game = Game::new(Coordinate { x: 1, y: 1 }, &data);
 
         let location = Coordinate { x: 0, y: 0 };
@@ -385,7 +385,7 @@ mod tests {
 
     #[test]
     fn use_cloner() {
-        let data = StaticData::get_test_config();
+        let data = Data::get_test_config();
         let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         let location = Coordinate { x: 0, y: 0 };
@@ -423,7 +423,7 @@ mod tests {
 
     #[test]
     fn craft() {
-        let data = StaticData::get_test_config();
+        let data = Data::get_test_config();
         let mut game = Game::new(Coordinate { x: 1, y: 2 }, &data);
 
         let location = Coordinate { x: 0, y: 0 };

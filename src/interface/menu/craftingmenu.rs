@@ -7,7 +7,7 @@ use crate::{
     game_state::game::Game,
     interface::widgets::generate_popup_layout,
     inventory::BasicInventory,
-    static_data::{RecipeDefiniton, StaticData},
+    static_data::{RecipeDefiniton, Data},
 };
 
 use super::{gamemenu::GameMenu, MenuTrait, UILayer};
@@ -36,7 +36,7 @@ impl<'a> CraftingMenu<'a> {
         }
     }
 
-    fn get_all_recipes(data: &'static StaticData) -> Vec<CraftingMenuEntry> {
+    fn get_all_recipes(data: &'static Data) -> Vec<CraftingMenuEntry> {
         data.recipes
             .iter()
             .map(|(_, def)| CraftingMenuEntry { definition: def })

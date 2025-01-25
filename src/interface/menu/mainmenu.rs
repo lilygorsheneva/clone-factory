@@ -3,7 +3,7 @@ use crate::engine::update::{Delta, Updatable, UpdatableContainer, UpdatableConta
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    datatypes::Coordinate, game_state::game::Game, inventory::Item, static_data::StaticData,
+    datatypes::Coordinate, game_state::game::Game, inventory::Item, static_data::Data,
 };
 use crossterm::event::KeyCode;
 use ratatui::{widgets::Paragraph, DefaultTerminal, Frame};
@@ -12,14 +12,14 @@ use super::{gamemenu::GameMenu, MenuTrait, UILayer};
 
 pub struct MainMenu {
     pub game: Option<Rc<RefCell<Game>>>,
-    pub data: &'static StaticData,
+    pub data: &'static Data,
 }
 
 impl MainMenu {
     pub fn new() -> Self {
         MainMenu {
             game: None,
-            data: StaticData::get_config(),
+            data: Data::get_config(),
         }
     }
 

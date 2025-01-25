@@ -8,7 +8,7 @@ use crate::game_state::game::Game;
 use crate::game_state::world::{World, WorldCell};
 use crate::inventory::{BasicInventory, Item};
 use crate::score::Score;
-use crate::static_data::{ItemDefiniton, StaticData};
+use crate::static_data::{ItemDefiniton, Data};
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
 use ratatui::prelude::Buffer;
@@ -18,7 +18,7 @@ use ratatui::widgets::{Block, Borders, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
 impl<'a> WorldCell<'a> {
-    fn draw(&'a self, data: &StaticData, cell: &mut Cell) {
+    fn draw(&'a self, data: &Data, cell: &mut Cell) {
 
 
         let bgintensity =  self.paradox.0 as u8;
@@ -87,7 +87,7 @@ pub fn deinit_render() {
 pub struct WorldWindowWidget<'a> {
     world: &'a World,
     center: Coordinate,
-    data: &'a StaticData,
+    data: &'a Data,
 }
 
 impl<'a> WorldWindowWidget<'a> {

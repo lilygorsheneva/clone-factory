@@ -1,17 +1,17 @@
 use std::{collections::HashMap, fmt::Display, hash::Hash};
 
-pub struct StaticDataMap<K: Hash + Eq + Display + Clone, V: 'static + Clone> {
+pub struct DataMap<K: Hash + Eq + Display + Clone, V: 'static + Clone> {
     map: HashMap<K, &'static V>
 }
 
-impl<K: Hash + Eq + Display + Clone, V: Clone> StaticDataMap<K, V> {
+impl<K: Hash + Eq + Display + Clone, V: Clone> DataMap<K, V> {
     pub fn iter(&self) -> std::collections::hash_map::Iter<'_, K, &V>{
         return self.map.iter()
     }
 
-    pub fn from_map(input: &HashMap<K, V>) -> StaticDataMap<K, V> {
+    pub fn from_map(input: &HashMap<K, V>) -> DataMap<K, V> {
         let iter = input.iter();
-        let mut out = StaticDataMap {
+        let mut out = DataMap {
             map: HashMap::new()
         };
         for (k, v) in iter {
@@ -23,7 +23,7 @@ impl<K: Hash + Eq + Display + Clone, V: Clone> StaticDataMap<K, V> {
 
     pub fn insert(&mut self, key: &K, value: &V) {
         if self.map.contains_key(key) {
-            panic!("Duplicate entry {} in StaticDataMap", key)
+            panic!("Duplicate entry {} in DataMap", key)
         }
         let tmp = Box::new(value.clone());
         self.map.insert(key.clone(), Box::leak(tmp));

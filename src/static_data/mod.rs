@@ -3,7 +3,7 @@
 use crate::action::{ItemUseFn, get_use_fn_table};
 use crate::buildings::{get_building_fn_table, BuildingUseFn};
 use crate::interface::widgets::get_color_map;
-use map::StaticDataMap;
+use map::DataMap;
 use ratatui::style::Color;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
@@ -95,61 +95,29 @@ pub struct RecipeDefiniton {
 #[derive(Default, Deserialize)]
 
 pub struct Data {
-    actor_appearances: HashMap<String, AppearanceDefiniton>,
-    buildings: HashMap<String, BuildingDefinition>,
-    items: HashMap<String, ItemDefiniton>,
-    recipes: HashMap<String, RecipeDefiniton>,
+    pub actor_appearances: HashMap<String, AppearanceDefiniton>,
+    pub buildings: HashMap<String, BuildingDefinition>,
+    pub items: HashMap<String, ItemDefiniton>,
+    pub recipes: HashMap<String, RecipeDefiniton>,
 }
-
-pub struct StaticData {
-    pub actor_appearances: StaticDataMap<String, AppearanceDefiniton>,
-    pub buildings: StaticDataMap<String, BuildingDefinition>,
-    pub items: StaticDataMap<String, ItemDefiniton>,
-    pub recipes: StaticDataMap<String, RecipeDefiniton>,
-}
-
-impl StaticData {
-    pub fn from_data(data: &Data ) -> &'static StaticData {
-        let tmp = StaticData {
-            actor_appearances: StaticDataMap::from_map(&data.actor_appearances),
-            buildings: StaticDataMap::from_map(&data.buildings),
-            items: StaticDataMap::from_map(&data.items),
-            recipes: StaticDataMap::from_map(&data.recipes),
-        };
-        let boxed = Box::new(tmp);
-        Box::leak(boxed)
-    }
-
-    pub fn get_config() -> &'static StaticData {
-        let data = Data::get_config();
-        StaticData::from_data(&data)
-    }
-    
-    // This should be a test fixture; otherwise it's a leak. 
-    #[cfg(test)]
-    pub fn get_test_config() ->&'static StaticData {
-        let data = Data::get_test_config();
-        StaticData::from_data(&data)
-    }
-}
-
 
 impl Data {
-    pub fn get_config() -> Data {
+    pub fn get_config() -> &'static Data {
         let mut data = Data::read();
         data.bind_functions();
         data.bind_colors();
-        data
+        let boxed = Box::new(data);
+        Box::leak(boxed)  
     }
     
     // Currently same as get_config, can be changed to read a smaller file.
     #[cfg(test)]
-    pub fn get_test_config() -> Data {
+    pub fn get_test_config() -> &'static Data {
         let mut data = Data::read();
         data.bind_functions();
         data.bind_colors();
-        data
-    }
+        let boxed = Box::new(data);
+        Box::leak(boxed)    }
     
 
     fn read() -> Data {
