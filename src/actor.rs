@@ -55,33 +55,3 @@ impl Trackable for Actor {
     }
 }
 
-pub fn update_paradox(
-    actor: TrackableId,
-    increment: f64,
-    game: &Game,
-) -> Result<(GameUpdate, bool)> {
-    let mut update = GameUpdate::new();
-    let location = *update
-        .world
-        .actor_updates
-        .get_location(&game.world.actors, &actor)?;
-    let maybe_actor = update
-        .world
-        .actor_updates
-        .get(&game.world.actors, &location)?;
-    let mut actor = maybe_actor
-        .as_ref()
-        .ok_or(Error("No actor at expected coordinates"))
-        .cloned()?;
-
-    if increment > 0.0 {
-        actor.paradox_level += increment
-    } else {
-        actor.paradox_level -= 1.0;
-        if actor.paradox_level < 0.0 {
-            actor.paradox_level = 0.0;
-        }
-    }
-    update.world.actor_updates.set(&location, &Some(actor))?;
-    Ok((update, actor.paradox_level < 10.0))
-}

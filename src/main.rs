@@ -17,6 +17,7 @@ mod recording;
 mod eventqueue;
 mod buildings;
 mod score;
+mod paradox;
 
 fn main() {
     let mut terminal = interface::widgets::init_render();

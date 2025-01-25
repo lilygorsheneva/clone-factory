@@ -11,7 +11,7 @@ use crate::recording::interface::RecordingModule;
 use crate::recording::Recording;
 use crate::score::{Score, ScoreDelta};
 use crate::static_data::StaticData;
-use crate::{action, actor, devtools};
+use crate::{action, actor, devtools, paradox};
 
 use crate::error::{
     Result,
@@ -182,10 +182,10 @@ impl Game {
         match action_result {
             Ok(update) => {
                 update.apply(self)?;
-                actor::update_paradox(evt.actor, 0.0, self)?.0.apply(self)?;
+                paradox::update_actor_paradox(evt.actor, 0.0, self)?.0.apply(self)?;
             }
             Err(ActionFail(_)) => {
-                let (update, survivable) = actor::update_paradox(evt.actor, 2.0, self)?;
+                let (update, survivable) = paradox::update_actor_paradox(evt.actor, 128.0, self)?;
                 live = survivable;
                 update.apply(self)?;
             } // call fallback action
@@ -236,6 +236,7 @@ impl Game {
         self.player_action(action)?;
         self.do_npc_turns()?;
         self.event_queue.advance_turn()?;
+        paradox::diffuse_paradox(&mut self.world.paradox);
         Ok(())
     }
 }

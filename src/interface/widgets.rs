@@ -19,7 +19,13 @@ use ratatui::{self, DefaultTerminal, Frame};
 
 impl<'a> WorldCell<'a> {
     fn draw(&'a self, data: &StaticData, cell: &mut Cell) {
-        let generic_style = Style::default().fg(Color::White).bg(Color::Black);
+
+
+        let bgintensity =  self.paradox.0 as u8;
+        let bgcolor = Color::Rgb(bgintensity,bgintensity,bgintensity);
+
+
+        let generic_style = Style::default().fg(Color::White).bg(bgcolor);
 
         match self {
             WorldCell {
@@ -38,7 +44,7 @@ impl<'a> WorldCell<'a> {
                 };
                 cell.set_symbol(glyph)
                     .set_fg(actor_def.color_object)
-                    .set_bg(Color::Black);
+                    .set_bg(bgcolor);
             }
             WorldCell {
                 building: Some(building),

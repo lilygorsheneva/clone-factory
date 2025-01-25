@@ -6,7 +6,7 @@ use super::update::{Delta, Updatable, UpdatableContainer, UpdatableContainerDelt
 use crate::datatypes::Coordinate;
 use crate::error::Result;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WorldLayer<DataType: Clone> {
     dimensions: Coordinate,
     pub data: Vec<DataType>,
@@ -32,6 +32,10 @@ impl<DataType: Clone> WorldLayer<DataType> {
             dimensions: dimensions,
             data: vec![default; (dimensions.x * dimensions.y) as usize],
         }
+    }
+
+    pub fn get_dimensions(&self) -> Coordinate {
+        self.dimensions
     }
 }
 
