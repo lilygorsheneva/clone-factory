@@ -14,12 +14,20 @@ use crate::buildings::Building;
 
 pub type FloorInventory = [Option<Item>; 1];
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum FloorTile {
+    Dirt,
+    Water,
+    Stone
+}
+
 #[derive(PartialEq, Debug, Clone)]
 pub struct WorldCell<'a> {
     pub actor: Option<&'a Actor>,
     pub building: Option<&'a Building>,
     pub items: &'a [Option<Item>; 1],
-    pub paradox: &'a Paradox
+    pub paradox: &'a Paradox,
+    pub floor: &'a FloorTile
 }
 
 pub struct World {
@@ -27,7 +35,8 @@ pub struct World {
     pub actors: TrackableWorldLayer<Option<Actor>>,
     pub buildings: WorldLayer<Option<Building>>,
     pub items: WorldLayer<FloorInventory>,
-    pub paradox: WorldLayer<Paradox>
+    pub paradox: WorldLayer<Paradox>,
+    pub floor: WorldLayer<FloorTile>
 }
 
 impl World {
@@ -38,6 +47,7 @@ impl World {
             buildings: WorldLayer::new(dimensions, None),
             items: WorldLayer::new(dimensions, [None]),
             paradox: WorldLayer::new(dimensions, Paradox(0.0)),
+            floor: WorldLayer::new(dimensions, FloorTile::Dirt),
         }
     }
 
@@ -46,11 +56,14 @@ impl World {
         let building = self.buildings.get(location)?;
         let items = self.items.get(location)?;
         let paradox = self.paradox.get(location)?;
+        let floor = self.floor.get(location)?;
+
         Ok(WorldCell{
             actor: actor.as_ref(),
             building: building.as_ref(),
             items,
-            paradox
+            paradox,
+            floor
         })
     }
 }
@@ -62,8 +75,8 @@ pub struct WorldUpdate {
     pub actor_updates: TrackableWorldLayerDelta<Option<Actor>>,
     pub building_updates: WorldLayerDelta<Option<Building>>,
     pub item_updates: WorldLayerDelta<FloorInventory>,
-    pub paradox_updates: WorldLayerDelta<Paradox>
-
+    pub paradox_updates: WorldLayerDelta<Paradox>,
+    pub floor_updates: WorldLayerDelta<FloorTile>
 }
 
 impl Delta for WorldUpdate {
@@ -73,7 +86,8 @@ impl Delta for WorldUpdate {
             actor_updates: TrackableWorldLayerDelta::new(),
             building_updates: WorldLayerDelta::new(),
             item_updates: WorldLayerDelta::new(),
-            paradox_updates: WorldLayerDelta::new()
+            paradox_updates: WorldLayerDelta::new(),
+            floor_updates: WorldLayerDelta::new()
         }
     }
 
@@ -82,6 +96,7 @@ impl Delta for WorldUpdate {
         self.building_updates.apply(&mut target.buildings)?;
         self.item_updates.apply(&mut target.items)?;
         self.paradox_updates.apply(&mut target.paradox)?;
+        self.floor_updates.apply(&mut target.floor)?;
         Ok(())
     }
 }

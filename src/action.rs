@@ -12,6 +12,7 @@ use crate::error::{
 use crate::eventqueue::ActorEvent;
 use crate::game_state::db::ActorId;
 use crate::game_state::game::{Game, GameUpdate};
+use crate::game_state::world::FloorTile;
 use crate::inventory::Item;
 use crate::static_data::RecipeDefiniton;
 use std::cmp::Ordering;
@@ -69,28 +70,41 @@ fn execute_move(
     let src = update
         .world
         .actor_updates
-        .get(&game.world.actors, &src_coord);
-    let dst = update
+        .get(&game.world.actors, &src_coord)?
+        .ok_or(Error("Actor missing"))?;
+    let dst = match update
         .world
         .actor_updates
-        .get(&game.world.actors, &dst_coord);
+        .get(&game.world.actors, &dst_coord)
+    {
+        Err(OutOfBounds) => Err(ActionFail("destination out of bounds")),
+        Err(e) => Err(e),
+        Ok(o) => Ok(o),
+    }?;
 
-    match (src, dst) {
-        (Err(err), _) => Err(err),
-        (Ok(_), Err(OutOfBounds)) => Err(ActionFail("destination out of bounds")),
-        (_, Err(err)) => Err(err),
-        (Ok(None), _) => Err(Error("actor Missing")),
-        (Ok(Some(_)), Ok(Some(_))) => Err(ActionFail("destination occupied")),
-        (Ok(Some(actor)), Ok(None)) => {
-            let mut actor = actor.clone();
-            update.world.actor_updates.set(&src_coord, &None)?;
+    let dstfloor = update
+        .world
+        .floor_updates
+        .get(&game.world.floor, &dst_coord)?;
 
-            actor.facing = orientation;
-            update.world.actor_updates.set(&dst_coord, &Some(actor))?;
-
-            Ok(update)
-        }
+    if dst.is_some() {
+        return Err(ActionFail("destination occupied"));
     }
+
+    match dstfloor {
+        FloorTile::Water => {
+            return Err(ActionFail("Destination impassable"));
+        }
+        _ => {}
+    }
+
+    let mut actor = src.clone();
+    update.world.actor_updates.set(&src_coord, &None)?;
+
+    actor.facing = orientation;
+    update.world.actor_updates.set(&dst_coord, &Some(actor))?;
+
+    Ok(update)
 }
 
 fn execute_take(
