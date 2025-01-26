@@ -19,7 +19,7 @@ use ratatui::{self, DefaultTerminal, Frame};
 
 impl<'a> WorldCell<'a> {
     fn draw(&'a self, data: &Data, cell: &mut Cell) {
-        let (r, g, b) = match self.floor {
+        let (r, g, b):(u8,u8,u8) = match self.floor {
             FloorTile::Water => (0, 0, 200),
             FloorTile::Stone => (69, 69, 69),
             FloorTile::Dirt => (69, 35, 10),
@@ -27,9 +27,9 @@ impl<'a> WorldCell<'a> {
 
         let pdx_overlay = self.paradox.0 as u8;
         let bgcolor = Color::Rgb(
-            r + pdx_overlay,
-            g + pdx_overlay,
-            b + pdx_overlay,
+            r.saturating_add(pdx_overlay),
+            g.saturating_add(pdx_overlay),
+            b.saturating_add(pdx_overlay),
         );
 
         let generic_style = Style::default().fg(Color::White).bg(bgcolor);
