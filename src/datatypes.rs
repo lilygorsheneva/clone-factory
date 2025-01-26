@@ -6,8 +6,8 @@ use std::ops;
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub struct Coordinate {
-    pub x: i16,
-    pub y: i16,
+    pub x: i32,
+    pub y: i32,
 }
 
 impl Coordinate {

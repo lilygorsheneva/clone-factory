@@ -113,14 +113,14 @@ impl<'a> Widget for WorldWindowWidget<'a> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let (cols, rows) = (area.width, area.height);
         let (centerx, centery) = (
-            cols as i16 / 2 + self.center.x,
-            rows as i16 / 2 + self.center.y,
+            cols as i32 / 2 + self.center.x,
+            rows as i32 / 2 + self.center.y,
         );
 
         for i in 0..cols {
             for j in 0..rows {
-                let x = centerx - i as i16;
-                let y = centery - j as i16;
+                let x = centerx - i as i32;
+                let y = centery - j as i32;
                 let coord = Coordinate { x, y };
                 if self.world.actors.in_bounds(&coord) {
                     let cell = self

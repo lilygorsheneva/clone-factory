@@ -1,5 +1,6 @@
 use crate::buildings::Building;
 use crate::engine::update::{Delta, Updatable, UpdatableContainer, UpdatableContainerDelta};
+use crate::worldgen;
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
@@ -24,33 +25,7 @@ impl MainMenu {
     }
 
     pub fn start_game(&mut self) {
-        let mut game = Game::new(Coordinate { x: 20, y: 10 }, &self.data);
-
-        game.spawn(&Coordinate { x: 1, y: 1 }).unwrap();
-
-        let item_def = self.data.items.get(&"raw_crystal".to_string()).unwrap();
-        let foo = Item::new(item_def, 1);
-
-        game.world
-            .items
-            .mut_set(&Coordinate { x: 10, y: 5 }, &[Some(foo)])
-            .unwrap();
-
-        let ore = self
-            .data
-            .buildings
-            .get(&"crystal_deposit".to_string())
-            .unwrap();
-
-        game.world
-            .buildings
-            .mut_set(
-                &Coordinate { x: 5, y: 5 },
-                &Some(Building { definition: ore }),
-            )
-            .unwrap();
-
-        self.game = Some(Rc::new(RefCell::new(game)));
+        self.game = Some(worldgen::start_game(self.data));
     }
 
     pub fn start_or_continue(&mut self) {

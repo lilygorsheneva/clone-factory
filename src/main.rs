@@ -18,6 +18,7 @@ mod eventqueue;
 mod buildings;
 mod score;
 mod paradox;
+mod worldgen;
 
 fn main() {
     let mut terminal = interface::widgets::init_render();
