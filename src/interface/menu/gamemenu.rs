@@ -2,14 +2,14 @@ use std::{cell::RefCell, rc::Rc};
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{
-    widgets::{List, ListItem, Paragraph},
+    widgets::{self, List, ListItem, Paragraph},
     DefaultTerminal, Frame,
 };
 
 use crate::{
     action::{Action, SubAction},
     error::OkOrPopup,
-    game_state::game::Game,
+    game_state::{game::Game, world::WorldCell},
     interface::widgets::{generate_main_layout, ItemBar, WorldWindowWidget},
     recording::interface::RecordingMenu,
 };
@@ -47,9 +47,13 @@ impl UILayer for GameMenu {
         let item_widget = ItemBar::new(&game);
         let score = &game.score;
 
+        let cell = game.world.get_cell(game.get_player_coords().unwrap()).unwrap();
+
         let (main, side, bottom, corner) = generate_main_layout(frame);
 
-        frame.render_widget(get_guide(), side);
+        
+        cell.render_as_list(side, frame.buffer_mut());
+        //frame.render_widget(get_guide, side);
 
         frame.render_widget(item_widget, bottom);
         frame.render_widget(window, main);

@@ -2,6 +2,8 @@
 //! Anything backend specific (ratatui) should be contained here.
 use std::collections::HashMap;
 
+use crate::actor::Actor;
+use crate::buildings::{self, Building};
 use crate::datatypes::Coordinate;
 use crate::direction::AbsoluteDirection;
 use crate::game_state::game::Game;
@@ -12,9 +14,9 @@ use crate::static_data::{Data, ItemDefiniton};
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
 use ratatui::prelude::Buffer;
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::Line;
-use ratatui::widgets::{Block, Borders, Clear, Paragraph, Widget};
+use ratatui::widgets::{Block, Borders, Clear, List, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
 impl<'a> WorldCell<'a> {
@@ -73,6 +75,60 @@ impl<'a> WorldCell<'a> {
                 cell.set_symbol(" ").set_style(generic_style);
             }
         }
+    }
+
+
+    fn as_list(&'a self) -> Vec<Paragraph<'a>> {
+        let mut tmp = Vec::new();
+        if let Some(actor) =self.actor {
+            tmp.push(actor.textbox());
+        }
+        if let Some(building) =self.building {
+            tmp.push(building.textbox());
+        }
+        if let Some(item) =self.items[0] {
+            tmp.push( Paragraph::new(item.definition.name.clone()).block(
+                Block::default()
+                    .title(Line::from(item.definition.glyph.clone()).centered())
+                    .borders(Borders::ALL)));
+        }
+        tmp.push(self.floor.textbox());
+        tmp
+    }
+
+    pub fn render_as_list(&self, area: Rect, buf: &mut Buffer) {
+        let list = self.as_list();
+        let slots = Layout::vertical(vec![Constraint::Min(1); list.len()]).split(area);
+        for i in 0..list.len() {
+            // TODO: clean this up.
+            list[i].clone().render(slots[i], buf)
+        }
+    }
+}
+
+
+impl FloorTile {
+    fn textbox(&self) -> Paragraph<'static> {
+        match self {
+            FloorTile::Water => Paragraph::new("Impassable").bg(Color::Red).block(Block::new().title("Water")),
+            FloorTile::Dirt => Paragraph::new("").block(Block::new().title("Dirt")),
+            FloorTile::Stone => Paragraph::new("").block(Block::new().title("Stone"))
+        }
+    }
+}
+
+impl Actor {
+    fn textbox(&self) -> Paragraph<'static> {
+        match self.isplayer {
+            true => Paragraph::new("It's you"),
+            false => Paragraph::new("It's your clone"),
+        }
+    }
+}
+
+impl Building {
+    fn textbox(&self) -> Paragraph<'static> {
+        Paragraph::new(self.definition.name.clone())
     }
 }
 
