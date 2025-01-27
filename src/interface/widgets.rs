@@ -150,7 +150,7 @@ pub fn deinit_render() {
 
 pub struct WorldWindowWidget<'a> {
     world: &'a World,
-    center: Coordinate,
+    pub center: Coordinate,
     data: &'a Data,
     pub show_cursor: bool
 }
@@ -192,7 +192,7 @@ impl<'a> Widget for WorldWindowWidget<'a> {
                     buf[buf_idx].set_symbol(" ").set_bg(Color::DarkGray);
                 }
                 if self.show_cursor {
-                    if (i - (cols/2)).abs() + (j - (rows/2)).abs()  <= 1  {
+                    if (i - (cols/2)).abs() + (j - (rows/2)).abs()  == 1  {
                         let style = buf[buf_idx].style(); 
                         let mut newstyle = style;
                         if let Some(fg) = style.fg {newstyle = newstyle.bg(fg);}

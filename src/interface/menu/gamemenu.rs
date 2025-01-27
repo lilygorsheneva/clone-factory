@@ -20,7 +20,7 @@ use crate::direction::{
     RelativeDirection::F,
 };
 
-use super::{craftingmenu::CraftingMenu, GameFn, MenuTrait, UILayer};
+use super::{craftingmenu::CraftingMenu, lookmenu::{self, LookMenu}, GameFn, MenuTrait, UILayer};
 
 pub struct GameMenu {
     game: Rc<RefCell<Game>>,
@@ -31,6 +31,7 @@ pub enum GameMenuOptions {
     GameFn(Box<GameFn>),
     Craft,
     Record,
+    Look
 }
 use GameMenuOptions::*;
 
@@ -70,7 +71,7 @@ fn get_guide() -> List<'static> {
         ListItem::new("U: interact with building"),
         ListItem::new("C: crafting menu"),
         ListItem::new("R: recording menu"),
-
+        ListItem::new("L: Look"),
         ListItem::new("space: wait"),
         ])
 }
@@ -198,6 +199,7 @@ impl MenuTrait for GameMenu {
                 })
             }))),
             KeyCode::Char('c') => Some(Craft),
+            KeyCode::Char('l') => Some(Look),
             KeyCode::Char(' ') => Some(GameFn(Box::new(|game: &mut Game| {
                 game.player_action_and_turn(Action {
                     direction: Relative(F),
@@ -227,7 +229,10 @@ impl MenuTrait for GameMenu {
                     let mut rmenu = RecordingMenu::new(self, self.game.clone());
                     rmenu.enter_menu(terminal);
                 }
-
+                Some(Look) => {
+                    let mut lmenu = LookMenu::new( self.game.clone());
+                    lmenu.enter_menu(terminal);
+                }
                 Some(Exit) => break,
             }
         }
