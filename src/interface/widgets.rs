@@ -11,6 +11,7 @@ use crate::game_state::world::{FloorTile, World, WorldCell};
 use crate::inventory::{BasicInventory, Item};
 use crate::score::Score;
 use crate::static_data::{Data, ItemDefiniton};
+use crossterm::cursor;
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
 use ratatui::prelude::Buffer;
@@ -151,6 +152,7 @@ pub struct WorldWindowWidget<'a> {
     world: &'a World,
     center: Coordinate,
     data: &'a Data,
+    pub show_cursor: bool
 }
 
 impl<'a> WorldWindowWidget<'a> {
@@ -161,34 +163,47 @@ impl<'a> WorldWindowWidget<'a> {
                 .get_player_coords()
                 .unwrap_or(&Coordinate { x: 0, y: 0 }),
             data: &game.data,
+            show_cursor: false
         }
     }
 }
 
 impl<'a> Widget for WorldWindowWidget<'a> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let (cols, rows) = (area.width, area.height);
+        let (cols, rows) = (area.width as i32, area.height  as i32);
         let (centerx, centery) = (
-            cols as i32 / 2 + self.center.x,
-            rows as i32 / 2 + self.center.y,
+            cols  / 2 + self.center.x,
+            rows  / 2 + self.center.y,
         );
 
         for i in 0..cols {
             for j in 0..rows {
-                let x = centerx - i as i32;
-                let y = centery - j as i32;
+                let x = centerx - i;
+                let y = centery - j;
                 let coord = Coordinate { x, y };
+                let buf_idx = (i as u16, j as u16);
                 if self.world.actors.in_bounds(&coord) {
                     let cell = self
                         .world
                         .get_cell(&coord)
                         .expect("Cell out of bounds but was checked in bounds.");
-                    cell.draw(self.data, &mut buf[(i, j)]);
+                    cell.draw(self.data, &mut buf[buf_idx]);
                 } else {
-                    buf[(i, j)].set_symbol(" ").set_bg(Color::DarkGray);
+                    buf[buf_idx].set_symbol(" ").set_bg(Color::DarkGray);
+                }
+                if self.show_cursor {
+                    if (i - (cols/2)).abs() + (j - (rows/2)).abs()  <= 1  {
+                        let style = buf[buf_idx].style(); 
+                        let mut newstyle = style;
+                        if let Some(fg) = style.fg {newstyle = newstyle.bg(fg);}
+                        if let Some(bg) = style.bg {newstyle = newstyle.fg(bg);}
+                        buf[buf_idx].set_style(newstyle);
+                    }
                 }
             }
         }
+
+   
     }
 }
 
