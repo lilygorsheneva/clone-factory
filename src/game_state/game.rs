@@ -184,7 +184,9 @@ impl Game {
         match action_result {
             Ok(update) => {
                 update.apply(self)?;
-                paradox::update_actor_paradox(evt.actor, 0.0, self)?.0.apply(self)?;
+                let (update, survivable) = paradox::update_actor_paradox(evt.actor, 0.0, self)?;
+                live = survivable;
+                update.apply(self)?;
             }
             Err(ActionFail(_)) => {
                 let (update, survivable) = paradox::update_actor_paradox(evt.actor, 128.0, self)?;

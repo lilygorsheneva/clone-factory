@@ -18,6 +18,8 @@ pub struct ObjectDescriptor {
     /// The object's value when scored. This can probably be in another file.
     pub score_value: Option<i64>,
 
+    /// The object's maximum durability. 
+    pub hp: Option<i64>,
 
     /// The object's function when used as an item.
     pub on_use: Option<String>,

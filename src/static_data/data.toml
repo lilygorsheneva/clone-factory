@@ -14,6 +14,7 @@
 
 [actors.clone]
     name = "clone"
+    hp = 30
 [actors.clone.text]
     name = "clone"
     description = "It's your doppleganger."

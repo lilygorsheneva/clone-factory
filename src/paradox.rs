@@ -31,15 +31,17 @@ pub fn update_actor_paradox(
         .paradox_updates
         .get(&game.world.paradox, &location)?;
 
-    actor.paradox_level += increment;
-
-    let mut new_background = (actor.paradox_level + background.0) / 2.0;
+    let mut new_background = increment + background.0;
     if new_background < 0.0 {
         new_background = 0.0;
     }
-    actor.paradox_level = new_background;
 
-    let survive = actor.paradox_level < (255.0 / 2.0);
+    let survive;
+    if let Some(threshold) = actor.descriptor.hp {
+        survive = threshold > new_background as i64;
+    } else {
+        survive = true;
+    }
 
     update
         .world
