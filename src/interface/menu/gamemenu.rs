@@ -50,11 +50,11 @@ impl UILayer for GameMenu {
 
         let cell = game.world.get_cell(game.get_player_coords().unwrap()).unwrap();
 
-        let (main, side, bottom, corner) = generate_main_layout(frame);
+        let (main, sideup, sidedown, bottom, corner) = generate_main_layout(frame);
 
         
-        cell.render_as_list(side, frame.buffer_mut());
-        //frame.render_widget(get_guide, side);
+        cell.render_as_list(sidedown, frame.buffer_mut());
+        frame.render_widget(get_guide(), sideup);
 
         frame.render_widget(item_widget, bottom);
         frame.render_widget(window, main);

@@ -277,15 +277,15 @@ pub fn generate_popup_layout(frame: &mut Frame) -> Rect {
     area
 }
 
-pub fn generate_main_layout(frame: &Frame) -> (Rect, Rect, Rect, Rect) {
+pub fn generate_main_layout(frame: &Frame) -> (Rect, Rect, Rect, Rect, Rect) {
     let [tmp_main, tmp_side] =
-        Layout::horizontal([Constraint::Fill(1), Constraint::Length(20)]).areas(frame.area());
+        Layout::horizontal([Constraint::Fill(1), Constraint::Length(30)]).areas(frame.area());
 
     let [main, bottom] =
         Layout::vertical([Constraint::Fill(1), Constraint::Length(3)]).areas(tmp_main);
 
-    let [side, corner] =
-        Layout::vertical([Constraint::Fill(1), Constraint::Length(3)]).areas(tmp_side);
+    let [sideup, sidedown, corner] =
+        Layout::vertical([Constraint::Percentage(50),Constraint::Percentage(50), Constraint::Length(3)]).areas(tmp_side);
 
-    (main, side, bottom, corner)
+    (main, sideup, sidedown, bottom, corner)
 }
