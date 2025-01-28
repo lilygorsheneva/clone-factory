@@ -1,9 +1,0 @@
-Todos roughly in priority order (most urgent to least).
-
-UNIT TESTS: Inadequate but done.
-Implement action Result types as described in design doc. DONE
-Clean up all the unwrap calls. DONE outside of main and tests.
-Atomic Update model as described in design doc.
-Inventory Display.
-Inventory managment with non-hardcoded indices.
-Crafting.
