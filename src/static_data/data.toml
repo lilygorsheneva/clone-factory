@@ -1,6 +1,7 @@
 [actors]
 [actors.player]
     name = "player"
+    hp = 128
 [actors.player.text]
     name = "Player"
     description = "It's you."

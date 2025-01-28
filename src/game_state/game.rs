@@ -227,7 +227,13 @@ impl Game {
             // TODO: shove in an apply or popup here.
             Ok(update) => {
                 self.recordings.append(action);
-                update.apply(self)
+                update.apply(self)?;
+                let (_, survivable) = paradox::update_actor_paradox(actor_ref, -30.0, self)?;
+                if survivable {
+                    Ok(())
+                } else {
+                    Err(Error("You died"))
+                }
             }
             //Err(ActionFail(_)) => Ok(()), // Call fallback action.
             Err(res) => Err(res),
