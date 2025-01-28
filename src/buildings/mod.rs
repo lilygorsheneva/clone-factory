@@ -4,7 +4,8 @@ use crate::paradox::Paradox;
 use crate::engine::update::{Delta, UpdatableContainer, UpdatableContainerDelta};
 use crate::game_state::game::Game;
 use crate::inventory::Item;
-use crate::{datatypes::Coordinate, game_state::game::GameUpdate, static_data::BuildingDefinition};
+use crate::static_data::ObjectDescriptor;
+use crate::{datatypes::Coordinate, game_state::game::GameUpdate};
 use crate::error::{Result, Status::{ActionFail,Error}};
 
 pub type BuildingUseFn = fn(Coordinate, &Game) -> Result<GameUpdate>;
@@ -12,7 +13,7 @@ pub type BuildingUseFn = fn(Coordinate, &Game) -> Result<GameUpdate>;
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct Building {
-    pub definition: &'static BuildingDefinition,
+    pub definition: &'static ObjectDescriptor,
 }
 
 

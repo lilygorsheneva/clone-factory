@@ -44,7 +44,6 @@ pub struct ObjectText{
 }
 
 
-
 // The appearance of an item or entity. Ratatui-specific
 #[derive(Debug, Deserialize)]
 pub struct AppearanceDefiniton {
@@ -57,51 +56,7 @@ pub struct AppearanceDefiniton {
     pub color: Color,
 }
 
-// An item.
-#[derive(Clone, Debug, Deserialize)]
-pub struct ItemDefiniton {
-    pub name: String,
-    pub id: i64,
-    pub glyph: String,
-    pub color: Color,
- 
-
-    pub description: String,
-
-    pub score_value: Option<i64>,
-
-    pub on_use: Option<String>,
-    #[serde(skip_deserializing)]
-    pub on_use_fn: Option<ItemUseFn>,
-}
-
-// An item.
-#[derive(Clone, Debug, Deserialize)]
-pub struct BuildingDefinition {
-    pub name: String,
-    pub glyph: String,
-    pub color: Color,
-
-    pub description: String,
-    pub on_interact: Option<String>,
-
-    #[serde(skip_deserializing)]
-    pub on_interact_fn: Option<BuildingUseFn>,
-}
-
 impl PartialEq for ObjectDescriptor {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
-    }
-}
-
-impl PartialEq for ItemDefiniton {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
-    }
-}
-
-impl PartialEq for BuildingDefinition {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
     }
@@ -121,8 +76,8 @@ pub struct RecipeDefiniton {
 
 pub struct Data {
     pub actors: HashMap<String, ObjectDescriptor>,
-    pub buildings: HashMap<String, BuildingDefinition>,
-    pub items: HashMap<String, ItemDefiniton>,
+    pub buildings: HashMap<String, ObjectDescriptor>,
+    pub items: HashMap<String, ObjectDescriptor>,
     pub recipes: HashMap<String, RecipeDefiniton>,
 }
 
@@ -180,7 +135,7 @@ mod tests {
     #[test]
     fn test_read() {
         let data = Data::read();
-        assert_eq!(data.items["raw_crystal"].name, "Raw Crystal");
+        assert_eq!(data.items["raw_crystal"].text.name, "Raw Crystal");
         assert_eq!(
             data.items["basic_cloner"].on_use.as_ref().unwrap(),
             "action_use_cloner"

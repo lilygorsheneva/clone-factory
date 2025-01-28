@@ -10,7 +10,7 @@ use crate::game_state::game::Game;
 use crate::game_state::world::{FloorTile, World, WorldCell};
 use crate::inventory::{BasicInventory, Item};
 use crate::score::Score;
-use crate::static_data::{Data, ItemDefiniton};
+use crate::static_data::{Data, ObjectDescriptor};
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
 use ratatui::prelude::Buffer;
@@ -55,7 +55,7 @@ impl<'a> WorldCell<'a> {
         
         if let Some(building) = self.building {
             if fg_glyph == " " {
-                fg_glyph = &building.definition.glyph;
+                fg_glyph = &building.definition.appearance.glyph;
                 fgcolor = Color::Black;
             } else {
                 modifiers = modifiers | Modifier::UNDERLINED;
@@ -64,7 +64,7 @@ impl<'a> WorldCell<'a> {
 
         if let Some(item) = self.items[0] {
             if fg_glyph == " " {
-                fg_glyph = &item.definition.glyph;
+                fg_glyph = &item.definition.appearance.glyph;
                 fgcolor = Color::Black;
             } else {
                 modifiers = modifiers | Modifier::UNDERLINED;
@@ -86,9 +86,9 @@ impl<'a> WorldCell<'a> {
             tmp.push(building.textbox());
         }
         if let Some(item) =self.items[0] {
-            tmp.push( Paragraph::new(item.definition.name.clone()).block(
+            tmp.push( Paragraph::new(item.definition.text.name.clone()).block(
                 Block::default()
-                    .title(Line::from(item.definition.glyph.clone()).centered())
+                    .title(Line::from(item.definition.appearance.glyph.clone()).centered())
                     .borders(Borders::ALL)));
         }
         tmp.push(self.floor.textbox());
@@ -124,19 +124,12 @@ impl Actor {
 
 impl Building {
     fn textbox(&self) -> Paragraph<'static> {
-        Paragraph::new(self.definition.name.clone())
+        Paragraph::new(self.definition.text.name.clone())
     }
 }
 
 pub fn init_render() -> DefaultTerminal {
     ratatui::init()
-}
-
-pub fn get_color_map() -> HashMap<String, Color> {
-    HashMap::from([
-        ("white".to_string(), Color::White),
-        ("red".to_string(), Color::Red),
-    ])
 }
 
 pub fn deinit_render() {
@@ -202,7 +195,7 @@ impl<'a> Widget for WorldWindowWidget<'a> {
 struct ItemWidget {
     item: Item,
     idx: usize,
-    itemdef: &'static ItemDefiniton,
+    itemdef: &'static ObjectDescriptor,
 }
 impl ItemWidget {
     fn new(item: Item, idx: usize) -> ItemWidget {
@@ -216,10 +209,10 @@ impl ItemWidget {
 
 impl Widget for ItemWidget {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let block = Paragraph::new(self.itemdef.name.clone()).block(
+        let block = Paragraph::new(self.itemdef.text.name.clone()).block(
             Block::default()
                 .title(Line::from((self.idx + 1).to_string()).left_aligned())
-                .title(Line::from(self.itemdef.glyph.clone()).centered())
+                .title(Line::from(self.itemdef.appearance.glyph.clone()).centered())
                 .title(Line::from(self.item.quantity.to_string()).right_aligned())
                 .borders(Borders::ALL),
         );

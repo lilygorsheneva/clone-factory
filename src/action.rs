@@ -455,6 +455,6 @@ mod tests {
         let actor = game.world.actors.get(&location).unwrap();
         let crafted_item = actor.unwrap().inventory.get_items()[1].unwrap();
 
-        assert_eq!(crafted_item.definition.name, "Echo Crystal");
+        assert_eq!(crafted_item.definition.text.name, "Echo Crystal");
     }
 }

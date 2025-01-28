@@ -79,8 +79,8 @@ impl RecordingModule {
 
         let item = player.inventory.remove_idx(idx).ok_or(ActionFail("No item in slot"))?;
         // TODO clean up this check.
-        if item.definition.name != "Empty Recorder" {
-            return Err(ActionFail("Item is not an emtpy recorder"));
+        if item.definition.name != "recorder" {
+            return Err(ActionFail("Item is not an empty recorder"));
         }
         
 

@@ -2,17 +2,17 @@
 
 use crate::recording::db::RecordingId;
 use crate::error::{Result, Status};
-use crate::static_data::ItemDefiniton;
+use crate::static_data::ObjectDescriptor;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub struct Item {
-    pub definition: &'static ItemDefiniton, 
+    pub definition: &'static ObjectDescriptor, 
     pub quantity: u16,
     pub recording: Option<RecordingId>,
 }
 
 impl Item {
-    pub fn new(definition: &'static ItemDefiniton, quantity: u16) -> Item {
+    pub fn new(definition: &'static ObjectDescriptor, quantity: u16) -> Item {
         Item {
             definition,
             quantity,
@@ -20,7 +20,7 @@ impl Item {
         }
     }
 
-    pub fn new_cloner(definition: &'static ItemDefiniton,  recordingid: RecordingId) -> Item {
+    pub fn new_cloner(definition: &'static ObjectDescriptor,  recordingid: RecordingId) -> Item {
         Item {
             definition,
             quantity: 1,
