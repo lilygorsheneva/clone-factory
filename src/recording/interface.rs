@@ -22,7 +22,7 @@ use super::{
     Recording,
 };
 
-use crate::engine::update::UpdatableContainer;
+use crate::{direction::{AbsoluteDirection, Direction}, engine::update::UpdatableContainer};
 
 use crate::{
     action::Action, error::{
@@ -47,6 +47,7 @@ pub struct RecordingModule {
     pub recordings: RecordingDb,
     pub current_recording: Option<Recording>,
     pub temp_item: Option<Item>,
+    last_player_facing: AbsoluteDirection
 }
 
 impl RecordingModule {
@@ -55,6 +56,8 @@ impl RecordingModule {
             recordings: RecordingDb::new(),
             current_recording: None,
             temp_item: None,
+            // Could pose an issue with save/load, as this is state. player must perform an action before recording anything.
+            last_player_facing: AbsoluteDirection::N
         }
     }
 
@@ -63,8 +66,19 @@ impl RecordingModule {
     }
 
     pub fn append(&mut self, action: Action) {
+
+        let mut rotated_action = action;
+
+        match action.direction {
+            Direction::Absolute(d) => {
+                rotated_action.direction =Direction::Relative(d.difference(&self.last_player_facing));
+            }
+            Direction::Relative(d) => {}
+        }
+        self.last_player_facing = self.last_player_facing.rotate(&action.direction);
+
         if let Some(rec) = self.current_recording.as_mut() {
-            rec.append(action);
+            rec.append(rotated_action);
         }
     }
 
