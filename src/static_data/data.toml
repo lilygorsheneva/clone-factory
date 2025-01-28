@@ -1,7 +1,7 @@
 [actors]
 [actors.player]
     name = "player"
-    hp = 128
+    hp = 160
 [actors.player.text]
     name = "Player"
     description = "It's you."
@@ -15,7 +15,7 @@
 
 [actors.clone]
     name = "clone"
-    hp = 30
+    hp = 128
 [actors.clone.text]
     name = "clone"
     description = "It's your doppleganger."

@@ -187,7 +187,7 @@ impl Game {
                 update.apply(self)?;
             }
             Err(ActionFail(_)) => {
-                let (update, survivable) = paradox::update_actor_paradox(evt.actor, 128.0, self)?;
+                let (update, survivable) = paradox::update_actor_paradox(evt.actor, 64.0, self)?;
                 live = survivable;
                 update.apply(self)?;
             } // call fallback action
@@ -228,7 +228,7 @@ impl Game {
             Ok(update) => {
                 self.recordings.append(action);
                 update.apply(self)?;
-                let (_, survivable) = paradox::update_actor_paradox(actor_ref, -30.0, self)?;
+                let (_, survivable) = paradox::update_actor_paradox(actor_ref, 0.0, self)?;
                 if survivable {
                     Ok(())
                 } else {
