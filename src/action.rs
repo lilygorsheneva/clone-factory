@@ -223,7 +223,9 @@ fn execute_use_cloner(
 
             let actor_id = update.world.actor_updates.get_next_id(&game.world.actors);
 
-            let mut new_actor = Actor::from_recording(game.recordings.get(recordingid));
+            let descriptor = game.data.actors.get("clone").unwrap();
+
+            let mut new_actor = Actor::from_recording(descriptor, game.recordings.get(recordingid));
             new_actor.facing = orientation;
             new_actor.actor_id = ActorId { idx: actor_id.0 };
 

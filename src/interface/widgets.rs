@@ -42,18 +42,14 @@ impl<'a> WorldCell<'a> {
         let mut modifiers = Modifier::empty();
 
         if let Some(actor) = self.actor {
-            let actor_name = match actor.isplayer {
-                true => "player",
-                false => "clone",
-            };
-            let actor_def = data.actor_appearances.get(&actor_name.to_string()).unwrap();
+            let actor_def = actor.descriptor;
             let glyph = match actor.facing {
-                AbsoluteDirection::N => actor_def.glyph_n.as_ref().unwrap_or(&actor_def.glyph),
-                AbsoluteDirection::S => actor_def.glyph_s.as_ref().unwrap_or(&actor_def.glyph),
-                AbsoluteDirection::E => actor_def.glyph_e.as_ref().unwrap_or(&actor_def.glyph),
-                AbsoluteDirection::W => actor_def.glyph_w.as_ref().unwrap_or(&actor_def.glyph),
+                AbsoluteDirection::N => actor_def.appearance.glyph_n.as_ref().unwrap_or(&actor_def.appearance.glyph),
+                AbsoluteDirection::S => actor_def.appearance.glyph_s.as_ref().unwrap_or(&actor_def.appearance.glyph),
+                AbsoluteDirection::E => actor_def.appearance.glyph_e.as_ref().unwrap_or(&actor_def.appearance.glyph),
+                AbsoluteDirection::W => actor_def.appearance.glyph_w.as_ref().unwrap_or(&actor_def.appearance.glyph),
             };
-            fgcolor = actor_def.color;
+            fgcolor = actor_def.appearance.color;
             fg_glyph = glyph; 
         }
         
@@ -122,10 +118,7 @@ impl FloorTile {
 
 impl Actor {
     fn textbox(&self) -> Paragraph<'static> {
-        match self.isplayer {
-            true => Paragraph::new("It's you"),
-            false => Paragraph::new("It's your clone"),
-        }
+        Paragraph::new(self.descriptor.text.description.clone())
     }
 }
 

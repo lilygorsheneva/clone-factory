@@ -108,7 +108,7 @@ impl Delta for WorldUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::engine::update::UpdatableContainerDelta;
+    use crate::{engine::update::UpdatableContainerDelta, static_data::Data};
 
     use super::*;
 
@@ -121,10 +121,11 @@ mod tests {
 
     #[test]
     fn mutate() {
+        let data = Data::get_test_config();
         let mut w = World::new(Coordinate { x: 1, y: 1 });
         let location = Coordinate { x: 0, y: 0 };
         let oldcell = w.actors.get(&location).unwrap();
-        let newcell = Some(Actor::new());
+        let newcell = Some(Actor::new(data.actors.get("player").unwrap()));
 
         assert_ne!(*oldcell, newcell); // Sanity check to ensure we actually mutate.
         w.actors.mut_set(&location, &newcell).unwrap();
@@ -133,6 +134,8 @@ mod tests {
 
     #[test]
     fn update() {
+        let data = Data::get_test_config();
+
         let mut w = World::new(Coordinate { x: 1, y: 1 });
         let location = Coordinate { x: 0, y: 0 };
         let mut update = WorldUpdate::new();
@@ -144,7 +147,7 @@ mod tests {
             .clone();
 
         assert!(actor.is_none());
-        actor = Some(Actor::new());
+        let newcell = Some(Actor::new(data.actors.get("player").unwrap()));
         update.actor_updates.set(&location, &actor).unwrap();
 
         update.apply(&mut w).unwrap();

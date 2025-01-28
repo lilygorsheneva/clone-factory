@@ -11,7 +11,7 @@ use toml;
 /// An object's definition.
 /// All functional/internal apsects of the object should be contained here.
 #[derive(Debug, Deserialize)]
-pub struct ObjectDefinition {
+pub struct ObjectDescriptor {
     /// Internal name. Used for table lookups.
     pub name: String,
 
@@ -89,6 +89,12 @@ pub struct BuildingDefinition {
     pub on_interact_fn: Option<BuildingUseFn>,
 }
 
+impl PartialEq for ObjectDescriptor {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
 impl PartialEq for ItemDefiniton {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
@@ -114,7 +120,7 @@ pub struct RecipeDefiniton {
 #[derive(Default, Deserialize)]
 
 pub struct Data {
-    pub actor_appearances: HashMap<String, AppearanceDefiniton>,
+    pub actors: HashMap<String, ObjectDescriptor>,
     pub buildings: HashMap<String, BuildingDefinition>,
     pub items: HashMap<String, ItemDefiniton>,
     pub recipes: HashMap<String, RecipeDefiniton>,

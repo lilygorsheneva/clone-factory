@@ -159,7 +159,9 @@ impl Game {
         if dest.is_some() {
             return Err(Error("Destination Occupied"));
         }
-        let mut new_actor = Actor::new_player();
+
+        let descriptor = self.data.actors.get("player").unwrap();
+        let mut new_actor = Actor::new(descriptor);
 
         let player_id = self.world.actors.mut_get_next_id();
         new_actor.actor_id = ActorId { idx: player_id.0 };

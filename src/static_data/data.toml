@@ -1,6 +1,11 @@
-[item_appearances]
-[actor_appearances]
-[actor_appearances.player]
+[actors.player]
+    name = "player"
+
+[actors.player.text]
+    name = "Player"
+    description = "It's you."
+
+[actors.player.appearance]    
     glyph = "@"
     glyph_n = "A"
     glyph_s = "V"
@@ -8,13 +13,21 @@
     glyph_w =  "<"
     color = "red"
 
-[actor_appearances.clone]
+[actors.clone]
+    name = "clone"
+
+[actors.clone.text]
+    name = "clone"
+    description = "It's your doppleganger."
+
+[actors.clone.appearance]    
     glyph = "@"
     glyph_n = "A"
     glyph_s = "V"
     glyph_e = ">"
     glyph_w =  "<"
     color = "white"
+
 
 [buildings]
 
