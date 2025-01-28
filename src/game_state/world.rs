@@ -66,6 +66,10 @@ impl World {
             floor
         })
     }
+
+    pub fn dimensions(&self) -> Coordinate {
+        self.dimensions
+    }
 }
 
 impl Updatable for World{}

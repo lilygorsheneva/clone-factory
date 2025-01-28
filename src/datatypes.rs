@@ -2,7 +2,7 @@
 //! Any structure that increases in complexity should be moved to its own file.
 
 use crate::direction::AbsoluteDirection;
-use std::ops;
+use std::{cmp::{max, min}, ops};
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub struct Coordinate {
@@ -14,6 +14,15 @@ impl Coordinate {
     pub fn as_offset(offset: Coordinate, location: Coordinate, orientation: AbsoluteDirection) -> Coordinate {
         location + offset*orientation
     } 
+
+    pub fn clamp(self, v1: Coordinate, v2: Coordinate)->Coordinate{
+        let (minx, maxx) = (min(v1.x,v2.x),max(v1.x,v2.x));
+        let (miny, maxy) = (min(v1.y,v2.y),max(v1.y,v2.y));
+        Coordinate {
+            x: self.x.clamp(minx, maxx),
+            y: self.y.clamp(miny, maxy),
+        }
+    }
 }
 
 impl ops::Add<Coordinate> for Coordinate {

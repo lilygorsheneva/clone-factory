@@ -88,6 +88,8 @@ impl MenuTrait for LookMenu {
     }
 
     fn enter_menu(&mut self, terminal: &mut DefaultTerminal) {
+        let dimensions = self.game.borrow().world.dimensions();
+        let zero = Coordinate{x:0,y:0};
         loop {
             terminal.draw(|frame| self.draw(frame)).unwrap();
 
@@ -95,15 +97,19 @@ impl MenuTrait for LookMenu {
                 None => {}
                 Some(L) => {
                     self.coordinates.x -= 1;
+                    self.coordinates = self.coordinates.clamp(zero,dimensions);
                 }
                 Some(R) => {
                     self.coordinates.x += 1;
+                    self.coordinates = self.coordinates.clamp(zero,dimensions);
                 }
                 Some(U) => {
                     self.coordinates.y += 1;
+                    self.coordinates = self.coordinates.clamp(zero,dimensions);
                 }
                 Some(D) => {
                     self.coordinates.y -= 1;
+                    self.coordinates = self.coordinates.clamp(zero,dimensions);
                 }
                 Some(Exit) => break,
             }
