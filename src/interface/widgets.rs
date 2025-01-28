@@ -172,13 +172,13 @@ impl<'a> Widget for WorldWindowWidget<'a> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let (cols, rows) = (area.width as i32, area.height  as i32);
         let (centerx, centery) = (
-            cols  / 2 + self.center.x,
+            cols  / 2 - self.center.x,
             rows  / 2 + self.center.y,
         );
 
         for i in 0..cols {
             for j in 0..rows {
-                let x = centerx - i;
+                let x = i - centerx;
                 let y = centery - j;
                 let coord = Coordinate { x, y };
                 let buf_idx = (i as u16, j as u16);

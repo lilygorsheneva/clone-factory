@@ -27,6 +27,9 @@ impl ops::Add<Coordinate> for Coordinate {
     }
 }
 
+// North, Up and +y are synonyms
+// East, Right, and +x are synonyms
+// Default facing direction for actions is North. 
 impl ops::Mul<AbsoluteDirection> for Coordinate {
     type Output = Coordinate;
 
@@ -37,16 +40,16 @@ impl ops::Mul<AbsoluteDirection> for Coordinate {
                 y: self.y,
             },
             AbsoluteDirection::E => Coordinate {
-                x: -self.y,
-                y: self.x,
+                x: self.y,
+                y: -self.x,
             },
             AbsoluteDirection::S => Coordinate {
                 x: -self.x,
                 y: -self.y,
             },
             AbsoluteDirection::W => Coordinate {
-                x: self.y,
-                y: -self.x,
+                x: -self.y,
+                y: self.x,
             },
         }
     }
