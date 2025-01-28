@@ -21,20 +21,24 @@ pub struct CraftingMenu<'a> {
 
 pub struct CraftingMenuEntry {
     definition: &'static RecipeDefiniton,
-    string: String,
+    widget: Paragraph<'static>,
 }
 
 impl CraftingMenuEntry {
-    pub fn new(definition: &'static RecipeDefiniton) -> CraftingMenuEntry {
+    pub fn new(definition: &'static RecipeDefiniton, data: &Data) -> CraftingMenuEntry {
         let mut stringpieces = Vec::new();
-        stringpieces.push(format!("{}", definition.name));
         for i in 0..definition.ingredients.len() {
-            stringpieces.push(format!("{}x {}", definition.ingredient_counts[i], definition.ingredients[i]));
+            let ingredient = data.items.get(&definition.ingredients[i]).expect("Non-existent item in crafting recipe.");
+            stringpieces.push(format!("{} x {}", ingredient.text.name, definition.ingredient_counts[i]));
         }
+        let product: &crate::static_data::ObjectDescriptor = data.items.get(&definition.product).expect("Non-existent item in crafting recipe.");
+        stringpieces.push(format!("\n{}", product.text.description));
+
+        let widget = Paragraph::new(stringpieces.join(" ")).block(Block::bordered().title(product.text.name.clone()));
 
         CraftingMenuEntry {
             definition,
-            string: stringpieces.join(" ")
+            widget,
         }
     }
 }
@@ -55,7 +59,7 @@ impl<'a> CraftingMenu<'a> {
     fn get_all_recipes(data: &'static Data) -> Vec<CraftingMenuEntry> {
         data.recipes
             .iter()
-            .map(|(_, def)| CraftingMenuEntry::new (def))
+            .map(|(_, def)| CraftingMenuEntry::new (def, &data))
             .collect()
     }
 }
@@ -66,21 +70,20 @@ pub enum CraftingMenuOptions {
 }
 use crossterm::event::KeyCode;
 use ratatui::{
-    style::{Color, Stylize},
-    widgets::{List, ListItem},
+    layout::{Constraint, Layout}, style::{Color, Stylize}, widgets::{Block, List, ListItem, Paragraph}
 };
 use CraftingMenuOptions::*;
 
 impl UILayer for CraftingMenu<'_> {
     fn draw(&self, frame: &mut ratatui::Frame) {
         self.parent.draw(frame);
-        let items = self
-            .recipes
-            .iter()
-            .map(|i| ListItem::new(i.string.clone().bg(Color::Black)));
-        let list = List::new(items);
+
         let area = generate_popup_layout(frame);
-        frame.render_widget(list, area);
+
+        let slots = Layout::vertical(vec![Constraint::Min(1); self.recipes.len()]).split(area);
+        for i in 0..self.recipes.len() {
+            frame.render_widget(&self.recipes[i].widget, slots[i]);
+        }
     }
 }
 
