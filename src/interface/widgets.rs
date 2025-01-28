@@ -53,7 +53,7 @@ impl<'a> WorldCell<'a> {
                 AbsoluteDirection::E => actor_def.glyph_e.as_ref().unwrap_or(&actor_def.glyph),
                 AbsoluteDirection::W => actor_def.glyph_w.as_ref().unwrap_or(&actor_def.glyph),
             };
-            fgcolor = actor_def.color_object;
+            fgcolor = actor_def.color;
             fg_glyph = glyph; 
         }
         
