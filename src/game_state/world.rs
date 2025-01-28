@@ -140,17 +140,18 @@ mod tests {
         let location = Coordinate { x: 0, y: 0 };
         let mut update = WorldUpdate::new();
 
-        let mut actor = update
+        let no_actor = update
             .actor_updates
             .get(&w.actors, &location)
             .unwrap()
             .clone();
 
-        assert!(actor.is_none());
+        assert!(no_actor.is_none());
         let newcell = Some(Actor::new(data.actors.get("player").unwrap()));
-        update.actor_updates.set(&location, &actor).unwrap();
+        update.actor_updates.set(&location, &newcell).unwrap();
 
         update.apply(&mut w).unwrap();
         assert!(w.actors.get(&Coordinate { x: 0, y: 0 }).unwrap().is_some());
     }
+
 }

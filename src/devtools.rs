@@ -82,13 +82,14 @@ pub fn remove_item(
 }
 
 pub fn despawn_actor(
-    actor: TrackableId,
+    actorid: TrackableId,
     game: &Game
 ) ->  Result<GameUpdate> {
     let mut update: GameUpdate = GameUpdate::new();
-    let location = game.world.actors.get_location(&actor)?;
+    let location = game.world.actors.get_location(&actorid)?;
     let actor  = update.world.actor_updates.get(&game.world.actors, &location)?;
     if actor.is_none() {return Err(Error("actor missing"))}
     update.world.actor_updates.set(&location, &None)?;
+    update.world.actor_updates.remove(actorid);
     Ok(update)
 }
