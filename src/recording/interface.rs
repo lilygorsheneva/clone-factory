@@ -163,7 +163,7 @@ impl UILayer for RecordingMenu<'_> {
         );
         if recording_module.current_recording.is_some() {
             entries.push(
-                Paragraph::new("L: loop recording.\n D: do not loop recording.")
+                Paragraph::new("L: loop recording.\nD: do not loop recording.")
                     .block(Block::bordered()),
             );
         } else {

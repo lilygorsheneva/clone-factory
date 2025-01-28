@@ -88,10 +88,10 @@
 
 [items.echo_crystal]
     name = "echo_crystal"
-    score_value = 1
+    score_value = 10
 [items.echo_crystal.text]
     name = "Echo Crystal"
-    description = "A crafting material. Worth 1 score."
+    description = "A crafting material. Worth 10 score."
 [items.echo_crystal.appearance]
     glyph = "*"
     color = "grey"
@@ -99,9 +99,10 @@
 [items.matter_digitizer]
     name = "matter_digitizer"
     on_use = "action_construct"
+    score_value = 100
 [items.matter_digitizer.text]
     name = "Matter Digitizer"
-    description = "Building. Worth 5 score. Converts items into score. Reduces local paradox levels."
+    description = "Building. Worth 100 score. Converts items into score. Reduces local paradox levels."
 [items.matter_digitizer.appearance]
     glyph = "Y"
     color = "grey"
