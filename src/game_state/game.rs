@@ -11,7 +11,7 @@ use crate::recording::interface::RecordingModule;
 use crate::recording::Recording;
 use crate::score::{Score, ScoreDelta};
 use crate::static_data::Data;
-use crate::{action, actor, devtools, paradox};
+use crate::{action, devtools, paradox};
 
 use crate::error::{
     Result,

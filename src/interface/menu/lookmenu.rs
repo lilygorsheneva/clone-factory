@@ -1,25 +1,17 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
-    widgets::{self, List, ListItem, Paragraph},
+    widgets::{List, ListItem},
     DefaultTerminal, Frame,
 };
 
 use crate::{
-    action::{Action, SubAction},
     datatypes::Coordinate,
-    error::OkOrPopup,
-    game_state::{game::Game, world::WorldCell},
+    game_state::game::Game,
     interface::widgets::{generate_main_layout, ItemBar, WorldWindowWidget},
-    recording::interface::RecordingMenu,
 };
 
-use crate::direction::{
-    AbsoluteDirection::{E, N, S, W},
-    Direction::{Absolute, Relative},
-    RelativeDirection::F,
-};
 
 use super::{MenuTrait, UILayer};
 

@@ -1,14 +1,14 @@
 //! Datastructures to represent spatial data (e.g. a map of the world).
 
 use crate::engine::tracking_worldlayer::{TrackableWorldLayer, TrackableWorldLayerDelta};
-use crate::engine::update::{Updatable, Delta, UpdatableContainer, UpdatableContainerDelta};
+use crate::engine::update::{Updatable, Delta, UpdatableContainer};
 use crate::engine::worldlayer::{WorldLayer, WorldLayerDelta};
 use crate::error::Result;
 use crate::inventory::Item;
 use crate::paradox::Paradox;
 use crate::{
     actor::Actor,
-    datatypes::{Coordinate},
+    datatypes::Coordinate,
 };
 use crate::buildings::Building;
 
@@ -108,6 +108,8 @@ impl Delta for WorldUpdate {
 
 #[cfg(test)]
 mod tests {
+    use crate::engine::update::UpdatableContainerDelta;
+
     use super::*;
 
     #[test]

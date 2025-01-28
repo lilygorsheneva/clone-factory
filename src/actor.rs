@@ -1,16 +1,9 @@
 //! A player or npc.
-use std::cmp::min;
-
-use crate::action::Action;
-use crate::datatypes::Coordinate;
 use crate::direction::AbsoluteDirection;
 use crate::engine::tracking_worldlayer::{Trackable, TrackableId};
-use crate::engine::update::{self, Delta, UpdatableContainer, UpdatableContainerDelta};
-use crate::error::{Result, Status::Error};
 use crate::game_state::db::ActorId;
-use crate::game_state::game::{Game, GameUpdate};
 use crate::inventory::BasicInventory;
-use crate::recording::{db::RecordingId, Recording};
+use crate::recording::Recording;
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub struct Actor {

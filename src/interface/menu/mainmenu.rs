@@ -1,11 +1,7 @@
-use crate::buildings::Building;
-use crate::engine::update::{Delta, Updatable, UpdatableContainer, UpdatableContainerDelta};
 use crate::worldgen;
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{
-    datatypes::Coordinate, game_state::game::Game, inventory::Item, static_data::Data,
-};
+use crate::{game_state::game::Game, static_data::Data};
 use crossterm::event::KeyCode;
 use ratatui::{widgets::Paragraph, DefaultTerminal, Frame};
 

@@ -1,11 +1,7 @@
 use std::collections::HashMap;
 
-use ratatui::buffer;
-
 use crate::paradox::Paradox;
-use crate::{actor, paradox};
-use crate::direction::AbsoluteDirection;
-use crate::engine::update::{self, Delta, UpdatableContainer, UpdatableContainerDelta};
+use crate::engine::update::{Delta, UpdatableContainer, UpdatableContainerDelta};
 use crate::game_state::game::Game;
 use crate::inventory::Item;
 use crate::{datatypes::Coordinate, game_state::game::GameUpdate, static_data::BuildingDefinition};

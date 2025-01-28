@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::game_state::world::{self, FloorTile};
+use crate::game_state::world::FloorTile;
 use crate::{buildings::Building, datatypes::Coordinate, game_state::game::Game, static_data::Data};
 
 use crate::engine::update::UpdatableContainer;

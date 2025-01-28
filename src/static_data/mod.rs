@@ -3,14 +3,12 @@
 use crate::action::{ItemUseFn, get_use_fn_table};
 use crate::buildings::{get_building_fn_table, BuildingUseFn};
 use crate::interface::widgets::get_color_map;
-use map::DataMap;
 use ratatui::style::Color;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
 use std::fs;
 use toml;
 
-pub mod map;
 
 // The appearance of an item or entity. Ratatui-specific
 #[derive(Clone,Deserialize)]

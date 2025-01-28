@@ -1,8 +1,4 @@
 //! Containers for non-spatial data.
-use std::collections::HashMap;
-
-use crate::error::{Result, Status::StateUpdateError};
-use std::collections::HashSet;
 use std::usize;
 
 

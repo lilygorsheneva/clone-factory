@@ -45,14 +45,6 @@ impl BasicInventory {
 
     pub fn insert(&mut self, new_item: Item) -> Result<()> {
         for i in &mut self.items {
-            // if let Some(existing_item) = i {
-            //     if existing_item.definition == new_item.definition {
-            //         existing_item.quantity += new_item.quantity;
-            //         return Ok(());
-            //     }
-            // }
-        }
-        for i in &mut self.items {
             if i.is_none() {
                 *i = Some(new_item);
                 return Ok(());

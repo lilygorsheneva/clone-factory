@@ -22,7 +22,7 @@ use super::{
     Recording,
 };
 
-use crate::engine::update::{Updatable, Delta, UpdatableContainer, UpdatableContainerDelta};
+use crate::engine::update::UpdatableContainer;
 
 use crate::{
     action::Action, error::{

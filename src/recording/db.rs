@@ -15,10 +15,6 @@ pub struct RecordingId {
     idx: usize,
 }
 
-impl RecordingId {
-    pub const DEFAULT: RecordingId = RecordingId { idx: 0 };
-}
-
 impl RecordingDb {
     pub fn register_recording(&mut self, recording: Recording) -> RecordingId {
         self.recordings.push(recording);

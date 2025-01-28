@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use crate::actor::Actor;
-use crate::buildings::{self, Building};
+use crate::buildings:: Building;
 use crate::datatypes::Coordinate;
 use crate::direction::AbsoluteDirection;
 use crate::game_state::game::Game;
@@ -11,13 +11,12 @@ use crate::game_state::world::{FloorTile, World, WorldCell};
 use crate::inventory::{BasicInventory, Item};
 use crate::score::Score;
 use crate::static_data::{Data, ItemDefiniton};
-use crossterm::cursor;
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
 use ratatui::prelude::Buffer;
-use ratatui::style::{Color, Modifier, Style, Stylize};
+use ratatui::style::{Color, Modifier, Stylize};
 use ratatui::text::Line;
-use ratatui::widgets::{Block, Borders, Clear, List, Paragraph, Widget};
+use ratatui::widgets::{Block, Borders, Clear, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
 
 impl<'a> WorldCell<'a> {

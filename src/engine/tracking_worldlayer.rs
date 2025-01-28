@@ -1,7 +1,4 @@
 use std::collections::{HashMap, HashSet};
-use std::default;
-use std::time::Instant;
-
 use crate::error::Result;
 use crate::{datatypes::Coordinate, error::Status};
 
@@ -136,7 +133,7 @@ impl<T: Clone + Trackable> TrackableWorldLayer<T> {
         self.layer.in_bounds(location)
     }
 
-    pub fn get_location<'a>(&'a self, key: &TrackableId) -> Result<&Coordinate> {
+    pub fn get_location<'a>(&'a self, key: &TrackableId) -> Result<&'a Coordinate> {
         self.index.get(key)
     }
 
@@ -182,7 +179,7 @@ impl<T: Clone + Trackable> TrackableWorldLayerDelta<T> {
         self.index.remove(key);
     }
 
-    pub fn get_location<'a>(&'a mut self, source: &'a TrackableWorldLayer<T>, key: &TrackableId) -> Result<&Coordinate> {
+    pub fn get_location<'a>(&'a mut self, source: &'a TrackableWorldLayer<T>, key: &TrackableId) -> Result<&'a Coordinate> {
         self.index.get(&source.index, key)
     }
 }

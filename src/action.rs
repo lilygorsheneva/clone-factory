@@ -4,7 +4,7 @@ use crate::buildings::{execute_use_building, Building};
 use crate::datatypes::Coordinate;
 use crate::direction::{AbsoluteDirection, Direction};
 use crate::engine::tracking_worldlayer::TrackableId;
-use crate::engine::update::{Delta, Updatable, UpdatableContainer, UpdatableContainerDelta};
+use crate::engine::update::{Delta, UpdatableContainer, UpdatableContainerDelta};
 use crate::error::{
     Result,
     Status::{ActionFail, Error, OutOfBounds},
@@ -15,7 +15,6 @@ use crate::game_state::game::{Game, GameUpdate};
 use crate::game_state::world::FloorTile;
 use crate::inventory::Item;
 use crate::static_data::RecipeDefiniton;
-use std::cmp::Ordering;
 use std::collections::HashMap;
 
 pub type ItemUseFn = fn(usize, Coordinate, AbsoluteDirection, &Game) -> Result<GameUpdate>;
@@ -325,7 +324,7 @@ fn execute_craft(
                 .ok_or(Error("ingredient undefined"))?;
 
             let ingedient: Item = Item::new(ingredient_definiton, 1);
-            for i in 0..recipe.ingredient_counts[idx] as u16 {
+            for _ in 0..recipe.ingredient_counts[idx] as u16 {
                 inventory.remove(ingedient)?;
             }
         }

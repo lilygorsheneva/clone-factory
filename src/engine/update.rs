@@ -1,5 +1,7 @@
 use crate::error::Result;
 
+#[allow(dead_code)]
+// Marker trait with no functions.
 pub trait  Updatable {}
 
 pub trait Delta {
