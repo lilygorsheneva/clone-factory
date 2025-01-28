@@ -18,7 +18,6 @@ use crate::error::{
     Status::{ActionFail, Error},
 };
 use crate::eventqueue::{ActorEvent, EventQueue, EventQueueUpdate};
-use crate::game_state::db::ActorId;
 use crate::{
     datatypes::Coordinate,
     game_state::world::{World, WorldUpdate},
@@ -161,10 +160,9 @@ impl Game {
         }
 
         let descriptor = self.data.actors.get("player").unwrap();
-        let mut new_actor = Actor::new(descriptor);
-
         let player_id = self.world.actors.mut_get_next_id();
-        new_actor.actor_id = ActorId { idx: player_id.0 };
+
+        let new_actor = Actor::new(descriptor, player_id);
 
         self.actors.player = Some(PlayerRef {
             actor_id: player_id,

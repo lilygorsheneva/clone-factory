@@ -68,6 +68,10 @@ impl RecordingModule {
         }
     }
 
+    pub fn load_recording(&mut self, recording: Recording) -> RecordingId {
+        self.recordings.register_recording(recording)
+    }
+
     // Start recording.
     pub fn init_record(game:&mut Game, idx: usize) -> Result<()> {
         if game.recordings.current_recording.is_some() {

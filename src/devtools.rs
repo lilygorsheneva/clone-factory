@@ -17,19 +17,19 @@ pub fn make_sample_recording() -> Recording {
                 action: SubAction::Move,
             },
             Action {
-                direction: crate::direction::Direction::Relative(RelativeDirection::R),
+                direction: crate::direction::Direction::Relative(RelativeDirection::B),
                 action: SubAction::Move,
             },
             Action {
-                direction: crate::direction::Direction::Relative(RelativeDirection::R),
+                direction: crate::direction::Direction::Relative(RelativeDirection::B),
                 action: SubAction::Move,
             },
             Action {
-                direction: crate::direction::Direction::Relative(RelativeDirection::R),
+                direction: crate::direction::Direction::Relative(RelativeDirection::B),
                 action: SubAction::Move,
             },
             Action {
-                direction: crate::direction::Direction::Relative(RelativeDirection::R),
+                direction: crate::direction::Direction::Relative(RelativeDirection::B),
                 action: SubAction::Move,
             },
         ],

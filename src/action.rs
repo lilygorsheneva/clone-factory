@@ -10,7 +10,6 @@ use crate::error::{
     Status::{ActionFail, Error, OutOfBounds},
 };
 use crate::eventqueue::ActorEvent;
-use crate::game_state::db::ActorId;
 use crate::game_state::game::{Game, GameUpdate};
 use crate::game_state::world::FloorTile;
 use crate::inventory::Item;
@@ -225,9 +224,8 @@ fn execute_use_cloner(
 
             let descriptor = game.data.actors.get("clone").unwrap();
 
-            let mut new_actor = Actor::from_recording(descriptor, game.recordings.get(recordingid));
+            let mut new_actor = Actor::from_recording(descriptor, actor_id, game.recordings.get(recordingid));
             new_actor.facing = orientation;
-            new_actor.actor_id = ActorId { idx: actor_id.0 };
 
             update
                 .world

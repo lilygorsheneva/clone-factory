@@ -26,6 +26,14 @@
     glyph_w =  "<"
     color = "white"
 
+[actors.foe]
+    name = "foe"
+[actors.foe.text]
+    name = "foe"
+    description = "It's your foe doppleganger."
+[actors.foe.appearance]    
+    glyph = "😡"
+    color = "white"
 
 [buildings]
 [buildings.crystal_deposit]
