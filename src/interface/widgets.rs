@@ -273,7 +273,7 @@ impl Widget for ItemBar {
 
 impl Widget for &Score {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        Paragraph::new(format!("{} points", self.0))
+        Paragraph::new(format!("Turn {}\n{} points.",self.turn, self.score))
             .block(Block::default())
             .render(area, buf);
     }

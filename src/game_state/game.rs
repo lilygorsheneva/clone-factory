@@ -76,7 +76,7 @@ impl Delta for GameUpdate {
         GameUpdate {
             world: WorldUpdate::new(),
             eventqueue: EventQueueUpdate::new(),
-            score: ScoreDelta(0),
+            score: ScoreDelta{score:0},
         }
     }
 
@@ -129,7 +129,7 @@ impl Game {
             recordings: RecordingModule::new(),
             event_queue: EventQueue::new(),
             data: data,
-            score: Score(0),
+            score: Score{score: 0, turn:0 },
         }
     }
 
@@ -236,6 +236,7 @@ impl Game {
         self.player_action(action)?;
         self.do_npc_turns()?;
         self.event_queue.advance_turn()?;
+        self.score.turn += 1;
         paradox::diffuse_paradox(&mut self.world.paradox);
         Ok(())
     }

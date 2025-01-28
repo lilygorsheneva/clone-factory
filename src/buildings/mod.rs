@@ -67,7 +67,7 @@ fn use_matter_digitizer(
     let value = item.definition.score_value.unwrap_or(0);
 
             
-    update.score.0 += value;    
+    update.score.score += value;    
     update.world.item_updates.set(&location, &[None])?;
 
 
