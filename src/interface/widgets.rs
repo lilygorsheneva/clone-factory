@@ -22,60 +22,63 @@ use ratatui::{self, DefaultTerminal, Frame};
 
 impl<'a> WorldCell<'a> {
     fn draw(&'a self, data: &Data, cell: &mut Cell) {
+
+
+        // Handle floor color.
         let (r, g, b):(u8,u8,u8) = match self.floor {
             FloorTile::Water => (0, 0, 200),
             FloorTile::Stone => (69, 69, 69),
             FloorTile::Dirt => (69, 35, 10),
         };
 
+        // Handle Paradox color overlay
         let pdx_overlay = self.paradox.0 as u8;
-        let bgcolor = Color::Rgb(
+        let mut bgcolor = Color::Rgb(
             r.saturating_add(pdx_overlay),
             g.saturating_add(pdx_overlay),
             b.saturating_add(pdx_overlay),
         );
+        let mut fgcolor = Color::Rgb(b, g, r);
+        let mut fg_glyph = " ";
+        let mut modifiers = Modifier::empty();
 
-        let generic_style = Style::default().fg(Color::White).bg(bgcolor);
-
-        match self {
-            WorldCell {
-                actor: Some(actor), ..
-            } => {
-                let actor_name = match actor.isplayer {
-                    true => "player",
-                    false => "clone",
-                };
-                let actor_def = data.actor_appearances.get(&actor_name.to_string()).unwrap();
-                let glyph = match actor.facing {
-                    AbsoluteDirection::N => actor_def.glyph_n.as_ref().unwrap_or(&actor_def.glyph),
-                    AbsoluteDirection::S => actor_def.glyph_s.as_ref().unwrap_or(&actor_def.glyph),
-                    AbsoluteDirection::E => actor_def.glyph_e.as_ref().unwrap_or(&actor_def.glyph),
-                    AbsoluteDirection::W => actor_def.glyph_w.as_ref().unwrap_or(&actor_def.glyph),
-                };
-                cell.set_symbol(glyph)
-                    .set_fg(actor_def.color_object)
-                    .set_bg(bgcolor);
-            }
-            WorldCell {
-                building: Some(building),
-                items: [maybe_item],
-                ..
-            } => {
-                if maybe_item.is_some() {
-                    cell.set_symbol(&building.definition.glyph)
-                        .set_style(generic_style.add_modifier(Modifier::UNDERLINED));
-                } else {
-                    cell.set_symbol(&building.definition.glyph)
-                        .set_style(generic_style);
-                }
-            }
-            WorldCell { items, .. } if items[0].is_some() => {
-                cell.set_symbol("i").set_style(generic_style);
-            }
-            _ => {
-                cell.set_symbol(" ").set_style(generic_style);
+        if let Some(actor) = self.actor {
+            let actor_name = match actor.isplayer {
+                true => "player",
+                false => "clone",
+            };
+            let actor_def = data.actor_appearances.get(&actor_name.to_string()).unwrap();
+            let glyph = match actor.facing {
+                AbsoluteDirection::N => actor_def.glyph_n.as_ref().unwrap_or(&actor_def.glyph),
+                AbsoluteDirection::S => actor_def.glyph_s.as_ref().unwrap_or(&actor_def.glyph),
+                AbsoluteDirection::E => actor_def.glyph_e.as_ref().unwrap_or(&actor_def.glyph),
+                AbsoluteDirection::W => actor_def.glyph_w.as_ref().unwrap_or(&actor_def.glyph),
+            };
+            fgcolor = actor_def.color_object;
+            fg_glyph = glyph; 
+        }
+        
+        if let Some(building) = self.building {
+            if fg_glyph == " " {
+                fg_glyph = &building.definition.glyph;
+                fgcolor = Color::Black;
+            } else {
+                modifiers = modifiers | Modifier::UNDERLINED;
             }
         }
+
+        if let Some(item) = self.items[0] {
+            if fg_glyph == " " {
+                fg_glyph = &item.definition.glyph;
+                fgcolor = Color::Black;
+            } else {
+                modifiers = modifiers | Modifier::UNDERLINED;
+            }
+        }
+
+       cell.set_symbol(fg_glyph).set_fg(fgcolor).set_bg(bgcolor);
+       cell.modifier = modifiers;
+       
     }
 
 
@@ -194,10 +197,7 @@ impl<'a> Widget for WorldWindowWidget<'a> {
                 if self.show_cursor {
                     if (i - (cols/2)).abs() + (j - (rows/2)).abs()  == 1  {
                         let style = buf[buf_idx].style(); 
-                        let mut newstyle = style;
-                        if let Some(fg) = style.fg {newstyle = newstyle.bg(fg);}
-                        if let Some(bg) = style.bg {newstyle = newstyle.fg(bg);}
-                        buf[buf_idx].set_style(newstyle);
+                        buf[buf_idx].set_style(style.add_modifier(Modifier::REVERSED));
                     }
                 }
             }
