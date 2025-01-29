@@ -175,19 +175,23 @@ impl<'a> WorldWindowWidget<'a> {
 
 impl<'a> Widget for WorldWindowWidget<'a> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let (cols, rows) = (area.width as i32, area.height as i32);
-        let (centerx, centery) = (cols / 4 - self.center.x, rows / 2 + self.center.y);
+        let square = true;
+        let (cols, rows) = match square {
+            true => ((area.width / 2) as i32, area.height as i32),
 
-        let mut last_color = Color::Black;
+            false => (area.width as i32, area.height as i32),
+        };
+        let (centerx, centery) = (cols / 2 - self.center.x, rows / 2 + self.center.y);
+
         for j in 0..rows {
             for i in 0..cols {
-                if i % 2 == 1 {
-                    continue;
-                }
-                let x = i / 2 - centerx;
+                let x = i - centerx;
                 let y = centery - j;
                 let coord = Coordinate { x, y };
-                let buf_idx = (i as u16, j as u16);
+                let buf_idx = match square {
+                    true => ((i * 2) as u16, j as u16),
+                    false => (i as u16, j as u16),
+                };
                 if self.world.actors.in_bounds(&coord) {
                     let cell = self
                         .world
@@ -198,23 +202,27 @@ impl<'a> Widget for WorldWindowWidget<'a> {
                     buf[buf_idx].set_symbol(" ").set_bg(Color::DarkGray);
                 }
                 if self.show_cursor {
-                    if (i / 2 - (cols / 4)).abs() + (j - (rows / 2)).abs() <= 1 {
+                    if (i - (cols / 2)).abs() + (j - (rows / 2)).abs() <= 1 {
                         let style = buf[buf_idx].style();
                         buf[buf_idx].set_style(style.add_modifier(Modifier::REVERSED));
                     }
                 }
-                last_color = buf[buf_idx].bg;
             }
-            for i in 0..cols {
-                if i % 2 == 0 {
-                    continue;
+            if square {
+                for i in 0..cols {
+                    let (lcolor, rcolor);
+                    if self.show_cursor && (i - (cols / 2)) <= 0 && (i - (cols / 2)) >= -1 && j == rows / 2 {
+                        lcolor = buf[((i * 2) as u16, j as u16)].fg;
+                        rcolor = buf[((i * 2 + 2) as u16, j as u16)].fg;
+                    } else {
+                        lcolor = buf[((i * 2) as u16, j as u16)].bg;
+                        rcolor = buf[((i * 2 + 2) as u16, j as u16)].bg;
+                    }
+                    buf[((i * 2 + 1) as u16, j as u16)]
+                        .set_symbol("▌")
+                        .set_fg(lcolor)
+                        .set_bg(rcolor);
                 }
-                let lcolor = buf[((i - 1) as u16, j as u16)].bg;
-                let rcolor = buf[((i + 1) as u16, j as u16)].bg;
-                buf[(i as u16, j as u16)]
-                    .set_symbol("▌")
-                    .set_fg(lcolor)
-                    .set_bg(rcolor);
             }
         }
     }
