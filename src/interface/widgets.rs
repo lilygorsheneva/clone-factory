@@ -11,10 +11,11 @@ use crate::game_state::world::{FloorTile, World, WorldCell};
 use crate::inventory::{BasicInventory, Item};
 use crate::score::Score;
 use crate::static_data::{Data, ObjectDescriptor};
+use crossterm::style::style;
 use ratatui::buffer::Cell;
 use ratatui::layout::{Constraint, Direction, Flex, Layout, Rect};
 use ratatui::prelude::Buffer;
-use ratatui::style::{Color, Modifier, Stylize};
+use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, Clear, Paragraph, Widget};
 use ratatui::{self, DefaultTerminal, Frame};
@@ -197,7 +198,7 @@ impl<'a> Widget for WorldWindowWidget<'a> {
                     buf[buf_idx].set_symbol(" ").set_bg(Color::DarkGray);
                 }
                 if self.show_cursor {
-                    if (i - (cols / 2)).abs() + (j - (rows / 2)).abs() == 1 {
+                    if (i / 2 - (cols / 4)).abs() + (j - (rows / 2)).abs() <= 1 {
                         let style = buf[buf_idx].style();
                         buf[buf_idx].set_style(style.add_modifier(Modifier::REVERSED));
                     }
