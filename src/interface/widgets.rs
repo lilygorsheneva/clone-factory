@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use crate::actor::Actor;
-use crate::buildings:: Building;
+use crate::buildings::Building;
 use crate::datatypes::Coordinate;
 use crate::direction::AbsoluteDirection;
 use crate::game_state::game::Game;
@@ -21,10 +21,8 @@ use ratatui::{self, DefaultTerminal, Frame};
 
 impl<'a> WorldCell<'a> {
     fn draw(&'a self, data: &Data, cell: &mut Cell) {
-
-
         // Handle floor color.
-        let (r, g, b):(u8,u8,u8) = match self.floor {
+        let (r, g, b): (u8, u8, u8) = match self.floor {
             FloorTile::Water => (0, 0, 200),
             FloorTile::Stone => (69, 69, 69),
             FloorTile::Dirt => (69, 35, 10),
@@ -44,15 +42,31 @@ impl<'a> WorldCell<'a> {
         if let Some(actor) = self.actor {
             let actor_def = actor.descriptor;
             let glyph = match actor.facing {
-                AbsoluteDirection::N => actor_def.appearance.glyph_n.as_ref().unwrap_or(&actor_def.appearance.glyph),
-                AbsoluteDirection::S => actor_def.appearance.glyph_s.as_ref().unwrap_or(&actor_def.appearance.glyph),
-                AbsoluteDirection::E => actor_def.appearance.glyph_e.as_ref().unwrap_or(&actor_def.appearance.glyph),
-                AbsoluteDirection::W => actor_def.appearance.glyph_w.as_ref().unwrap_or(&actor_def.appearance.glyph),
+                AbsoluteDirection::N => actor_def
+                    .appearance
+                    .glyph_n
+                    .as_ref()
+                    .unwrap_or(&actor_def.appearance.glyph),
+                AbsoluteDirection::S => actor_def
+                    .appearance
+                    .glyph_s
+                    .as_ref()
+                    .unwrap_or(&actor_def.appearance.glyph),
+                AbsoluteDirection::E => actor_def
+                    .appearance
+                    .glyph_e
+                    .as_ref()
+                    .unwrap_or(&actor_def.appearance.glyph),
+                AbsoluteDirection::W => actor_def
+                    .appearance
+                    .glyph_w
+                    .as_ref()
+                    .unwrap_or(&actor_def.appearance.glyph),
             };
             fgcolor = actor_def.appearance.color;
-            fg_glyph = glyph; 
+            fg_glyph = glyph;
         }
-        
+
         if let Some(building) = self.building {
             if fg_glyph == " " {
                 fg_glyph = &building.definition.appearance.glyph;
@@ -71,25 +85,26 @@ impl<'a> WorldCell<'a> {
             }
         }
 
-       cell.set_symbol(fg_glyph).set_fg(fgcolor).set_bg(bgcolor);
-       cell.modifier = modifiers;
-       
+        cell.set_symbol(fg_glyph).set_fg(fgcolor).set_bg(bgcolor);
+        cell.modifier = modifiers;
     }
-
 
     fn as_list(&'a self) -> Vec<Paragraph<'a>> {
         let mut tmp = Vec::new();
-        if let Some(actor) =self.actor {
+        if let Some(actor) = self.actor {
             tmp.push(actor.textbox());
         }
-        if let Some(building) =self.building {
+        if let Some(building) = self.building {
             tmp.push(building.textbox());
         }
-        if let Some(item) =self.items[0] {
-            tmp.push( Paragraph::new(item.definition.text.name.clone()).block(
-                Block::default()
-                    .title(Line::from(item.definition.appearance.glyph.clone()).centered())
-                    .borders(Borders::ALL)));
+        if let Some(item) = self.items[0] {
+            tmp.push(
+                Paragraph::new(item.definition.text.name.clone()).block(
+                    Block::default()
+                        .title(Line::from(item.definition.appearance.glyph.clone()).centered())
+                        .borders(Borders::ALL),
+                ),
+            );
         }
         tmp.push(self.floor.textbox());
         tmp
@@ -105,13 +120,14 @@ impl<'a> WorldCell<'a> {
     }
 }
 
-
 impl FloorTile {
     fn textbox(&self) -> Paragraph<'static> {
         match self {
-            FloorTile::Water => Paragraph::new("Impassable").bg(Color::Red).block(Block::new().title("Water")),
+            FloorTile::Water => Paragraph::new("Impassable")
+                .bg(Color::Red)
+                .block(Block::new().title("Water")),
             FloorTile::Dirt => Paragraph::new("").block(Block::new().title("Dirt")),
-            FloorTile::Stone => Paragraph::new("").block(Block::new().title("Stone"))
+            FloorTile::Stone => Paragraph::new("").block(Block::new().title("Stone")),
         }
     }
 }
@@ -140,7 +156,7 @@ pub struct WorldWindowWidget<'a> {
     world: &'a World,
     pub center: Coordinate,
     data: &'a Data,
-    pub show_cursor: bool
+    pub show_cursor: bool,
 }
 
 impl<'a> WorldWindowWidget<'a> {
@@ -151,22 +167,23 @@ impl<'a> WorldWindowWidget<'a> {
                 .get_player_coords()
                 .unwrap_or(&Coordinate { x: 0, y: 0 }),
             data: &game.data,
-            show_cursor: false
+            show_cursor: false,
         }
     }
 }
 
 impl<'a> Widget for WorldWindowWidget<'a> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let (cols, rows) = (area.width as i32, area.height  as i32);
-        let (centerx, centery) = (
-            cols  / 2 - self.center.x,
-            rows  / 2 + self.center.y,
-        );
+        let (cols, rows) = (area.width as i32, area.height as i32);
+        let (centerx, centery) = (cols / 4 - self.center.x, rows / 2 + self.center.y);
 
-        for i in 0..cols {
-            for j in 0..rows {
-                let x = i - centerx;
+        let mut last_color = Color::Black;
+        for j in 0..rows {
+            for i in 0..cols {
+                if i % 2 == 1 {
+                    continue;
+                }
+                let x = i / 2 - centerx;
                 let y = centery - j;
                 let coord = Coordinate { x, y };
                 let buf_idx = (i as u16, j as u16);
@@ -180,15 +197,25 @@ impl<'a> Widget for WorldWindowWidget<'a> {
                     buf[buf_idx].set_symbol(" ").set_bg(Color::DarkGray);
                 }
                 if self.show_cursor {
-                    if (i - (cols/2)).abs() + (j - (rows/2)).abs()  == 1  {
-                        let style = buf[buf_idx].style(); 
+                    if (i - (cols / 2)).abs() + (j - (rows / 2)).abs() == 1 {
+                        let style = buf[buf_idx].style();
                         buf[buf_idx].set_style(style.add_modifier(Modifier::REVERSED));
                     }
                 }
+                last_color = buf[buf_idx].bg;
+            }
+            for i in 0..cols {
+                if i % 2 == 0 {
+                    continue;
+                }
+                let lcolor = buf[((i - 1) as u16, j as u16)].bg;
+                let rcolor = buf[((i + 1) as u16, j as u16)].bg;
+                buf[(i as u16, j as u16)]
+                    .set_symbol("▌")
+                    .set_fg(lcolor)
+                    .set_bg(rcolor);
             }
         }
-
-   
     }
 }
 
@@ -258,7 +285,7 @@ impl Widget for ItemBar {
 
 impl Widget for &Score {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        Paragraph::new(format!("Turn {}\n{} points.",self.turn, self.score))
+        Paragraph::new(format!("Turn {}\n{} points.", self.turn, self.score))
             .block(Block::default())
             .render(area, buf);
     }
@@ -284,8 +311,12 @@ pub fn generate_main_layout(frame: &Frame) -> (Rect, Rect, Rect, Rect, Rect) {
     let [main, bottom] =
         Layout::vertical([Constraint::Fill(1), Constraint::Length(3)]).areas(tmp_main);
 
-    let [sideup, sidedown, corner] =
-        Layout::vertical([Constraint::Percentage(50),Constraint::Percentage(50), Constraint::Length(3)]).areas(tmp_side);
+    let [sideup, sidedown, corner] = Layout::vertical([
+        Constraint::Percentage(50),
+        Constraint::Percentage(50),
+        Constraint::Length(3),
+    ])
+    .areas(tmp_side);
 
     (main, sideup, sidedown, bottom, corner)
 }
