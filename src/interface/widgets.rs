@@ -137,7 +137,7 @@ pub fn deinit_render() {
 }
 
 pub struct WorldWindowWidget<'a> {
-    world: &'a World,
+    pub world: &'a World,
     pub center: Coordinate,
     data: &'a Data,
     pub show_cursor: bool

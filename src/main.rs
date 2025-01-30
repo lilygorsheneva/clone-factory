@@ -1,4 +1,10 @@
-use interface::menu::{MenuTrait};
+use std::{borrow::Borrow, cell::{Ref, RefCell}, rc::Rc};
+
+use datatypes::Coordinate;
+use eframe::App;
+use game_state::game::Game;
+use interface::{menu::MenuTrait, widgets::WorldWindowWidget};
+use static_data::Data;
 
 mod action;
 mod actor;
@@ -19,11 +25,39 @@ mod buildings;
 mod score;
 mod paradox;
 mod worldgen;
+mod interface_egui;
+
+struct Application {
+    data: &'static Data,
+    game: Rc<RefCell<Game>>,
+}
+
+impl Application {
+    fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        let data = Data::get_config();
+        Application {
+            data: data,
+            game: worldgen::start_game(data)
+        }
+    }
+}
+
+impl eframe::App for Application {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        let game = self.game.borrow_mut();
+
+        egui::CentralPanel::default().show(ctx, |ui| {
+            let painter = ui.painter();
+            let area = painter.clip_rect();
+            let window = WorldWindowWidget::new(&game);
+            let shapes = window.paint(area);
+            print!("{}\n",shapes.len());
+            painter.extend(shapes);
+        });
+    }
+}
 
 fn main() {
-    let mut terminal = interface::widgets::init_render();
-
-    let mut menu = interface::menu::mainmenu::MainMenu::new();
-    menu.enter_menu(&mut terminal);
-    interface::widgets::deinit_render();
+    let native_options = eframe::NativeOptions::default();
+    eframe::run_native("My egui App", native_options, Box::new(|cc| Ok(Box::new(Application::new(cc)))));
 }
