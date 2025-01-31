@@ -1,6 +1,8 @@
 use std::{borrow::Borrow, cell::{Ref, RefCell}, rc::Rc};
 
+use action::Action;
 use datatypes::Coordinate;
+use direction::RelativeDirection;
 use eframe::App;
 use game_state::game::Game;
 use interface::{menu::MenuTrait, widgets::WorldWindowWidget};
@@ -44,9 +46,14 @@ impl Application {
 
 impl eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        let game = self.game.borrow_mut();
+        let mut game = self.game.borrow_mut();
 
         egui::CentralPanel::default().show(ctx, |ui| {
+            let button = ui.button("Clickme!");
+            if button.clicked() {
+                &game.player_action(Action{direction:direction::Direction::Relative(RelativeDirection::F), action: action::SubAction::Move}).unwrap();
+            }
+            
             let painter = ui.painter();
             let area = painter.clip_rect();
             let window = WorldWindowWidget::new(&game);
