@@ -2,10 +2,11 @@ use std::{borrow::Borrow, cell::{Ref, RefCell}, rc::Rc};
 
 use action::Action;
 use datatypes::Coordinate;
-use direction::RelativeDirection;
+use direction::{AbsoluteDirection, RelativeDirection};
 use eframe::App;
 use game_state::game::Game;
 use interface::{menu::MenuTrait, widgets::WorldWindowWidget};
+use interface_egui::movement::movement;
 use static_data::Data;
 
 mod action;
@@ -49,16 +50,13 @@ impl eframe::App for Application {
         let mut game = self.game.borrow_mut();
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            let button = ui.button("Clickme!");
-            if button.clicked() {
-                &game.player_action(Action{direction:direction::Direction::Relative(RelativeDirection::F), action: action::SubAction::Move}).unwrap();
-            }
+            movement(&mut game, ctx);
+          
             
             let painter = ui.painter();
             let area = painter.clip_rect();
             let window = WorldWindowWidget::new(&game);
             let shapes = window.paint(area);
-            print!("{}\n",shapes.len());
             painter.extend(shapes);
         });
     }
