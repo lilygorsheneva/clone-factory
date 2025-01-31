@@ -1,6 +1,9 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{action::{self, Action}, direction::{self, AbsoluteDirection}, game_state::game::Game};
 
-pub fn movement(game: &mut Game, ctx: &egui::Context) {
+pub fn movement(game:  Rc<RefCell<Game>>, ctx: &egui::Context) {
+    let mut game = game.borrow_mut();
     let window = egui::Window::new("Directions").show(ctx, |ui| {
         let button = ui.button("W");
         if button.clicked() || ui.input(|i| i.key_pressed(egui::Key::ArrowLeft)){

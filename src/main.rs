@@ -1,12 +1,18 @@
-use std::{borrow::Borrow, cell::{Ref, RefCell}, rc::Rc};
+use std::{
+    cell::{Ref, RefCell},
+    rc::Rc,
+};
 
 use action::Action;
 use datatypes::Coordinate;
 use direction::{AbsoluteDirection, RelativeDirection};
 use eframe::App;
 use game_state::game::Game;
-use interface::{menu::MenuTrait, widgets::WorldWindowWidget};
-use interface_egui::movement::movement;
+use interface::widgets::WorldWindowWidget;
+use interface_egui::{
+    crafting::{self, CraftingMenu},
+    movement::movement,
+};
 use static_data::Data;
 
 mod action;
@@ -22,13 +28,13 @@ mod interface;
 mod inventory;
 mod static_data;
 
-mod recording;
-mod eventqueue;
 mod buildings;
-mod score;
-mod paradox;
-mod worldgen;
+mod eventqueue;
 mod interface_egui;
+mod paradox;
+mod recording;
+mod score;
+mod worldgen;
 
 struct Application {
     data: &'static Data,
@@ -40,29 +46,35 @@ impl Application {
         let data = Data::get_config();
         Application {
             data: data,
-            game: worldgen::start_game(data)
+            game: worldgen::start_game(data),
         }
     }
 }
 
 impl eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        let mut game = self.game.borrow_mut();
-
         egui::CentralPanel::default().show(ctx, |ui| {
-            movement(&mut game, ctx);
-          
-            
+            movement(self.game.clone(), ctx);
+            let crafting = CraftingMenu::new(self.game.clone());
+            crafting.show(ctx);
+
             let painter = ui.painter();
             let area = painter.clip_rect();
-            let window = WorldWindowWidget::new(&game);
-            let shapes = window.paint(area);
-            painter.extend(shapes);
+            {
+                let game = self.game.borrow();
+                let window = WorldWindowWidget::new(&game);
+                let shapes = window.paint(area);
+                painter.extend(shapes);
+            }
         });
     }
 }
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
-    eframe::run_native("My egui App", native_options, Box::new(|cc| Ok(Box::new(Application::new(cc)))));
+    eframe::run_native(
+        "My egui App",
+        native_options,
+        Box::new(|cc| Ok(Box::new(Application::new(cc)))),
+    );
 }
