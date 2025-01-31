@@ -10,19 +10,31 @@ use crate::{
 };
 
 impl WorldCell<'_> {
- pub   fn as_shape(&self, area: Rect) -> Shape {
+ pub   fn as_shape(&self, area: Rect) -> Vec<Shape> {
+    let mut ret = Vec::new();
         let color = match self.floor {
             FloorTile::Water => Color32::DARK_BLUE,
             FloorTile::Stone => Color32::DARK_GRAY,
             FloorTile::Dirt => Color32::ORANGE,
         };
 
+        ret.push(
         Shape::Rect(RectShape::new(
             area,
             Rounding::ZERO,
             color,
             Stroke::NONE,
-        ))
+        )));
+        if let Some(actor) = self.actor {
+            ret.push(
+                Shape::Rect(RectShape::new(
+                area,
+                Rounding::ZERO,
+                Color32::DARK_RED,
+                Stroke::NONE,
+            )));
+        }
+        ret
     }
 }
 
@@ -59,7 +71,7 @@ impl WorldWindowWidget<'_> {
                         .get_cell(&coord)
                         .expect("Cell out of bounds but was checked in bounds.");
 
-                    ret.push(cell.as_shape(sub_area));
+                    ret.extend(cell.as_shape(sub_area));
                 }
             }
         }
