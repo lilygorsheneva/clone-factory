@@ -76,5 +76,5 @@ fn main() {
         "My egui App",
         native_options,
         Box::new(|cc| Ok(Box::new(Application::new(cc)))),
-    );
+    ).unwrap();
 }

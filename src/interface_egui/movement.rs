@@ -23,5 +23,14 @@ pub fn movement(game:  Rc<RefCell<Game>>, ctx: &egui::Context) {
         if button.clicked() || ui.input(|i| i.key_pressed(egui::Key::ArrowDown)){
             &game.player_action_and_turn(Action{direction:direction::Direction::Absolute(AbsoluteDirection::S), action: action::SubAction::Move}).unwrap();
         }
+
+        let button = ui.button("Take");
+        if button.clicked(){
+            &game.player_action_and_turn(Action{direction:direction::Direction::Relative(direction::RelativeDirection::F), action: action::SubAction::Take}).unwrap();
+        }
+        let button = ui.button("Interact (building)");
+        if button.clicked(){
+            &game.player_action_and_turn(Action{direction:direction::Direction::Relative(direction::RelativeDirection::F), action: action::SubAction::ActivateBuilding}).unwrap();
+        }
     });
 }
