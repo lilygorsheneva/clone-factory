@@ -24,6 +24,12 @@ pub struct CraftingMenuEntry {
 impl CraftingMenuEntry {
     pub fn new(definition: &'static RecipeDefiniton, data: &Data) -> CraftingMenuEntry {
         let mut stringpieces = Vec::new();
+        let product: &crate::static_data::ObjectDescriptor = data
+        .items
+        .get(&definition.product)
+        .expect("Non-existent item in crafting recipe.");
+        stringpieces.push(format!("{}: {}\n", product.text.name, product.text.description));
+        
         for i in 0..definition.ingredients.len() {
             let ingredient = data
                 .items
@@ -34,12 +40,7 @@ impl CraftingMenuEntry {
                 ingredient.text.name, definition.ingredient_counts[i]
             ));
         }
-        let product: &crate::static_data::ObjectDescriptor = data
-            .items
-            .get(&definition.product)
-            .expect("Non-existent item in crafting recipe.");
-        stringpieces.push(format!("\n{}", product.text.description));
-
+  
         CraftingMenuEntry {
             definition,
             text: stringpieces.join(" "),
