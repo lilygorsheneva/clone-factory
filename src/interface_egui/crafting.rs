@@ -3,9 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use crate::{
     action::{Action, SubAction},
     direction::{Direction, RelativeDirection},
-    error::OkOrPopup,
     game_state::game::Game,
-    interface::widgets::generate_popup_layout,
     inventory::BasicInventory,
     static_data::{Data, RecipeDefiniton},
 };

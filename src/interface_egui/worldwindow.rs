@@ -1,10 +1,10 @@
 use egui::{
     epaint::{RectShape, Shape},
-    Color32, Painter, Pos2, Rect, Rounding, Stroke, Vec2,
+    Color32, Pos2, Rect, Rounding, Stroke, Vec2,
 };
 
 use crate::{
-    buildings, datatypes::Coordinate, game_state::world::{FloorTile, WorldCell}, interface::widgets::WorldWindowWidget
+    datatypes::Coordinate, game_state::world::{FloorTile, WorldCell}, interface::widgets::WorldWindowWidget
 };
 
 impl WorldCell<'_> {

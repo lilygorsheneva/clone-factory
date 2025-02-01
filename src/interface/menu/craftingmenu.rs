@@ -70,7 +70,7 @@ pub enum CraftingMenuOptions {
 }
 use crossterm::event::KeyCode;
 use ratatui::{
-    layout::{Constraint, Layout}, style::{Color, Stylize}, widgets::{Block, List, ListItem, Paragraph}
+    layout::{Constraint, Layout}, widgets::{Block, Paragraph}
 };
 use CraftingMenuOptions::*;
 

@@ -1,6 +1,5 @@
 //! Functions related to UI rendering.
 //! Anything backend specific (ratatui) should be contained here.
-use std::collections::HashMap;
 
 use crate::actor::Actor;
 use crate::buildings:: Building;
@@ -32,7 +31,7 @@ impl<'a> WorldCell<'a> {
 
         // Handle Paradox color overlay
         let pdx_overlay = self.paradox.0 as u8;
-        let mut bgcolor = Color::Rgb(
+        let bgcolor = Color::Rgb(
             r.saturating_add(pdx_overlay),
             g.saturating_add(pdx_overlay),
             b.saturating_add(pdx_overlay),
