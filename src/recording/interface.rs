@@ -30,20 +30,16 @@ use crate::{
 use crate::{
     action::Action,
     error::{
-        OkOrPopup, Result,
+         Result,
         Status::{ActionFail, Error},
     },
-    game_state::game::ApplyOrPopup,
-    interface::{menu::UILayer, widgets::generate_popup_layout},
 };
 use crate::{
     devtools,
     game_state::game::{Game, GameUpdate},
-    interface::menu::MenuTrait,
     inventory::Item,
 };
 
-use RecordingMenuOptions::*;
 
 // TODO: implement update struct so that functions operating on this don't need a refcell, maybe?
 pub struct RecordingModule {
@@ -142,123 +138,5 @@ impl RecordingModule {
             .ok_or(ActionFail("no cloner to take"))?;
         let location = game.get_player_coords()?;
         devtools::grant_item(item, *location, &game)?.apply(game)
-    }
-}
-
-pub struct RecordingMenu<'a> {
-    parent: &'a dyn UILayer,
-    game: Rc<RefCell<Game>>,
-}
-
-impl<'a> RecordingMenu<'a> {
-    pub fn new(parent: &'a dyn UILayer, game: Rc<RefCell<Game>>) -> RecordingMenu<'a> {
-        RecordingMenu {
-            parent: parent,
-            game: game.clone(),
-        }
-    }
-}
-
-pub enum RecordingMenuOptions {
-    Exit,
-    Loop,
-    Die,
-    Take,
-    Use(usize),
-}
-
-impl UILayer for RecordingMenu<'_> {
-    fn draw(&self, frame: &mut ratatui::Frame) {
-        self.parent.draw(frame);
-
-        let mut entries = Vec::new();
-        let recording_module = &self.game.borrow().recordings;
-
-        entries.push(
-            Paragraph::new("Welcome to the record-o-matic recording system.")
-                .block(Block::bordered()),
-        );
-        if recording_module.current_recording.is_some() {
-            entries.push(
-                Paragraph::new("L: loop recording.\nD: do not loop recording.")
-                    .block(Block::bordered()),
-            );
-        } else {
-            entries.push(
-                Paragraph::new("1-5: start a recording using this empty recorder.")
-                    .block(Block::bordered()),
-            );
-        }
-
-        if recording_module.temp_item.is_some() {
-            entries.push(
-                Paragraph::new("T: add latest recording to inventory.").block(Block::bordered()),
-            );
-        }
-
-        let area = generate_popup_layout(frame);
-        let layout = Layout::default()
-            .direction(layout::Direction::Vertical)
-            .constraints(vec![Constraint::Min(1); entries.len()])
-            .split(area);
-
-        for i in 0..entries.len() {
-            frame.render_widget(&entries[i], layout[i]);
-        }
-    }
-}
-
-impl MenuTrait for RecordingMenu<'_> {
-    type MenuOptions = RecordingMenuOptions;
-
-    fn parsekey(&self, key: crossterm::event::KeyEvent) -> Option<Self::MenuOptions> {
-        match key.code {
-            KeyCode::Esc => Some(Exit),
-            KeyCode::Char('l') => Some(Loop),
-            KeyCode::Char('d') => Some(Die),
-            KeyCode::Char('t') => Some(Take),
-            KeyCode::Char('1') => Some(Use(0)),
-            KeyCode::Char('2') => Some(Use(1)),
-            KeyCode::Char('3') => Some(Use(2)),
-            KeyCode::Char('4') => Some(Use(3)),
-            KeyCode::Char('5') => Some(Use(4)),
-            _ => None,
-        }
-    }
-
-    fn enter_menu(&mut self, terminal: &mut ratatui::DefaultTerminal) {
-        loop {
-            terminal.draw(|frame| self.draw(frame)).unwrap();
-            let current_rec;
-            let temp_item;
-            {
-                let recording_module = &self.game.borrow().recordings;
-                current_rec = recording_module.current_recording.is_some();
-                temp_item = recording_module.temp_item.is_some();
-            }
-
-            match self.read() {
-                Some(Exit) => break,
-                Some(Use(i)) if !current_rec => {
-                    let res = RecordingModule::init_record(&mut self.game.borrow_mut(), i);
-                    res.ok_or_popup(self, terminal);
-                    break;
-                }
-                Some(Loop) if current_rec => {
-                    let res = RecordingModule::end_record(&mut self.game.borrow_mut(), true);
-                    res.ok_or_popup(self, terminal);
-                }
-                Some(Die) if current_rec => {
-                    let res = RecordingModule::end_record(&mut self.game.borrow_mut(), false);
-                    res.ok_or_popup(self, terminal);
-                }
-                Some(Take) if temp_item => {
-                    let res = RecordingModule::take_item(&mut self.game.borrow_mut());
-                    res.ok_or_popup(self, terminal);
-                    break;
-                }
-                _ => {}
-            }
-        }
     }
 }

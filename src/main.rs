@@ -12,7 +12,6 @@ use interface_egui::{
     inventory::inventory,
     recording::RecorderMenu
 };
-use recording::interface::RecordingMenu;
 use static_data::Data;
 
 mod action;

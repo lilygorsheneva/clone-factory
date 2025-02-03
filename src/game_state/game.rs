@@ -5,8 +5,6 @@ use ratatui::DefaultTerminal;
 use crate::actor::Actor;
 use crate::engine::tracking_worldlayer::TrackableId;
 use crate::engine::update::{Delta, Updatable, UpdatableContainer};
-use crate::error::StatusMenu;
-use crate::interface::menu::{MenuTrait, UILayer};
 use crate::recording::interface::RecordingModule;
 use crate::recording::Recording;
 use crate::score::{Score, ScoreDelta};
@@ -84,39 +82,6 @@ impl Delta for GameUpdate {
         self.eventqueue.apply(&mut target.event_queue)?;
         self.score.apply(&mut target.score)?;
         Ok(())
-    }
-}
-
-pub trait ApplyOrPopup {
-    fn apply_or_popup(
-        self,
-        game: &RefCell<Game>,
-        parent: &dyn UILayer,
-        terminal: &mut DefaultTerminal,
-    );
-}
-
-impl ApplyOrPopup for Result<GameUpdate> {
-    fn apply_or_popup(
-        self,
-        game: &RefCell<Game>,
-        parent: &dyn UILayer,
-        terminal: &mut DefaultTerminal,
-    ) {
-        match self {
-            Ok(update) => {
-                let new_result = update.apply(&mut game.borrow_mut());
-                if let Err(err) = new_result {
-                    StatusMenu::new(err, parent).enter_menu(terminal);
-                    panic!("Error applying game update.")
-                }
-            }
-            Err(ActionFail(msg)) => StatusMenu::new(ActionFail(msg), parent).enter_menu(terminal),
-            Err(status) => {
-                StatusMenu::new(status, parent).enter_menu(terminal);
-                panic!("Uncaught error when generating game update.")
-            }
-        };
     }
 }
 
