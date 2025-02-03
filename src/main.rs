@@ -36,7 +36,6 @@ mod paradox;
 mod recording;
 mod score;
 mod worldgen;
-mod interface_egui;
 
 pub type GameFn = dyn Fn(&mut Game) -> Result<()>;
 
