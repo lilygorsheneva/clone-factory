@@ -22,16 +22,19 @@ use super::{
     Recording,
 };
 
-use crate::{direction::{AbsoluteDirection, Direction}, engine::update::UpdatableContainer};
+use crate::{
+    direction::{AbsoluteDirection, Direction},
+    engine::update::{Delta, UpdatableContainer},
+};
 
 use crate::{
-    action::Action, error::{
+    action::Action,
+    error::{
         OkOrPopup, Result,
         Status::{ActionFail, Error},
-    }, game_state::game::ApplyOrPopup, interface::{
-        menu::UILayer,
-        widgets::generate_popup_layout,
-    }
+    },
+    game_state::game::ApplyOrPopup,
+    interface::{menu::UILayer, widgets::generate_popup_layout},
 };
 use crate::{
     devtools,
@@ -47,7 +50,7 @@ pub struct RecordingModule {
     pub recordings: RecordingDb,
     pub current_recording: Option<Recording>,
     pub temp_item: Option<Item>,
-    last_player_facing: AbsoluteDirection
+    last_player_facing: AbsoluteDirection,
 }
 
 impl RecordingModule {
@@ -57,7 +60,7 @@ impl RecordingModule {
             current_recording: None,
             temp_item: None,
             // Could pose an issue with save/load, as this is state. player must perform an action before recording anything.
-            last_player_facing: AbsoluteDirection::N
+            last_player_facing: AbsoluteDirection::N,
         }
     }
 
@@ -66,12 +69,12 @@ impl RecordingModule {
     }
 
     pub fn append(&mut self, action: Action) {
-
         let mut rotated_action = action;
 
         match action.direction {
             Direction::Absolute(d) => {
-                rotated_action.direction =Direction::Relative(d.difference(&self.last_player_facing));
+                rotated_action.direction =
+                    Direction::Relative(d.difference(&self.last_player_facing));
             }
             Direction::Relative(d) => {}
         }
@@ -87,7 +90,7 @@ impl RecordingModule {
     }
 
     // Start recording.
-    pub fn init_record(game:&mut Game, idx: usize) -> Result<()> {
+    pub fn init_record(game: &mut Game, idx: usize) -> Result<()> {
         if game.recordings.current_recording.is_some() {
             return Err(Error("Attempted to initialize recording twice"));
         }
@@ -95,21 +98,22 @@ impl RecordingModule {
         let mut player = game.get_player_actor().cloned()?;
         let coords = *game.get_player_coords()?;
 
-        let item = player.inventory.remove_idx(idx).ok_or(ActionFail("No item in slot"))?;
+        let item = player
+            .inventory
+            .remove_idx(idx)
+            .ok_or(ActionFail("No item in slot"))?;
         // TODO clean up this check.
         if item.definition.name != "recorder" {
             return Err(ActionFail("Item is not an empty recorder"));
         }
-        
 
-        game.world.actors.mut_set(&coords,&Some(player))?;
+        game.world.actors.mut_set(&coords, &Some(player))?;
         game.recordings.current_recording = Some(Recording::from_creator(&player));
         Ok(())
     }
 
     // End recording.
-    pub fn end_record(game:&mut Game,  should_loop: bool) -> Result<()> {
-
+    pub fn end_record(game: &mut Game, should_loop: bool) -> Result<()> {
         let recording = game
             .recordings
             .current_recording
@@ -131,14 +135,13 @@ impl RecordingModule {
     }
 
     // TODO Currently bugged; items will stack.
-    pub fn take_item(game:&mut Game) -> Result<GameUpdate> {
-
+    pub fn take_item(game: &mut Game) -> Result<()> {
         let item = game
             .recordings
             .temp_item
             .ok_or(ActionFail("no cloner to take"))?;
         let location = game.get_player_coords()?;
-        devtools::grant_item(item, *location, &game)
+        devtools::grant_item(item, *location, &game)?.apply(game)
     }
 }
 
@@ -243,15 +246,15 @@ impl MenuTrait for RecordingMenu<'_> {
                 }
                 Some(Loop) if current_rec => {
                     let res = RecordingModule::end_record(&mut self.game.borrow_mut(), true);
-                       res.ok_or_popup(self, terminal);
+                    res.ok_or_popup(self, terminal);
                 }
                 Some(Die) if current_rec => {
-                    let res =  RecordingModule::end_record(&mut self.game.borrow_mut(), false);
+                    let res = RecordingModule::end_record(&mut self.game.borrow_mut(), false);
                     res.ok_or_popup(self, terminal);
                 }
                 Some(Take) if temp_item => {
-                    let res =  RecordingModule::take_item(&mut self.game.borrow_mut());
-                    res.apply_or_popup(&self.game, self, terminal);
+                    let res = RecordingModule::take_item(&mut self.game.borrow_mut());
+                    res.ok_or_popup(self, terminal);
                     break;
                 }
                 _ => {}

@@ -9,7 +9,9 @@ use interface::widgets::WorldWindowWidget;
 use interface_egui::{
     crafting::{CraftingMenu},
     movement::movement,
+    recording::RecorderMenu
 };
+use recording::interface::RecordingMenu;
 use static_data::Data;
 
 mod action;
@@ -78,6 +80,8 @@ impl eframe::App for Application {
             movement(self, ctx);
             let crafting = CraftingMenu::new(self.game.clone());
             crafting.show(ctx);
+
+            RecorderMenu::show(self, ctx);
 
             let painter = ui.painter();
             let area = painter.clip_rect();

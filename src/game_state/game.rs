@@ -292,8 +292,7 @@ mod tests {
         game.player_action(actions[1]).unwrap();
 
         RecordingModule::end_record(&mut game, false).unwrap();
-        let update = RecordingModule::take_item(&mut game).unwrap();
-        update.apply(&mut game).unwrap();
+         RecordingModule::take_item(&mut game).unwrap();
 
         // This is really ugly. Perhaps recording needs a nicer API.
         let actor = game
