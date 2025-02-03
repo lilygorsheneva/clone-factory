@@ -3,11 +3,7 @@ use std::{
     rc::Rc,
 };
 
-use action::Action;
-use datatypes::Coordinate;
-use direction::{AbsoluteDirection, RelativeDirection};
-use eframe::App;
-use error::{Status,Result};
+use error::Result;
 use game_state::game::Game;
 use interface::widgets::WorldWindowWidget;
 use interface_egui::{
