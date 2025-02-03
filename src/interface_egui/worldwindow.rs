@@ -1,12 +1,10 @@
 use egui::{
     epaint::{RectShape, Shape},
-    Color32, Painter, Pos2, Rect, Rounding, Stroke, Vec2,
+    Color32, Pos2, Rect, Rounding, Stroke, Vec2,
 };
 
 use crate::{
-    datatypes::Coordinate,
-    game_state::world::{FloorTile, WorldCell},
-    interface::widgets::WorldWindowWidget,
+    datatypes::Coordinate, game_state::world::{FloorTile, WorldCell}, interface::widgets::WorldWindowWidget
 };
 
 impl WorldCell<'_> {
@@ -25,10 +23,34 @@ impl WorldCell<'_> {
             color,
             Stroke::NONE,
         )));
+
+        if let Some(building) = self.building {
+            ret.push(
+                Shape::Rect(RectShape::new(
+                area.scale_from_center(0.9),
+                Rounding::ZERO,
+                Color32::WHITE,
+                Stroke::NONE,
+            )));
+        }
+        
+        if let Some(item) = self.items[0] {
+            ret.push(
+                Shape::Rect(RectShape::new(
+                    area.scale_from_center(0.8),
+                    Rounding::ZERO,
+                Color32::DARK_GREEN,
+                Stroke::NONE,
+            )));
+        }
+        
+
+
+
         if let Some(actor) = self.actor {
             ret.push(
                 Shape::Rect(RectShape::new(
-                area,
+                    area.scale_from_center(0.7),
                 Rounding::ZERO,
                 Color32::DARK_RED,
                 Stroke::NONE,

@@ -18,7 +18,7 @@ pub fn update_actor_paradox(
         .world
         .actor_updates
         .get_location(&game.world.actors, &actor)?;
-    let mut actor = update
+    let actor = update
         .world
         .actor_updates
         .get(&game.world.actors, &location)?
