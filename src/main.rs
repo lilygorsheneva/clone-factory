@@ -87,6 +87,16 @@ impl eframe::App for Application {
                 let shapes = window.paint(area);
                 painter.extend(shapes);
             }
+
+            if self.error.is_err() {
+                let window = egui::Window::new("Error").show(ctx, |ui| {
+                    let button = ui.button("Error");
+                    if button.clicked() {
+                        self.error = Ok(())
+                    }
+                });
+
+            }
         });
 
         if self.command.is_some() {
