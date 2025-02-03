@@ -9,6 +9,7 @@ use interface::widgets::WorldWindowWidget;
 use interface_egui::{
     crafting::{CraftingMenu},
     movement::movement,
+    inventory::inventory,
     recording::RecorderMenu
 };
 use recording::interface::RecordingMenu;
@@ -77,7 +78,10 @@ impl Application {
 impl eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
+            inventory(self, ctx);
+
             movement(self, ctx);
+
             let crafting = CraftingMenu::new(self.game.clone());
             crafting.show(ctx);
 
