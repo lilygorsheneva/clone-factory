@@ -1,16 +1,10 @@
-use std::{
-    cell::RefCell,
-    rc::Rc,
-};
+use std::{cell::RefCell, rc::Rc};
 
-use error::Result;
+use error::{Result, Status};
 use game_state::game::Game;
 use interface::widgets::WorldWindowWidget;
 use interface_egui::{
-    crafting::{CraftingMenu},
-    movement::movement,
-    inventory::inventory,
-    recording::RecorderMenu
+    crafting::CraftingMenu, inventory::inventory, movement::movement, recording::RecorderMenu,
 };
 use static_data::Data;
 
@@ -37,15 +31,12 @@ mod worldgen;
 
 pub type GameFn = dyn Fn(&mut Game) -> Result<()>;
 
-
 struct Application {
     data: &'static Data,
     game: Rc<RefCell<Game>>,
     error: Result<()>,
-    command: Option<Box<GameFn>>
+    command: Option<Box<GameFn>>,
 }
-
-
 
 impl Application {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
@@ -54,13 +45,13 @@ impl Application {
             data: data,
             game: worldgen::start_game(data),
             error: Ok(()),
-            command: None
+            command: None,
         }
     }
 
     pub fn queue_act(&mut self, command: Box<GameFn>) {
         if self.error.is_ok() && self.command.is_none() {
-        self.command = Some(command);
+            self.command = Some(command);
         }
     }
 
@@ -71,7 +62,6 @@ impl Application {
         }
         self.command = None;
     }
-
 }
 
 impl eframe::App for Application {
@@ -95,9 +85,15 @@ impl eframe::App for Application {
                 painter.extend(shapes);
             }
 
-            if self.error.is_err() {
+            if let Err(e) = self.error {
                 let window = egui::Window::new("Error").show(ctx, |ui| {
-                    let button = ui.button("Error");
+                         let text = match e {
+            Status::ActionFail(str) => str,
+            Status::OutOfBounds => "Some operation returned out of bounds. This should not be player-visible.",
+            Status::StateUpdateError =>"Error updating world state.",
+            Status::Error(str) =>str,
+        };
+                    let button = ui.button(text);
                     if button.clicked() {
                         self.error = Ok(())
                     }
@@ -118,5 +114,6 @@ fn main() {
         "My egui App",
         native_options,
         Box::new(|cc| Ok(Box::new(Application::new(cc)))),
-    ).unwrap();
+    )
+    .unwrap();
 }
