@@ -2,7 +2,6 @@
 
 use crate::action::{get_use_fn_table, ItemUseFn};
 use crate::buildings::{get_building_fn_table, BuildingUseFn};
-use ratatui::style::Color;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
 use std::fs;
@@ -55,7 +54,7 @@ pub struct AppearanceDefiniton {
     pub glyph_e: Option<String>,
     pub glyph_w: Option<String>,
 
-    pub color: Color,
+    pub color: String,
 }
 
 impl PartialEq for ObjectDescriptor {

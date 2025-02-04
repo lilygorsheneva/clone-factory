@@ -1,6 +1,5 @@
 //! Game state container, combining world state with other data containers.
 
-use ratatui::DefaultTerminal;
 
 use crate::actor::Actor;
 use crate::engine::tracking_worldlayer::TrackableId;
@@ -20,7 +19,6 @@ use crate::{
     datatypes::Coordinate,
     game_state::world::{World, WorldUpdate},
 };
-use std::cell::RefCell;
 
 // Move the WorldActors struct out to a dedicated module.
 pub struct WorldActors {

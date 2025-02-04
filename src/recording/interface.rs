@@ -9,13 +9,7 @@
 //  View saved recordings
 //  Duplicate saved recording (consumes a crystal of equal or greater tier.)
 
-use std::{cell::RefCell, rc::Rc};
 
-use crossterm::event::KeyCode;
-use ratatui::{
-    layout::{self, Constraint, Layout},
-    widgets::{Block, Paragraph},
-};
 
 use super::{
     db::{RecordingDb, RecordingId},
@@ -36,7 +30,7 @@ use crate::{
 };
 use crate::{
     devtools,
-    game_state::game::{Game, GameUpdate},
+    game_state::game::Game,
     inventory::Item,
 };
 
