@@ -66,6 +66,7 @@ impl Application {
 impl eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
+            
             inventory(self, ctx);
 
             movement(self, ctx);
@@ -80,7 +81,7 @@ impl eframe::App for Application {
             {
                 let game = self.game.borrow();
                 let window = WorldWindowWidget::new(&game);
-                let shapes = window.paint(area);
+                let shapes = window.paint(ctx ,area);
                 painter.extend(shapes);
             }
 
@@ -112,7 +113,10 @@ fn main() {
     eframe::run_native(
         "My egui App",
         native_options,
-        Box::new(|cc| Ok(Box::new(Application::new(cc)))),
+        Box::new(|cc| {
+            egui_extras::install_image_loaders(&cc.egui_ctx);
+            Ok(Box::new(Application::new(cc)))
+        }),
     )
     .unwrap();
 }
