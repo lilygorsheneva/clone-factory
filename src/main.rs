@@ -85,21 +85,7 @@ impl eframe::App for Application {
                 painter.extend(shapes);
             }
 
-            if let Err(e) = self.error {
-                let window = egui::Window::new("Error").show(ctx, |ui| {
-                         let text = match e {
-            Status::ActionFail(str) => str,
-            Status::OutOfBounds => "Some operation returned out of bounds. This should not be player-visible.",
-            Status::StateUpdateError =>"Error updating world state.",
-            Status::Error(str) =>str,
-        };
-                    let button = ui.button(text);
-                    if button.clicked() {
-                        self.error = Ok(())
-                    }
-                });
-
-            }
+            interface_egui::error::show(self, ctx);
         });
 
         if self.command.is_some() {
