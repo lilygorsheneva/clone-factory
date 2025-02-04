@@ -72,7 +72,7 @@ impl eframe::App for Application {
             movement(self, ctx);
 
             let crafting = CraftingMenu::new(self.game.clone());
-            crafting.show(ctx);
+            crafting.show(self, ctx);
 
             RecorderMenu::show(self, ctx);
 

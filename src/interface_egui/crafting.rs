@@ -6,6 +6,7 @@ use crate::{
     game_state::game::Game,
     inventory::BasicInventory,
     static_data::{Data, RecipeDefiniton},
+    Application,
 };
 
 pub struct CraftingMenu {
@@ -23,11 +24,14 @@ impl CraftingMenuEntry {
     pub fn new(definition: &'static RecipeDefiniton, data: &Data) -> CraftingMenuEntry {
         let mut stringpieces = Vec::new();
         let product: &crate::static_data::ObjectDescriptor = data
-        .items
-        .get(&definition.product)
-        .expect("Non-existent item in crafting recipe.");
-        stringpieces.push(format!("{}: {}\n", product.text.name, product.text.description));
-        
+            .items
+            .get(&definition.product)
+            .expect("Non-existent item in crafting recipe.");
+        stringpieces.push(format!(
+            "{}: {}\n",
+            product.text.name, product.text.description
+        ));
+
         for i in 0..definition.ingredients.len() {
             let ingredient = data
                 .items
@@ -38,7 +42,7 @@ impl CraftingMenuEntry {
                 ingredient.text.name, definition.ingredient_counts[i]
             ));
         }
-  
+
         CraftingMenuEntry {
             definition,
             text: stringpieces.join(" "),
@@ -65,14 +69,17 @@ impl CraftingMenu {
             .collect()
     }
 
-    pub fn show(&self, ctx: &egui::Context) {
+    pub fn show(&self, app: &mut Application, ctx: &egui::Context) {
         let window = egui::Window::new("Crafting").show(ctx, |ui| {
             for entry in &self.recipes {
                 if ui.button(&entry.text).clicked() {
-                    let res = self.game.borrow_mut().player_action_and_turn(Action {
-                        direction: Direction::Relative(RelativeDirection::F),
-                        action: SubAction::Craft(entry.definition),
-                    });
+                    let def = entry.definition;
+                    app.queue_act(Box::new(|game: &mut Game| {
+                        game.player_action_and_turn(Action {
+                            direction: Direction::Relative(RelativeDirection::F),
+                            action: SubAction::Craft(def),
+                        })
+                    }));
                 }
             }
         });
