@@ -17,7 +17,6 @@ mod engine;
 mod error;
 //mod eventloop;
 mod game_state;
-mod interface;
 mod inventory;
 mod static_data;
 
