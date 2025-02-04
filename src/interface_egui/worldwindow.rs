@@ -81,6 +81,7 @@ impl WorldCell<'_> {
 
         if let Ok(poll) = tex {
             if let Some(id) = poll.texture_id() {
+                actor_sprite.fill = Color32::WHITE;
                 actor_sprite.fill_texture_id = id;
                 actor_sprite.uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
             }
