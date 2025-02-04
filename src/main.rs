@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use error::{Result, Status};
 use game_state::game::Game;
-use interface::widgets::WorldWindowWidget;
+use interface_egui::worldwindow::WorldWindowWidget;
 use interface_egui::{
     crafting::CraftingMenu, inventory::inventory, movement::movement, recording::RecorderMenu,
 };

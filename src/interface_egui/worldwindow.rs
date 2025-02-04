@@ -4,8 +4,29 @@ use egui::{
 };
 
 use crate::{
-    datatypes::Coordinate, game_state::world::{FloorTile, WorldCell}, interface::widgets::WorldWindowWidget
-};
+    datatypes::Coordinate, game_state::{game::Game, world::{FloorTile, World, WorldCell}}, static_data::Data,
+    };
+
+pub struct WorldWindowWidget<'a> {
+    pub world: &'a World,
+    pub center: Coordinate,
+    data: &'a Data,
+    pub show_cursor: bool
+}
+
+impl<'a> WorldWindowWidget<'a> {
+    pub fn new(game: &'a Game) -> WorldWindowWidget<'a> {
+        WorldWindowWidget {
+            world: &game.world,
+            center: *game
+                .get_player_coords()
+                .unwrap_or(&Coordinate { x: 0, y: 0 }),
+            data: &game.data,
+            show_cursor: false
+        }
+    }
+}
+
 
 impl WorldCell<'_> {
  pub   fn as_shape(&self, area: Rect) -> Vec<Shape> {
