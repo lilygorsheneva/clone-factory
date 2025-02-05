@@ -11,6 +11,7 @@
     glyph_s = "V"
     glyph_e = ">"
     glyph_w =  "<"
+    texture = "file://assets/clone_factory_pc_sprite.png"
     color = "red"
 
 [actors.clone]

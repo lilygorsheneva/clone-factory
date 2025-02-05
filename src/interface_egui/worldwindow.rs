@@ -67,27 +67,33 @@ impl WorldCell<'_> {
             )));
         }
 
-        let tex = ctx.try_load_texture(
-            "file://assets/clone_factory_pc_sprite.gif",
-            TextureOptions::NEAREST,
-            egui::SizeHint::Scale(1.0.into()),
-        );
-        let mut actor_sprite = RectShape::new(
-            area.scale_from_center(0.7),
-            Rounding::ZERO,
-            Color32::DARK_RED,
-            Stroke::NONE,
-        );
 
-        if let Ok(poll) = tex {
-            if let Some(id) = poll.texture_id() {
-                actor_sprite.fill = Color32::WHITE;
-                actor_sprite.fill_texture_id = id;
-                actor_sprite.uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
-            }
-        }
 
         if let Some(actor) = self.actor {
+            let mut actor_sprite = RectShape::new(
+                area.scale_from_center(0.7),
+                Rounding::ZERO,
+                Color32::DARK_RED,
+                Stroke::NONE,
+            );
+            if let Some(path) = &actor.descriptor.appearance.texture {
+                let tex = ctx.try_load_texture(
+                    path,
+                    TextureOptions::NEAREST,
+                    egui::SizeHint::Scale(1.0.into()),
+                );
+         
+        
+                if let Ok(poll) = tex {
+                    if let Some(id) = poll.texture_id() {
+                        actor_sprite.fill = Color32::WHITE;
+                        actor_sprite.fill_texture_id = id;
+                        actor_sprite.uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
+                    }
+                }
+            }
+
+
             ret.push(Shape::Rect(actor_sprite));
         }
         ret

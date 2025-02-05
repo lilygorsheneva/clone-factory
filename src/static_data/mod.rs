@@ -54,6 +54,8 @@ pub struct AppearanceDefiniton {
     pub glyph_e: Option<String>,
     pub glyph_w: Option<String>,
 
+    pub texture: Option<String>,
+
     pub color: String,
 }
 
