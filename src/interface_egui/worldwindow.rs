@@ -46,7 +46,7 @@ impl WorldCell<'_> {
             area,
             Rounding::ZERO,
             color,
-            Stroke::NONE,
+            Stroke::new(self.paradox.0 as f32 / 5.0 , Color32::WHITE),
         )));
 
         if let Some(building) = self.building {
