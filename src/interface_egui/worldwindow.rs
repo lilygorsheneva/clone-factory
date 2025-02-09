@@ -10,7 +10,7 @@ use crate::{
         game::Game,
         world::{FloorTile, World, WorldCell},
     },
-    static_data::Data,
+    static_data::{AppearanceDefiniton, Data},
 };
 
 pub struct WorldWindowWidget<'a> {
@@ -33,6 +33,36 @@ impl<'a> WorldWindowWidget<'a> {
     }
 }
 
+fn object_to_shape(
+    ctx: &egui::Context,
+    descriptor: &AppearanceDefiniton,
+    area: Rect,
+    scale: f32,
+) -> Shape {
+    let mut base_sprite = RectShape::new(
+        area.scale_from_center(scale),
+        Rounding::ZERO,
+        Color32::DARK_RED,
+        Stroke::NONE,
+    );
+    if let Some(path) = &descriptor.texture {
+        let tex = ctx.try_load_texture(
+            path,
+            TextureOptions::NEAREST,
+            egui::SizeHint::Scale(1.0.into()),
+        );
+
+        if let Ok(poll) = tex {
+            if let Some(id) = poll.texture_id() {
+                base_sprite.fill = Color32::WHITE;
+                base_sprite.fill_texture_id = id;
+                base_sprite.uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
+            }
+        }
+    }
+    Shape::Rect(base_sprite)
+}
+
 impl WorldCell<'_> {
     pub fn as_shape(&self, ctx: &egui::Context, area: Rect) -> Vec<Shape> {
         let mut ret = Vec::new();
@@ -46,55 +76,34 @@ impl WorldCell<'_> {
             area,
             Rounding::ZERO,
             color,
-            Stroke::new(self.paradox.0 as f32 / 5.0 , Color32::WHITE),
+            Stroke::new((self.paradox.0 as f32 / 5.0) - 1.0, Color32::WHITE),
         )));
 
         if let Some(building) = self.building {
-            ret.push(Shape::Rect(RectShape::new(
-                area.scale_from_center(0.9),
-                Rounding::ZERO,
-                Color32::WHITE,
-                Stroke::NONE,
-            )));
+            ret.push(object_to_shape(
+                ctx,
+                &building.definition.appearance,
+                area,
+                0.9,
+            ));
         }
 
         if let Some(item) = self.items[0] {
-            ret.push(Shape::Rect(RectShape::new(
-                area.scale_from_center(0.8),
-                Rounding::ZERO,
-                Color32::DARK_GREEN,
-                Stroke::NONE,
-            )));
+            ret.push(object_to_shape(
+                ctx,
+                &item.definition.appearance,
+                area,
+                0.8,
+            ));
         }
 
-
-
         if let Some(actor) = self.actor {
-            let mut actor_sprite = RectShape::new(
-                area.scale_from_center(0.7),
-                Rounding::ZERO,
-                Color32::DARK_RED,
-                Stroke::NONE,
-            );
-            if let Some(path) = &actor.descriptor.appearance.texture {
-                let tex = ctx.try_load_texture(
-                    path,
-                    TextureOptions::NEAREST,
-                    egui::SizeHint::Scale(1.0.into()),
-                );
-         
-        
-                if let Ok(poll) = tex {
-                    if let Some(id) = poll.texture_id() {
-                        actor_sprite.fill = Color32::WHITE;
-                        actor_sprite.fill_texture_id = id;
-                        actor_sprite.uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
-                    }
-                }
-            }
-
-
-            ret.push(Shape::Rect(actor_sprite));
+            ret.push(object_to_shape(
+                ctx,
+                &actor.descriptor.appearance,
+                area,
+                0.8,
+            ));
         }
         ret
     }
