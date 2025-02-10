@@ -1,5 +1,5 @@
 use egui::{
-    epaint::{RectShape, Shape},
+    epaint::{CircleShape, RectShape, Shape},
     pos2, Color32, Pos2, Rect, Rounding, Stroke, TextureOptions, Vec2,
 };
 
@@ -16,7 +16,6 @@ use crate::{
 pub struct WorldWindowWidget<'a> {
     pub world: &'a World,
     pub center: Coordinate,
-    data: &'a Data,
     pub show_cursor: bool,
 }
 
@@ -27,7 +26,6 @@ impl<'a> WorldWindowWidget<'a> {
             center: *game
                 .get_player_coords()
                 .unwrap_or(&Coordinate { x: 0, y: 0 }),
-            data: &game.data,
             show_cursor: false,
         }
     }
@@ -89,12 +87,7 @@ impl WorldCell<'_> {
         }
 
         if let Some(item) = self.items[0] {
-            ret.push(object_to_shape(
-                ctx,
-                &item.definition.appearance,
-                area,
-                0.8,
-            ));
+            ret.push(object_to_shape(ctx, &item.definition.appearance, area, 0.8));
         }
 
         if let Some(actor) = self.actor {
@@ -145,6 +138,15 @@ impl WorldWindowWidget<'_> {
                     ret.extend(cell.as_shape(&ctx, sub_area));
                 }
             }
+        }
+        if self.show_cursor{
+            ret.push(Shape::Circle(CircleShape {
+                //Ugly but easy to implement center-finder. Use Centerx 
+                center: Pos2::new((size.x + cell_size.x)  / 2.0,(size.y - cell_size.y) / 2.0),
+                radius: 20.0,
+                fill: Color32::TRANSPARENT,
+                stroke: Stroke::new(5.0, Color32::DEBUG_COLOR),
+            }));
         }
         ret
     }
