@@ -11,8 +11,7 @@ A factorio-like where most work gets done by recordings of yourself.
 
 ### Gameplay
 * Collect ore from ore deposits by interacting with the building (U) and picking up the resulting item (T)
-* (C) opens the crafting menu.
-* Recorders can be used in the Recording Menu (R) to create a sequence of actions that your clones will perform.
+* Recorders can be used in the Recording Menu to create a sequence of actions that your clones will perform.
     * Only successful actions are recorded, if you try to perform an action you can't currently do, the turn will not advance and the act will not be recorded.
 * Clones will either succeed or fail to do an action.
     * If an action fails, it generates a paradox field at the location (ligher screen area).
