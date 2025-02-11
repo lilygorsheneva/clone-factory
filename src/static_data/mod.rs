@@ -101,9 +101,16 @@ impl Data {
         Box::leak(boxed)
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn read() -> Data {
         let path = "src/static_data/data.toml";
         let s = fs::read_to_string(path).unwrap();
+        toml::from_str(&s).unwrap()
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    fn read() -> Data {
+        let s = include_str!("data.toml");
         toml::from_str(&s).unwrap()
     }
 
