@@ -6,7 +6,7 @@ use crate::{
     game_state::game::Game,
     inventory::BasicInventory,
     static_data::{Data, RecipeDefiniton},
-    Application,
+    app::Application,
 };
 
 pub struct CraftingMenu {

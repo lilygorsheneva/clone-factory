@@ -1,12 +1,12 @@
 use crate::error::Result;
 use crate::inventory::Item;
 use crate::recording::interface::RecordingModule;
-use crate::GameFn;
+use crate::app::GameFn;
 use crate::{
     action::{self, Action},
     direction::{Direction, RelativeDirection},
     game_state::game::Game,
-    Application,
+    app::Application,
 };
 
 fn use_dispatch(idx: usize, item: Item) -> Box<GameFn> {

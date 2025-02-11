@@ -1,6 +1,6 @@
 use egui::Context;
 
-use crate::{error::Status, Application};
+use crate::{error::Status,     app::Application};
 
 pub fn show(app: &mut Application, ctx: &Context) {
     if let Err(e) = app.error {

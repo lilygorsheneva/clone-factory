@@ -2,7 +2,7 @@ use crate::{
     action::{self, Action},
     direction::{self, AbsoluteDirection},
     game_state::game::Game,
-    Application,
+    app::Application,
 };
 
 pub fn movement(app: &mut Application, ctx: &egui::Context) {
