@@ -9,6 +9,7 @@ mod game_state;
 mod inventory;
 mod static_data;
 
+mod app;
 mod buildings;
 mod eventqueue;
 mod interface_egui;
@@ -16,7 +17,6 @@ mod paradox;
 mod recording;
 mod score;
 mod worldgen;
-mod app;
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
@@ -31,7 +31,6 @@ fn main() {
     )
     .unwrap();
 }
-
 
 // When compiling to web using trunk:
 #[cfg(target_arch = "wasm32")]
@@ -59,7 +58,10 @@ fn main() {
             .start(
                 canvas,
                 web_options,
-                Box::new(|cc| Ok(Box::new(app::Application::new(cc)))),
+                Box::new(|cc| {
+                    egui_extras::install_image_loaders(&cc.egui_ctx);
+                    Ok(Box::new(app::Application::new(cc)))
+                }),
             )
             .await;
 

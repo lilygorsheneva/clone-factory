@@ -84,6 +84,17 @@ pub struct Data {
     pub recipes: HashMap<String, RecipeDefiniton>,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+pub fn asset_path(input: &String) -> String {
+    format!("file://{}",input)
+}
+
+#[cfg(target_arch = "wasm32")]
+#[cfg(not(target_arch = "wasm32"))]
+pub fn asset_path(input: &String) -> String {
+    format!("http://{}",input)
+}
+
 impl Data {
     pub fn get_config() -> &'static Data {
         let mut data = Data::read();

@@ -1,7 +1,7 @@
 use egui::{
-    epaint::{CircleShape, RectShape, Shape},
-    pos2, Color32, Pos2, Rect, Rounding, Stroke, TextureOptions, Vec2,
+    debug_text::print, epaint::{CircleShape, RectShape, Shape}, pos2, Color32, Pos2, Rect, Rounding, Stroke, TextureOptions, Vec2
 };
+use log::log;
 
 use crate::{
     actor,
@@ -10,7 +10,7 @@ use crate::{
         game::Game,
         world::{FloorTile, World, WorldCell},
     },
-    static_data::{AppearanceDefiniton, Data},
+    static_data::{asset_path, AppearanceDefiniton, Data},
 };
 
 pub struct WorldWindowWidget<'a> {
@@ -45,7 +45,7 @@ fn object_to_shape(
     );
     if let Some(path) = &descriptor.texture {
         let tex = ctx.try_load_texture(
-            path,
+            &asset_path(path),
             TextureOptions::NEAREST,
             egui::SizeHint::Scale(1.0.into()),
         );
@@ -56,6 +56,8 @@ fn object_to_shape(
                 base_sprite.fill_texture_id = id;
                 base_sprite.uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
             }
+        } else if let Err(e) = tex {
+            log::log!(log::Level::Error, "{}", e);
         }
     }
     Shape::Rect(base_sprite)

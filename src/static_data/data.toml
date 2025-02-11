@@ -11,7 +11,7 @@
     glyph_s = "V"
     glyph_e = ">"
     glyph_w =  "<"
-    texture = "file://assets/clone_factory_pc_sprite.png"
+    texture = "assets/clone_factory_pc_sprite.png"
     color = "red"
 
 [actors.clone]
@@ -26,7 +26,7 @@
     glyph_s = "V"
     glyph_e = ">"
     glyph_w =  "<"
-    texture = "file://assets/clone_factory_pc_sprite_gray_upscaled.gif"
+    texture = "assets/clone_factory_pc_sprite_gray_upscaled.gif"
     color = "white"
 
 [actors.foe]
@@ -36,7 +36,7 @@
     description = "It's your foe doppleganger."
 [actors.foe.appearance]    
     glyph = "😡"
-    texture = "file://assets/clone_factory_basic_enemy_sprite.png"
+    texture = "assets/clone_factory_basic_enemy_sprite.png"
     color = "white"
 
 [buildings]
@@ -48,7 +48,7 @@
     description = "All the crystal you could ever want"
 [buildings.crystal_deposit.appearance]
     glyph = "O"
-    texture = "file://assets/clone_factory_crystal.png"
+    texture = "assets/clone_factory_crystal.png"
     color = "blue"
 
 [buildings.matter_digitizer]
@@ -99,7 +99,7 @@
     description = "A crafting material. Worth 10 score."
 [items.echo_crystal.appearance]
     glyph = "*"
-    texture = "file://assets/clone_factory_refined_crystal.png"
+    texture = "assets/clone_factory_refined_crystal.png"
     color = "grey"
 
 [items.matter_digitizer]
