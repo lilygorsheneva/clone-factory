@@ -4,7 +4,7 @@ use crate::{error::Status,     app::Application};
 
 pub fn show(app: &mut Application, ctx: &Context) {
     if let Err(e) = app.error {
-        let window = egui::Window::new("Error").show(ctx, |ui| {
+        let window = egui::Modal::new(egui::Id::new("Error")).show(ctx, |ui| {
             let text = match e {
                 Status::ActionFail(str) => str,
                 Status::OutOfBounds => {
