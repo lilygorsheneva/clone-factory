@@ -107,7 +107,7 @@ impl WorldCell<'_> {
 impl WorldWindowWidget<'_> {
     pub fn paint(self, ctx: &egui::Context, area: Rect) -> Vec<Shape> {
         let size = area.size();
-        let cell_size = Vec2 { x: 16.0, y: 16.0 };
+        let cell_size = Vec2 { x: 32.0, y: 32.0 };
 
         let rows = (size.y / cell_size.y) as i32;
         let cols = (size.x / cell_size.x) as i32;
