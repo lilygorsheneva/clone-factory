@@ -1,6 +1,6 @@
 [build]
 filehash = false
-public_url = "/dist"
+public_url = "."
 
 [serve]
 headers = { "Access-Control-Allow-Origin" = "*" }
