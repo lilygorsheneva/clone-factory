@@ -1,5 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 use crate::error::Result;
+use crate::interface_egui::info;
 use crate::{game_state::game::Game, static_data::Data, worldgen};
 use crate::interface_egui::{self, crafting::CraftingMenu, inventory, movement, recording::RecorderMenu, worldwindow::WorldWindowWidget};
 
@@ -46,6 +47,7 @@ impl eframe::App for Application {
             inventory::inventory(self, ctx);
 
             movement::movement(self, ctx);
+            info::show(self, ctx);
 
             let crafting = CraftingMenu::new(self.game.clone());
             crafting.show(self, ctx);
