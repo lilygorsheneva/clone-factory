@@ -90,15 +90,15 @@ pub fn asset_path(input: &String) -> String {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[cfg(not(target_arch = "wasm32"))]
 pub fn asset_path(input: &String) -> String {
-    format!("http://{}",input)
+    format!("http://localhost:8080/{}",input)
 }
 
 impl Data {
     pub fn get_config() -> &'static Data {
         let mut data = Data::read();
         data.bind_functions();
+        data.update_paths();
         let boxed = Box::new(data);
         Box::leak(boxed)
     }
@@ -108,6 +108,7 @@ impl Data {
     pub fn get_test_config() -> &'static Data {
         let mut data = Data::read();
         data.bind_functions();
+        data.update_paths();
         let boxed = Box::new(data);
         Box::leak(boxed)
     }
@@ -123,6 +124,24 @@ impl Data {
     fn read() -> Data {
         let s = include_str!("data.toml");
         toml::from_str(&s).unwrap()
+    }
+
+    fn update_paths(&mut self) {
+        for (_, def) in self.items.iter_mut() {
+            if let Some(p) = &mut def.appearance.texture {
+                *p = asset_path(p);
+            }
+        }
+        for (_, def) in self.buildings.iter_mut() {
+            if let Some(p) = &mut def.appearance.texture {
+                *p = asset_path(p);
+            }
+        }
+        for (_, def) in self.actors.iter_mut() {
+            if let Some(p) = &mut def.appearance.texture {
+                *p = asset_path(p);
+            }
+        }
     }
 
     fn bind_functions(&mut self) {

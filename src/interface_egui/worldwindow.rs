@@ -10,7 +10,7 @@ use crate::{
         game::Game,
         world::{FloorTile, World, WorldCell},
     },
-    static_data::{asset_path, AppearanceDefiniton, Data},
+    static_data::AppearanceDefiniton,
 };
 
 pub struct WorldWindowWidget<'a> {
@@ -45,7 +45,7 @@ fn object_to_shape(
     );
     if let Some(path) = &descriptor.texture {
         let tex = ctx.try_load_texture(
-            &asset_path(path),
+            path,
             TextureOptions::NEAREST,
             egui::SizeHint::Scale(1.0.into()),
         );
