@@ -91,7 +91,7 @@ pub fn asset_path(input: &String) -> String {
 
 #[cfg(target_arch = "wasm32")]
 pub fn asset_path(input: &String) -> String {
-    format!("http://localhost:8080/{}",input)
+    format!("{}{}",web_sys::window().unwrap().location().href().unwrap(), input)
 }
 
 impl Data {
