@@ -44,6 +44,15 @@ impl eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             
+            let painter = ui.painter();
+            let area = painter.clip_rect();
+            {
+                let game = self.game.borrow();
+                let window = WorldWindowWidget::new(&game);
+                let shapes = window.paint(ctx ,area);
+                painter.extend(shapes);
+            }
+
             info::show(self, ctx);
 
             inventory::inventory(self, ctx);
@@ -54,15 +63,6 @@ impl eframe::App for Application {
             crafting.show(self, ctx);
 
             RecorderMenu::show(self, ctx);
-
-            let painter = ui.painter();
-            let area = painter.clip_rect();
-            {
-                let game = self.game.borrow();
-                let window = WorldWindowWidget::new(&game);
-                let shapes = window.paint(ctx ,area);
-                painter.extend(shapes);
-            }
 
             interface_egui::error::show(self, ctx);
         });
