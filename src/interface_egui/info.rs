@@ -10,6 +10,7 @@ fn object_info(ui: &mut Ui, object: &'static ObjectDescriptor) {
 }
 
 fn cell_info(ui: &mut Ui, cell: &WorldCell) {
+    ui.label(format!("Local Paradox level: {}", cell.paradox.0));
     if let Some(a) = cell.actor {
         object_info(ui, a.descriptor);
     }
