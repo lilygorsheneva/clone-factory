@@ -1,10 +1,8 @@
 use egui::{
-    debug_text::print, epaint::{CircleShape, RectShape, Shape}, pos2, Color32, Pos2, Rect, Rounding, Stroke, TextureOptions, Vec2
+    epaint::{CircleShape, RectShape, Shape}, pos2, Color32, Pos2, Rect, Rounding, Stroke, TextureOptions, Vec2
 };
-use log::log;
 
 use crate::{
-    actor,
     datatypes::Coordinate,
     game_state::{
         game::Game,

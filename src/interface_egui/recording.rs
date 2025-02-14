@@ -1,4 +1,4 @@
-use crate::{game_state::game::Game, recording::{self, interface::RecordingModule}, app::Application};
+use crate::{game_state::game::Game, recording::{interface::RecordingModule}, app::Application};
 
 pub struct RecorderMenu {}
 
