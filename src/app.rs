@@ -44,10 +44,11 @@ impl eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             
+            info::show(self, ctx);
+
             inventory::inventory(self, ctx);
 
             movement::movement(self, ctx);
-            info::show(self, ctx);
 
             let crafting = CraftingMenu::new(self.game.clone());
             crafting.show(self, ctx);
