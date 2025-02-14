@@ -6,7 +6,7 @@ use crate::{
 };
 
 pub fn movement(app: &mut Application, ctx: &egui::Context) {
-    let window = egui::Window::new("Directions").show(ctx, |ui| {
+    let window = egui::SidePanel::right("Controls").show(ctx, |ui| {
         let button = ui.button("W");
         if button.clicked()
             || ui.input(|i| i.key_pressed(egui::Key::ArrowLeft) | i.key_pressed(egui::Key::A))
