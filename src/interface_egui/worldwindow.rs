@@ -1,9 +1,12 @@
+use std::f32;
+
 use egui::{
-    epaint::{CircleShape, RectShape, Shape}, pos2, Color32, Pos2, Rect, Rounding, Stroke, TextureOptions, Vec2
+    emath::Rot2, epaint::{CircleShape, RectShape, Shape}, pos2, Color32, Mesh, Pos2, Rect, Rounding, Stroke, TextureOptions, Vec2
 };
 
 use crate::{
     datatypes::Coordinate,
+    direction::AbsoluteDirection,
     game_state::{
         game::Game,
         world::{FloorTile, World, WorldCell},
@@ -34,13 +37,14 @@ fn object_to_shape(
     descriptor: &AppearanceDefiniton,
     area: Rect,
     scale: f32,
+    orientation: AbsoluteDirection,
 ) -> Shape {
-    let mut base_sprite = RectShape::new(
-        area.scale_from_center(scale),
-        Rounding::ZERO,
-        Color32::DARK_RED,
-        Stroke::NONE,
-    );
+    let rot = match orientation {
+        AbsoluteDirection::N => Rot2::from_angle(f32::consts::PI),
+        AbsoluteDirection::E => Rot2::from_angle(f32::consts::FRAC_PI_2*3.0),
+        AbsoluteDirection::S => Rot2::from_angle(0.0),
+        AbsoluteDirection::W => Rot2::from_angle(f32::consts::FRAC_PI_2),
+    };
     if let Some(path) = &descriptor.texture {
         let tex = ctx.try_load_texture(
             path,
@@ -50,15 +54,23 @@ fn object_to_shape(
 
         if let Ok(poll) = tex {
             if let Some(id) = poll.texture_id() {
-                base_sprite.fill = Color32::WHITE;
-                base_sprite.fill_texture_id = id;
-                base_sprite.uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
+                let uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
+
+                let mut mesh = Mesh::with_texture(id);
+                mesh.add_rect_with_uv(area, uv, Color32::WHITE);
+                mesh.rotate(rot, area.min + Vec2 { x: 0.5, y: 0.5 } * area.size());
+                return Shape::mesh(mesh);
             }
         } else if let Err(e) = tex {
             log::log!(log::Level::Error, "{}", e);
         }
     }
-    Shape::Rect(base_sprite)
+    Shape::Rect(RectShape::new(
+        area.scale_from_center(scale),
+        Rounding::ZERO,
+        Color32::DARK_RED,
+        Stroke::NONE,
+    ))
 }
 
 impl WorldCell<'_> {
@@ -83,11 +95,18 @@ impl WorldCell<'_> {
                 &building.definition.appearance,
                 area,
                 0.9,
+                AbsoluteDirection::S,
             ));
         }
 
         if let Some(item) = self.items[0] {
-            ret.push(object_to_shape(ctx, &item.definition.appearance, area, 0.8));
+            ret.push(object_to_shape(
+                ctx,
+                &item.definition.appearance,
+                area,
+                0.8,
+                AbsoluteDirection::S,
+            ));
         }
 
         if let Some(actor) = self.actor {
@@ -96,6 +115,7 @@ impl WorldCell<'_> {
                 &actor.descriptor.appearance,
                 area,
                 0.8,
+                actor.facing,
             ));
         }
         ret
@@ -139,10 +159,10 @@ impl WorldWindowWidget<'_> {
                 }
             }
         }
-        if self.show_cursor{
+        if self.show_cursor {
             ret.push(Shape::Circle(CircleShape {
-                //Ugly but easy to implement center-finder. Use Centerx 
-                center: Pos2::new((size.x + cell_size.x)  / 2.0,(size.y - cell_size.y) / 2.0),
+                //Ugly but easy to implement center-finder. Use Centerx
+                center: Pos2::new((size.x + cell_size.x) / 2.0, (size.y - cell_size.y) / 2.0),
                 radius: 20.0,
                 fill: Color32::TRANSPARENT,
                 stroke: Stroke::new(5.0, Color32::DEBUG_COLOR),
