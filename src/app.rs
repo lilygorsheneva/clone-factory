@@ -1,5 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 use crate::error::Result;
+use crate::interface_egui::info;
 use crate::{game_state::game::Game, static_data::Data, worldgen};
 use crate::interface_egui::{self, crafting::CraftingMenu, inventory, movement, recording::RecorderMenu, worldwindow::WorldWindowWidget};
 
@@ -43,15 +44,6 @@ impl eframe::App for Application {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             
-            inventory::inventory(self, ctx);
-
-            movement::movement(self, ctx);
-
-            let crafting = CraftingMenu::new(self.game.clone());
-            crafting.show(self, ctx);
-
-            RecorderMenu::show(self, ctx);
-
             let painter = ui.painter();
             let area = painter.clip_rect();
             {
@@ -60,6 +52,17 @@ impl eframe::App for Application {
                 let shapes = window.paint(ctx ,area);
                 painter.extend(shapes);
             }
+
+            info::show(self, ctx);
+
+            inventory::inventory(self, ctx);
+
+            movement::movement(self, ctx);
+
+            let crafting = CraftingMenu::new(self.game.clone());
+            crafting.show(self, ctx);
+
+            RecorderMenu::show(self, ctx);
 
             interface_egui::error::show(self, ctx);
         });

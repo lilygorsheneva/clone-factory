@@ -4,7 +4,7 @@
     hp = 160
 [actors.player.text]
     name = "Player"
-    description = "It's you."
+    description = "It's you. Paradox tolerance: 160."
 [actors.player.appearance]    
     glyph = "@"
     glyph_n = "A"
@@ -19,7 +19,7 @@
     hp = 128
 [actors.clone.text]
     name = "clone"
-    description = "It's your doppleganger."
+    description = "It's your doppleganger. Paradox tolerance: 128."
 [actors.clone.appearance]    
     glyph = "@"
     glyph_n = "A"

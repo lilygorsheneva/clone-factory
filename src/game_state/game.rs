@@ -187,8 +187,8 @@ impl Game {
         let actor_ref = self.actors.get_player()?;
 
         match action::execute_action(actor_ref, action, self) {
-            // TODO: shove in an apply or popup here.
             Ok(update) => {
+                // TODO: add setting to allow recording failed actions.
                 self.recordings.append(action);
                 update.apply(self)?;
                 let (_, survivable) = paradox::update_actor_paradox(actor_ref, 0.0, self)?;
